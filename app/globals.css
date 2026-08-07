@@ -1,0 +1,422 @@
+@import "tailwindcss";
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Design tokens. Sampled from the two reference sites:
+   - Surfaces + type scale: apple.com/iphone-17-pro (SF Pro Display, #000 /
+     #1D1D1F / #F5F5F7, 56px/60px headlines, 19px/27px body in #86868B)
+   - Display treatment: metalab.com (high-contrast serif, weight ~300, set in
+     mid-grey rather than white so it sits *under* the light)
+   ─────────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Surfaces — light theme */
+  --color-ink: #ffffff;
+  --color-raised: #f5f5f7;
+  --color-band: #efefef;
+  --color-hairline: rgba(0, 0, 0, 0.08);
+  --color-hairline-dark: rgba(0, 0, 0, 0.12);
+
+  /* Text */
+  --color-bright: #1d1d1f;
+  --color-display: #6e6e73;
+  --color-muted: #86868b;
+  --color-ink-text: #1d1d1f;
+
+  /* Accent — eyebrows and stat numbers only. Never body copy. */
+  --color-accent: #ff9500;
+  /* The same hue, for light backgrounds. */
+  --color-accent-ink: #d97706;
+  /* Ambient — video tint, gradients, glow. Never text. */
+  --color-ambient: #7c3aed;
+
+  /* Type */
+  --font-display: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Helvetica, Arial, sans-serif;
+
+  /* Apple's measured scale */
+  --text-eyebrow: 1.3125rem; /* 21px */
+  --text-eyebrow--line-height: 1.5rem;
+  --text-headline: 3.5rem; /* 56px */
+  --text-headline--line-height: 3.75rem;
+  --text-headline--letter-spacing: -0.005em;
+  --text-sub: 3rem; /* 48px */
+  --text-sub--line-height: 3.25rem;
+  --text-lead: 1.1875rem; /* 19px */
+  --text-lead--line-height: 1.6875rem;
+  --text-detail: 1.0625rem; /* 17px */
+  --text-detail--line-height: 1.5625rem;
+
+  --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ─── Base ─────────────────────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+  background: var(--color-ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-ink-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-detail);
+  line-height: var(--text-detail--line-height);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Skip link — keyboard users land here first. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  background: var(--color-bright);
+  color: var(--color-ink);
+  border-radius: 999px;
+  font-size: 0.875rem;
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+/* ─── Display type ─────────────────────────────────────────────────────────
+   The single most important rule in this design: display headlines render in
+   mid-grey and sit *under* the ambient light, never white on top of it.
+   ───────────────────────────────────────────────────────────────────────── */
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.04;
+  color: var(--color-display);
+  text-wrap: balance;
+}
+
+/* Sized so a two-line headline, its lead and its CTAs all clear a 720px
+   viewport. MetaLab sets theirs at 88px; ours tops out a little above that
+   because our headline is shorter. */
+.display-xl {
+  font-size: clamp(2.75rem, 7.4vw, 6.5rem);
+}
+.display-lg {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+}
+
+/* ─── Section anatomy (Apple) ──────────────────────────────────────────────
+   eyebrow → headline → grey lead → media → feature grid
+   ───────────────────────────────────────────────────────────────────────── */
+.eyebrow {
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+  font-weight: 600;
+  letter-spacing: 0.011em;
+  color: var(--color-accent);
+}
+
+.headline {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.07;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--color-ink-text);
+  text-wrap: balance;
+}
+
+.lead {
+  font-size: var(--text-lead);
+  line-height: var(--text-lead--line-height);
+  color: var(--color-muted);
+  max-width: 44ch;
+}
+
+/* On darker band sections (light background, darker band) */
+.band .headline {
+  color: var(--color-ink-text);
+}
+.band .lead {
+  color: #6e6e73;
+}
+.band .eyebrow {
+  color: #d97706;
+}
+.band .display {
+  color: #6e6e73;
+}
+.band {
+  background: var(--color-band);
+  color: var(--color-ink-text);
+}
+
+/* ─── Pill (MetaLab) ───────────────────────────────────────────────────────── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  font-size: 0.9375rem;
+  color: var(--color-ink-text);
+  backdrop-filter: blur(12px);
+  transition: background 240ms var(--ease-out-soft),
+    border-color 240ms var(--ease-out-soft), transform 240ms var(--ease-out-soft);
+}
+a.pill:hover,
+button.pill:hover {
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+/* ─── On-dark scope ─────────────────────────────────────────────────────────
+   The video hero sits on dark footage, not the page's light surface — rather
+   than fork .headline/.lead/.display/.pill into dark-mode duplicates, this
+   overrides the same tokens those classes already read, scoped to one
+   wrapper. Everything inside just works, including on hover-swap content
+   that doesn't know it's living on a dark backdrop.
+   ───────────────────────────────────────────────────────────────────────── */
+.on-dark {
+  --color-ink-text: #ffffff;
+  --color-muted: #e3e3e8;
+  --color-display: #ffffff;
+  --color-hairline: rgba(245, 245, 247, 0.14);
+  --color-bright: #ffffff;
+}
+.on-dark .pill {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f5f5f7;
+}
+.on-dark a.pill:hover,
+.on-dark button.pill:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+/* ─── Scroll reveal ────────────────────────────────────────────────────────
+   The hidden state lives inside `@media (scripting: enabled)`, so if scripts
+   are blocked, fail, or the query is unsupported, the rule never applies and
+   every section renders visible. The animation is an enhancement, never a
+   precondition for reading the page — and unlike a JS-added html class, this
+   costs no inline script and causes no hydration mismatch.
+   ───────────────────────────────────────────────────────────────────────── */
+.reveal {
+  transition: opacity 900ms var(--ease-out-soft), transform 900ms var(--ease-out-soft);
+}
+
+@media (scripting: enabled) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    will-change: opacity, transform;
+  }
+  .reveal[data-shown="true"] {
+    opacity: 1;
+    transform: none;
+    will-change: auto;
+  }
+}
+
+/* ─── Horizontal highlight rail (Apple) ───────────────────────────────────── */
+.rail {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-inline: max(1.5rem, calc((100vw - 80rem) / 2));
+  padding-block: 0.5rem 2rem;
+}
+.rail::-webkit-scrollbar {
+  display: none;
+}
+.rail > * {
+  scroll-snap-align: center;
+  flex: 0 0 min(20rem, 78vw);
+}
+
+/* ─── Service preview mockups ──────────────────────────────────────────────
+   Shared keyframes for the eight small per-service graphics in the hero's
+   hover preview panel (see service-preview.tsx). Plain CSS animation, so the
+   reduced-motion block below already neutralises every one of these without
+   any extra handling — nothing here needs to duplicate that logic.
+   ───────────────────────────────────────────────────────────────────────── */
+@keyframes spg-draw {
+  0% {
+    stroke-dashoffset: 260;
+  }
+  55%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes spg-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes spg-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.22);
+    opacity: 1;
+  }
+}
+@keyframes spg-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes spg-slide-in {
+  0%,
+  18% {
+    transform: translateX(-6px);
+    opacity: 0;
+  }
+  38%,
+  85% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+}
+@keyframes spg-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+@keyframes spg-scrub {
+  0% {
+    left: 4%;
+  }
+  100% {
+    left: 88%;
+  }
+}
+@keyframes spg-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.spg-draw {
+  animation: spg-draw 2.6s ease-in-out infinite;
+}
+.spg-grow {
+  transform-origin: left;
+  animation: spg-grow 1.4s var(--ease-out-soft) both;
+}
+.spg-pulse {
+  animation: spg-pulse 1.8s ease-in-out infinite;
+}
+.spg-blink {
+  animation: spg-blink 1s step-end infinite;
+}
+.spg-slide-in {
+  animation: spg-slide-in 3.2s ease-in-out infinite;
+}
+.spg-float {
+  animation: spg-float 2.4s ease-in-out infinite;
+}
+.spg-scrub {
+  animation: spg-scrub 2.8s ease-in-out infinite alternate;
+}
+
+/* ─── Border beam ──────────────────────────────────────────────────────────
+   A light travelling around a card's edge — a conic gradient masked down to
+   a 1px ring, rotated via an animated custom property (needs @property to
+   interpolate smoothly instead of snapping). Layers over any existing
+   border; the global reduced-motion block below already freezes it. */
+@property --beam-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes border-beam-spin {
+  to {
+    --beam-angle: 360deg;
+  }
+}
+.border-beam {
+  position: relative;
+}
+.border-beam::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--beam-angle),
+    transparent 0deg,
+    transparent 280deg,
+    rgba(255, 255, 255, 0.95) 320deg,
+    rgba(255, 176, 64, 0.9) 345deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: border-beam-spin 4.5s linear infinite;
+  pointer-events: none;
+}
+
+/* ─── Reduced motion ───────────────────────────────────────────────────────
+   Non-negotiable. Both reference sites are motion-heavy; ours degrades to a
+   fully legible static page.
+   ───────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

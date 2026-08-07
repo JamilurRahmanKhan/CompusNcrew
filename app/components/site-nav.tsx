@@ -1,0 +1,157 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { brand } from "../brand";
+import { pathways, servicesByPathway } from "../content";
+import { LocalTime } from "./local-time";
+
+/**
+ * MetaLab's navigation is a "Menu" pill, a wordmark and a local clock — that's
+ * it. Everything else lives behind the overlay. We keep that restraint but the
+ * overlay carries the full service layer, because unlike MetaLab we need eight
+ * service pages to be reachable and crawlable.
+ */
+export function SiteNav() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // The homepage hero is a dark, full-bleed video — the light-theme nav
+  // text (dark ink) is invisible sitting directly on it. Once scrolled past
+  // the hero (or the overlay is open), the header gets its own light pill
+  // background from `scrolled` below and reads fine in the normal palette,
+  // so the swap only needs to cover the unscrolled state on "/".
+  const onDarkHero = pathname === "/" && !scrolled && !open;
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Lock the page and wire Escape while the overlay is open.
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <>
+      <header
+        className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${
+          scrolled && !open ? "bg-ink/70 backdrop-blur-xl" : ""
+        } ${onDarkHero ? "on-dark" : ""}`}
+      >
+        <nav
+          className="mx-auto flex h-16 max-w-[80rem] items-center justify-between px-6"
+          aria-label="Primary"
+        >
+          <button
+            type="button"
+            className="pill"
+            aria-expanded={open}
+            aria-controls="site-menu"
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? "Close" : "Menu"}
+          </button>
+
+          <Link
+            href="/"
+            className="absolute left-1/2 -translate-x-1/2 font-display text-[1.375rem] leading-none text-bright"
+            aria-label={`${brand.name} — home`}
+          >
+            {brand.name}
+          </Link>
+
+          <div className="flex items-center gap-4">
+            <LocalTime />
+            <Link href="/contact" className="pill">
+              Start
+            </Link>
+          </div>
+        </nav>
+      </header>
+
+      {/* Overlay menu. Rendered always so its links are in the DOM for crawlers;
+          visibility is driven by opacity + pointer-events, not display:none. */}
+      <div
+        id="site-menu"
+        className={`fixed inset-0 z-40 overflow-y-auto bg-ink/95 backdrop-blur-2xl transition-opacity duration-500 ${
+          open ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        aria-hidden={!open}
+      >
+        <div className="mx-auto max-w-[80rem] px-6 pb-24 pt-28">
+          <div className="grid gap-12 md:grid-cols-3">
+            {pathways.map((pathway) => (
+              <div key={pathway.id}>
+                <div className="mb-5 flex items-baseline gap-3">
+                  <span className="font-mono text-[0.75rem] text-accent">
+                    {pathway.index}
+                  </span>
+                  <Link
+                    href={`/solutions/${pathway.id}`}
+                    className="font-display text-4xl text-bright"
+                    tabIndex={open ? 0 : -1}
+                    onClick={() => setOpen(false)}
+                  >
+                    {pathway.name}
+                  </Link>
+                </div>
+                <p className="mb-5 max-w-[26ch] text-[0.9375rem] text-muted">
+                  {pathway.promise}
+                </p>
+                <ul className="space-y-2.5">
+                  {servicesByPathway(pathway.id).map((service) => (
+                    <li key={service.slug}>
+                      <Link
+                        href={`/services/${service.slug}`}
+                        className="text-detail text-bright/80 transition-colors hover:text-accent"
+                        tabIndex={open ? 0 : -1}
+                        onClick={() => setOpen(false)}
+                      >
+                        {service.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-16 flex flex-wrap gap-3 border-t border-hairline pt-8">
+            {[
+              { href: "/method", label: "Method" },
+              { href: "/work", label: "Work" },
+              { href: "/about", label: "About" },
+              { href: "/contact", label: "Start a project" },
+            ].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="pill"
+                tabIndex={open ? 0 : -1}
+                onClick={() => setOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
