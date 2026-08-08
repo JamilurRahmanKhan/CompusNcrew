@@ -13,8 +13,10 @@ import { GraphicDesignGlassCard } from "./service-cards/graphic-design";
 import { VideoEditingGlassCard } from "./service-cards/video-editing";
 
 // Each service owns its entire card file under ./service-cards — editing one
-// never touches another. This map just routes a slug to its component.
-const GLASS_CARDS: Record<string, (props: { entered: boolean }) => React.JSX.Element | null> = {
+// never touches another. This map just routes a slug to its component; it's
+// also used directly by <ServiceChipRail> to render the active card in the
+// same box as the default hero card (see that file for why).
+export const GLASS_CARDS: Record<string, (props: { entered: boolean }) => React.JSX.Element | null> = {
   "software-development": SoftwareDevelopmentGlassCard,
   "ai-automation": AiAutomationGlassCard,
   "business-marketing": BusinessMarketingGlassCard,
@@ -26,11 +28,11 @@ const GLASS_CARDS: Record<string, (props: { entered: boolean }) => React.JSX.Ele
 };
 
 /**
- * The full-screen hover takeover: hovering a service chip replaces the
- * entire hero backdrop with that service's own photography — full-bleed,
- * under one minimal glass card carrying the copy — and, where a product shot
- * exists for that service, slides a cutout (a hand holding a phone, a device
- * on its own) in from off-screen past the bottom-right corner to rest there.
+ * Hovering, clicking, or tabbing to a service chip replaces the hero
+ * backdrop with that service's own photography, full-bleed — and, where a
+ * product shot exists, slides a cutout in from the bottom-right corner.
+ * The glass card itself lives in <ServiceChipRail>, not here — see that
+ * file for why (same box as the default card, so it can never overlap it).
  *
  * Until a slug has real images (see ../service-backdrops.ts and
  * ../service-products.ts), the backdrop falls back to a restrained dark
@@ -72,14 +74,22 @@ function ImageBackdrop({ backdrop, active }: { backdrop: ServiceBackdrop; active
   );
 }
 
+// Positioned relative to the whole section (not the constrained content
+// column), so it only ever lands in the empty page margin outside the card
+// on genuinely wide screens — never competes with the card's width. Sized
+// with `clamp()` off viewport width so it actually grows on bigger monitors
+// instead of sitting at one small fixed size everywhere; the vw rate here
+// is deliberately mild so it stays mathematically clear of the card's own
+// (untouched, full-width) right edge even as both grow. On only from 2xl,
+// where the centered content column first leaves real margin to sit in.
 function ProductShot({ slug, entered }: { slug: string; entered: boolean }) {
   const product = serviceProducts[slug];
   if (!product?.src) return null;
 
   return (
     <div
-      className={`pointer-events-none absolute -bottom-[6%] -right-[4%] h-[78%] w-[46%] max-w-[34rem] transition-all ease-[cubic-bezier(0.16,1,0.3,1)] duration-[1100ms] ${
-        entered ? "translate-x-0 translate-y-0 opacity-100" : "translate-x-[38%] translate-y-[30%] opacity-0"
+      className={`pointer-events-none absolute -bottom-[4%] -right-[3%] hidden h-[62%] w-[clamp(10rem,16vw,26rem)] transition-all ease-[cubic-bezier(0.16,1,0.3,1)] duration-[1100ms] 2xl:block ${
+        entered ? "translate-x-0 translate-y-0 opacity-100" : "translate-x-[24%] translate-y-[18%] opacity-0"
       }`}
       style={{ transitionDelay: entered ? "80ms" : "0ms" }}
     >
@@ -92,32 +102,9 @@ function ProductShot({ slug, entered }: { slug: string; entered: boolean }) {
   );
 }
 
-function GlassCard({ slug, entered }: { slug: string; entered: boolean }) {
-  const Card = GLASS_CARDS[slug];
-  if (!Card) return null;
-
-  return (
-    // The outer element only ever handles layout — centering the card in
-    // the gap between the chip rail (reserved via lg:pl) and the product
-    // shot (reserved via lg:pr) — so it can't fight with the entrance
-    // animation, which lives entirely on the inner card via transform/opacity.
-    // Each service's actual card markup/styling lives in its own file under
-    // ./service-cards — this wrapper never touches that.
-    <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6 lg:pl-[23rem] lg:pr-[16rem]">
-      <div
-        className="pointer-events-auto w-full max-w-[42rem] transition-all duration-700 ease-out"
-        style={{
-          opacity: entered ? 1 : 0,
-          transform: entered ? "scale(1) translateY(0)" : "scale(0.96) translateY(10px)",
-          transitionDelay: entered ? "160ms" : "0ms",
-        }}
-      >
-        <Card entered={entered} />
-      </div>
-    </div>
-  );
-}
-
+// Full-bleed backdrop + small corner accent. The glass card itself lives in
+// <ServiceChipRail>, in the exact box the default hero card occupies — its
+// width is never touched here.
 export function ServiceTakeover({ activeSlug }: { activeSlug: string | null }) {
   // Keep rendering the last-hovered service's backdrop through the fade-out
   // — clearing it the instant activeSlug goes null would cut the image
@@ -138,7 +125,6 @@ export function ServiceTakeover({ activeSlug }: { activeSlug: string | null }) {
       {displaySlug && backdrop && (
         <>
           <ImageBackdrop key={displaySlug} backdrop={backdrop} active={isOpen} />
-          <GlassCard slug={displaySlug} entered={isOpen} />
           <ProductShot slug={displaySlug} entered={isOpen} />
         </>
       )}
