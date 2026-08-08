@@ -1523,8 +1523,14 @@ export function ServiceChipRail({
                 onMouseEnter={() => onHover(chip.slug)}
                 onFocus={() => onHover(chip.slug)}
                 onClick={(e) => {
+                  // Always select — never toggle off. Touch fires
+                  // onMouseEnter just before onClick, which already sets
+                  // hoveredSlug to this chip; a toggle here would then
+                  // read isActive as true and close it right back to
+                  // default instead of switching. The × button (see
+                  // GlassCard) is the one way back to default now.
                   e.preventDefault();
-                  onHover(isActive ? null : chip.slug);
+                  onHover(chip.slug);
                 }}
                 className={`
                   pill
