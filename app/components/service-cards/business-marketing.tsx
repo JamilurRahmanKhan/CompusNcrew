@@ -7,9 +7,9 @@ import Link from "next/link";
 import { getService } from "../../content";
 
 const GLASS =
-  "border-beam relative overflow-hidden rounded-[1.75rem] border border-white/15 bg-black/18 px-8 py-9 backdrop-blur-md md:px-11 md:py-11 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),inset_0_-2px_0_rgba(0,0,0,0.5),0_30px_80px_-24px_rgba(0,0,0,0.7)]";
+  "border-beam-violet relative overflow-hidden rounded-[1.75rem] border border-violet-200/15 bg-[#1a1030]/40 px-8 py-9 backdrop-blur-md md:px-11 md:py-11 shadow-[inset_0_1px_0_rgba(216,204,255,0.3),inset_0_-2px_0_rgba(0,0,0,0.5),0_30px_80px_-24px_rgba(76,29,149,0.55)]";
 
-const CTA = { from: "#ffc873", to: "#f0932b", text: "#2b1a02", glow: "rgba(240,147,43,0.65)" };
+const CTA = { from: "#c9a9ff", to: "#7c4fe0", text: "#1a1533", glow: "rgba(124,79,224,0.6)" };
 
 export function BusinessMarketingGlassCard({ entered }: { entered: boolean }) {
   const service = getService("business-marketing");
@@ -18,8 +18,8 @@ export function BusinessMarketingGlassCard({ entered }: { entered: boolean }) {
   return (
     <div className={GLASS}>
       <div className="flex items-center gap-2">
-        <span className="h-[3px] w-[3px] rounded-full bg-accent" />
-        <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-accent">
+        <span className="h-[3px] w-[3px] rounded-full bg-violet-300" />
+        <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-violet-300">
           {service.name}
         </p>
       </div>
@@ -28,17 +28,17 @@ export function BusinessMarketingGlassCard({ entered }: { entered: boolean }) {
         {service.headline}
       </h2>
 
-      <p className="mt-4 max-w-[36ch] text-[0.9375rem] leading-relaxed text-white/55">
+      <p className="mt-4 max-w-[36ch] text-[0.9375rem] leading-relaxed text-violet-100/60">
         {service.teaser}
       </p>
 
-      <div className="mt-7 h-px w-full bg-gradient-to-r from-white/15 to-transparent" />
+      <div className="mt-7 h-px w-full bg-gradient-to-r from-violet-200/15 to-transparent" />
 
       <div className="mt-6 flex flex-wrap gap-2">
         {service.subServices.slice(0, 4).map((sub) => (
           <span
             key={sub}
-            className="rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-[0.75rem] font-medium text-white/65"
+            className="rounded-full border border-violet-200/10 bg-violet-300/[0.06] px-3.5 py-1.5 text-[0.75rem] font-medium text-violet-100/70"
           >
             {sub}
           </span>

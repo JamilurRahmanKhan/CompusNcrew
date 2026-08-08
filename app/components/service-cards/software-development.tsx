@@ -7,7 +7,7 @@ import Link from "next/link";
 import { getService } from "../../content";
 
 const GLASS =
-  "border-beam relative overflow-hidden rounded-[1.75rem] border border-white/15 bg-black/18 px-8 py-9 backdrop-blur-md md:px-11 md:py-11 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),inset_0_-2px_0_rgba(0,0,0,0.5),0_30px_80px_-24px_rgba(0,0,0,0.7)]";
+  "border-beam relative overflow-hidden rounded-[1.75rem] border border-amber-200/15 bg-[#241708]/40 px-8 py-9 backdrop-blur-md md:px-11 md:py-11 shadow-[inset_0_1px_0_rgba(255,224,178,0.3),inset_0_-2px_0_rgba(0,0,0,0.5),0_30px_80px_-24px_rgba(154,90,10,0.55)]";
 
 const CTA = { from: "#ffc873", to: "#f0932b", text: "#2b1a02", glow: "rgba(240,147,43,0.65)" };
 
@@ -28,17 +28,17 @@ export function SoftwareDevelopmentGlassCard({ entered }: { entered: boolean }) 
         {service.headline}
       </h2>
 
-      <p className="mt-4 max-w-[36ch] text-[0.9375rem] leading-relaxed text-white/55">
+      <p className="mt-4 max-w-[36ch] text-[0.9375rem] leading-relaxed text-amber-100/55">
         {service.teaser}
       </p>
 
-      <div className="mt-7 h-px w-full bg-gradient-to-r from-white/15 to-transparent" />
+      <div className="mt-7 h-px w-full bg-gradient-to-r from-amber-200/15 to-transparent" />
 
       <div className="mt-6 flex flex-wrap gap-2">
         {service.subServices.slice(0, 4).map((sub) => (
           <span
             key={sub}
-            className="rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-[0.75rem] font-medium text-white/65"
+            className="rounded-full border border-amber-200/10 bg-amber-300/[0.06] px-3.5 py-1.5 text-[0.75rem] font-medium text-amber-100/70"
           >
             {sub}
           </span>

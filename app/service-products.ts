@@ -29,9 +29,4 @@ export type ServiceProduct = {
   alt: string;
 };
 
-export const serviceProducts: Partial<Record<string, ServiceProduct>> = {
-  "business-marketing": {
-    src: "/media/services/seo-product.png",
-    alt: "Three phone screens showing an SEO app's keyword tagging, ranking and insights views.",
-  },
-};
+export const serviceProducts: Partial<Record<string, ServiceProduct>> = {};

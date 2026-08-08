@@ -94,6 +94,7 @@ export function AiAutomationGlassCard({
   return (
     <div
       className={`
+        border-beam-violet
         group
         relative
         isolate
