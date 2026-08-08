@@ -1,10 +1,29 @@
 "use client";
 
 import { useRef } from "react";
-import Link from "next/link";
-import { getService } from "../content";
 import { serviceBackdrops, type ServiceBackdrop } from "../service-backdrops";
 import { serviceProducts } from "../service-products";
+import { SoftwareDevelopmentGlassCard } from "./service-cards/software-development";
+import { AiAutomationGlassCard } from "./service-cards/ai-automation";
+import { BusinessMarketingGlassCard } from "./service-cards/business-marketing";
+import { ProductAdsGlassCard } from "./service-cards/product-ads";
+import { SocialMediaMarketingGlassCard } from "./service-cards/social-media-marketing";
+import { EmailSmsGlassCard } from "./service-cards/email-sms";
+import { GraphicDesignGlassCard } from "./service-cards/graphic-design";
+import { VideoEditingGlassCard } from "./service-cards/video-editing";
+
+// Each service owns its entire card file under ./service-cards — editing one
+// never touches another. This map just routes a slug to its component.
+const GLASS_CARDS: Record<string, (props: { entered: boolean }) => React.JSX.Element | null> = {
+  "software-development": SoftwareDevelopmentGlassCard,
+  "ai-automation": AiAutomationGlassCard,
+  "business-marketing": BusinessMarketingGlassCard,
+  "product-ads": ProductAdsGlassCard,
+  "social-media-marketing": SocialMediaMarketingGlassCard,
+  "email-sms": EmailSmsGlassCard,
+  "graphic-design": GraphicDesignGlassCard,
+  "video-editing": VideoEditingGlassCard,
+};
 
 /**
  * The full-screen hover takeover: hovering a service chip replaces the
@@ -18,14 +37,6 @@ import { serviceProducts } from "../service-products";
  * gradient in the service's tone and the product shot simply doesn't render
  * — never a broken image, never a placeholder standing in.
  */
-
-// CTA colors per service — gold reads well on most backdrops, but AI
-// Automation's cool gray/violet tablet UI needs a matching accent instead
-// of gold fighting the theme.
-const CTA_THEME: Record<string, { from: string; to: string; text: string; glow: string }> = {
-  default: { from: "#ffc873", to: "#f0932b", text: "#2b1a02", glow: "rgba(240,147,43,0.65)" },
-  "ai-automation": { from: "#c9c4ff", to: "#7c6ef0", text: "#1a1533", glow: "rgba(124,110,240,0.6)" },
-};
 
 const FALLBACK_TONE: Record<ServiceBackdrop["tone"], string> = {
   gold: "radial-gradient(120% 90% at 78% 30%, #3a2f10 0%, #17130a 45%, #050403 100%)",
@@ -82,15 +93,16 @@ function ProductShot({ slug, entered }: { slug: string; entered: boolean }) {
 }
 
 function GlassCard({ slug, entered }: { slug: string; entered: boolean }) {
-  const service = getService(slug);
-  if (!service) return null;
-  const cta = CTA_THEME[slug] ?? CTA_THEME.default;
+  const Card = GLASS_CARDS[slug];
+  if (!Card) return null;
 
   return (
     // The outer element only ever handles layout — centering the card in
     // the gap between the chip rail (reserved via lg:pl) and the product
     // shot (reserved via lg:pr) — so it can't fight with the entrance
     // animation, which lives entirely on the inner card via transform/opacity.
+    // Each service's actual card markup/styling lives in its own file under
+    // ./service-cards — this wrapper never touches that.
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6 lg:pl-[23rem] lg:pr-[16rem]">
       <div
         className="pointer-events-auto w-full max-w-[42rem] transition-all duration-700 ease-out"
@@ -100,55 +112,7 @@ function GlassCard({ slug, entered }: { slug: string; entered: boolean }) {
           transitionDelay: entered ? "160ms" : "0ms",
         }}
       >
-        {/* Same plain glass treatment as the default hero card
-            (<PixelDissolveCard>): a flat dark scrim behind a hairline
-            border, not a gold-ringed showpiece — consistency across the two
-            cards the visitor actually compares side by side. */}
-        <div className="border-beam relative overflow-hidden rounded-[1.75rem] border border-white/15 bg-black/18 px-8 py-9 backdrop-blur-md md:px-11 md:py-11 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),inset_0_-2px_0_rgba(0,0,0,0.5),0_30px_80px_-24px_rgba(0,0,0,0.7)]">
-
-          <div className="flex items-center gap-2">
-            <span className="h-[3px] w-[3px] rounded-full bg-accent" />
-            <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-accent">
-              {service.name}
-            </p>
-          </div>
-
-          <h2 className="mt-4 font-display text-[2.25rem] leading-[1.04] tracking-[-0.02em] text-white sm:text-[2.65rem]">
-            {service.headline}
-          </h2>
-
-          <p className="mt-4 max-w-[36ch] text-[0.9375rem] leading-relaxed text-white/55">
-            {service.teaser}
-          </p>
-
-          <div className="mt-7 h-px w-full bg-gradient-to-r from-white/15 to-transparent" />
-
-          <div className="mt-6 flex flex-wrap gap-2">
-            {service.subServices.slice(0, 4).map((sub) => (
-              <span
-                key={sub}
-                className="rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-[0.75rem] font-medium text-white/65"
-              >
-                {sub}
-              </span>
-            ))}
-          </div>
-
-          <Link
-            href={`/services/${service.slug}`}
-            className="group mt-8 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[0.875rem] font-semibold transition-transform duration-300 ease-out hover:scale-[1.03]"
-            style={{
-              background: `linear-gradient(to bottom, ${cta.from}, ${cta.to})`,
-              color: cta.text,
-              boxShadow: `0 10px 30px -8px ${cta.glow}`,
-            }}
-          >
-            View {service.name}
-            <span aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-0.5">
-              →
-            </span>
-          </Link>
-        </div>
+        <Card entered={entered} />
       </div>
     </div>
   );
