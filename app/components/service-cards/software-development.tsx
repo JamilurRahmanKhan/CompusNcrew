@@ -237,7 +237,7 @@ export function SoftwareDevelopmentGlassCard({
 
       {/* CTA */}
       <Link
-        href={`/services/${service.slug}`}
+        href="/software-portfolio"
         className="
           group
 

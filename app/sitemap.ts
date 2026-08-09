@@ -10,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: url("/"), lastModified: now, priority: 1 },
     { url: url("/method"), lastModified: now, priority: 0.8 },
     { url: url("/work"), lastModified: now, priority: 0.7 },
+    { url: url("/software-portfolio"), lastModified: now, priority: 0.8 },
     { url: url("/about"), lastModified: now, priority: 0.6 },
     { url: url("/contact"), lastModified: now, priority: 0.9 },
     ...pathways.map((p) => ({

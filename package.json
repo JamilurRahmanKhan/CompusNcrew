@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run journey:build && next build",
+    "journey:build": "vite build --config portfolio-journey/vite.config.js",
+    "journey:check": "node portfolio-journey/scripts/check.mjs",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
@@ -27,6 +29,7 @@
     "@types/react-dom": "^19.0.0",
     "@types/three": "^0.185.4",
     "tailwindcss": "^4.1.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vite": "^7.3.6"
   }
 }

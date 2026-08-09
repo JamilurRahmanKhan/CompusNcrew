@@ -1,6 +1,6 @@
 # CompassNCrew — agency site (v2)
 
-Next.js 16 · React 19 · TypeScript · Tailwind v4. Fully static: 22 prerendered routes, no server runtime required.
+Next.js 16 · React 19 · TypeScript · Tailwind v4. Fully static: 23 prerendered routes, no server runtime required.
 
 ```bash
 npm install
@@ -101,11 +101,18 @@ This is the one live scene on the whole site, deliberately. Every other ambient 
 /                              Home — playbook §8 block order
 /solutions/{build,grow,tell}   Three pathways
 /services/{8 slugs}            One real landing page per service
+/software-portfolio            Interactive 3D journey through 20 software projects
 /method                        Bearing · Chart · Crew · Log
 /work                          Proof, labelled honestly
 /about  /contact  /privacy  /terms
 /sitemap.xml  /robots.txt
 ```
+
+### Interactive software portfolio
+
+The Software Development card now opens `/software-portfolio`. That route provides a persistent Back control, a Home link, and a same-origin, full-screen Three.js journey. Its maintainable source lives in `portfolio-journey/`; `npm run build` rebuilds it into `public/software-portfolio-app/` before the Next.js production build. Run `npm run journey:check` for the journey-specific interaction and accessibility checks.
+
+Automatic mode follows the road through all 20 platforms, shows each project for three seconds, and continues to the final consultation destination. Manual keyboard and touch driving remain available.
 
 Three pathways on the homepage, never eight services — playbook §27, first line. The eight live one level down, each with its own hero, scope table and CTA, which is where the SEO and paid traffic land.
 

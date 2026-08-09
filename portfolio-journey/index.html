@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#111315" />
+    <meta name="description" content="Drive through CompassNCrew’s interactive software portfolio: twenty digital products, five districts, and one road forward." />
+    <title>Software portfolio — CompassNCrew</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#project-index">Skip the 3D journey</a>
+
+    <div class="experience" id="experience" data-ready="false" data-started="false">
+      <canvas id="world" tabindex="0" aria-label="Interactive 3D project road. Start the journey, then use W A S D or the arrow keys to drive."></canvas>
+
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="CompassNCrew journey start"><span class="brand-full">COMPASSNCREW</span><span class="brand-short" aria-hidden="true">CNC</span></a>
+        <div class="route-select-wrap">
+          <label for="project-jump">Jump to a project</label>
+          <select id="project-jump"><option value="">Journey map · 20 stops</option></select>
+        </div>
+        <div class="topbar__actions">
+          <button class="icon-button" id="auto-tour-launch" type="button" aria-label="Start the automatic portfolio journey" aria-pressed="false" title="Start auto journey">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 5.2v13.6L19 12 8 5.2Z"/></svg><span>Auto tour</span>
+          </button>
+          <button class="icon-button" id="camera-toggle" type="button" aria-label="Switch camera view" aria-pressed="false" title="Switch camera view">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 8.5h3l1.3-2h7.4l1.3 2h3v9H4v-9Zm8 6.2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg><span>Camera</span>
+          </button>
+          <button class="icon-button" id="reset-car" type="button" aria-label="Return to the start" title="Return to start">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6.4 7.1A7.5 7.5 0 1 1 4.5 12H7a5 5 0 1 0 1.3-3.4L11 11H4V4l2.4 3.1Z"/></svg><span>Restart</span>
+          </button>
+          <button class="icon-button" id="help-toggle" type="button" aria-label="Open driving help" aria-haspopup="dialog" title="Driving help">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 17a1.2 1.2 0 1 1 0-2.4A1.2 1.2 0 0 1 12 19Zm1.2-5.1v.7h-2.4v-1.2c0-1.4.7-2.1 1.8-2.9.9-.6 1.4-1 1.4-1.8 0-1-.8-1.6-2-1.6-1.1 0-2 .5-2.8 1.3L7.8 6.8A5.6 5.6 0 0 1 12.1 5c2.7 0 4.5 1.4 4.5 3.6 0 1.8-1 2.8-2.4 3.8-.7.5-1 .8-1 1.5Z"/></svg><span>Help</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="intro" id="intro" aria-labelledby="intro-title">
+        <div class="journey-chip"><i></i><span>Departure point</span><strong>00 / 21</strong></div>
+        <h1 id="intro-title">Every project<br />moved us forward.</h1>
+        <p class="intro__copy">Take the wheel through five districts and twenty product worlds. Each stop reveals a new project; the road ends at our studio.</p>
+        <div class="journey-choice" aria-labelledby="journey-choice-title">
+          <p id="journey-choice-title">Would you like us to drive?</p>
+          <div class="intro__actions">
+            <button class="primary-button" id="start-auto" type="button"><span class="button-play" aria-hidden="true">▶</span> Start auto journey</button>
+            <button class="secondary-button" id="start-drive" type="button">I’ll drive myself</button>
+          </div>
+          <span class="distance-label">20 projects · three-second stops · pause anytime</span>
+        </div>
+        <div class="key-guide" aria-label="Driving controls">
+          <span><kbd>W</kbd><kbd>↑</kbd> Drive</span>
+          <span><kbd>A</kbd><kbd>D</kbd> Steer</span>
+          <span><kbd>S</kbd><kbd>↓</kbd> Reverse</span>
+        </div>
+      </section>
+
+      <div class="journey-progress" aria-label="Journey progress">
+        <div class="journey-progress__copy"><span id="district-label">Departure</span><strong id="progress-label">Start · 0%</strong></div>
+        <div class="journey-progress__track"><i id="progress-track"></i></div>
+      </div>
+
+      <section class="tour-controller" id="tour-controller" aria-label="Automatic journey controls" aria-hidden="true">
+        <div class="tour-controller__status" aria-live="polite">
+          <span id="tour-kicker">Automatic journey</span>
+          <strong id="tour-status">Driving to project 01 of 20</strong>
+        </div>
+        <div class="tour-controller__countdown" id="tour-countdown" aria-hidden="true"><i id="tour-countdown-track"></i><span id="tour-countdown-label">3s</span></div>
+        <div class="tour-controller__actions">
+          <button id="tour-pause" type="button" aria-pressed="false"><span aria-hidden="true">Ⅱ</span><strong>Pause</strong></button>
+          <button id="tour-exit" type="button"><span aria-hidden="true">⌁</span><strong>Take the wheel</strong></button>
+        </div>
+      </section>
+
+      <div class="loading" id="loading" role="status" aria-live="polite">
+        <div class="loading__mark">A</div>
+        <p>Extending the road</p>
+        <div class="loading__track"><span></span></div>
+      </div>
+
+      <aside class="showcase-modal" id="project-panel" role="dialog" aria-labelledby="project-title" aria-hidden="true">
+        <div class="showcase-modal__stage" aria-label="3D project mockup placeholder">
+          <div class="mockup-orbit">
+            <div class="mockup-device">
+              <div class="mockup-device__bar"><i></i><i></i><i></i></div>
+              <div class="mockup-device__screen" id="mockup-screen">
+                <span>Mockup slot</span><strong id="mockup-title">Ledger</strong><small>Replace this area with your project image or 3D model</small>
+              </div>
+            </div>
+            <div class="mockup-shadow"></div>
+          </div>
+          <span class="stage-label">Interactive showcase bay</span>
+        </div>
+        <div class="showcase-modal__content">
+          <button class="modal-close" id="close-project" type="button" aria-label="Close project details">×</button>
+          <p class="modal-meta"><span id="project-number">01</span> / <span id="project-category">Fintech</span></p>
+          <h2 id="project-title">Ledger</h2>
+          <p id="project-description">Wealth intelligence for modern investors.</p>
+          <dl class="project-details">
+            <div><dt>Contribution</dt><dd id="project-role">Strategy · Product design · Engineering</dd></div>
+            <div><dt>Impact</dt><dd id="project-outcome">A clearer path from portfolio data to decisions.</dd></div>
+          </dl>
+          <div class="modal-actions">
+            <a class="text-link" id="project-link" href="mailto:hello@compassncrew.com">Discuss this project <span aria-hidden="true">↗</span></a>
+            <button id="next-project" type="button">Next stop <span aria-hidden="true">→</span></button>
+          </div>
+        </div>
+      </aside>
+
+      <div class="destination-callout" id="destination-callout" aria-hidden="true">
+        <span>Final destination</span>
+        <strong>The studio is open.</strong>
+        <button type="button" id="open-consultation">Book your free consultation</button>
+      </div>
+
+      <div class="approach-hint" id="approach-hint" role="status" aria-live="polite" aria-hidden="true">
+        <div class="approach-hint__marker"><span id="approach-number">01</span></div>
+        <div><span id="approach-kicker">Project showcase ahead</span><strong id="approach-message">Stop inside the orange road bay to open the portfolio.</strong></div>
+      </div>
+
+      <div class="hud" aria-hidden="true">
+        <div class="speed"><strong id="speed-value">0</strong><span>km/h</span></div>
+        <div class="road-status"><i></i><span id="road-status">On road</span></div>
+      </div>
+
+      <div class="minimap" aria-label="World map">
+        <canvas id="minimap" width="360" height="260"></canvas>
+        <span>20 projects · 5 districts</span>
+      </div>
+
+      <div class="touch-controls" aria-label="Touch driving controls">
+        <button type="button" data-control="left" aria-label="Steer left">←</button>
+        <div><button type="button" data-control="forward" aria-label="Drive forward">↑</button><button type="button" data-control="backward" aria-label="Reverse">↓</button></div>
+        <button type="button" data-control="right" aria-label="Steer right">→</button>
+      </div>
+
+      <p class="orientation-hint">Rotate your device for a wider road view.</p>
+      <div class="webgl-fallback" id="webgl-fallback" hidden>
+        <h2>The 3D road could not start.</h2><p>You can still browse every project below.</p><a href="#project-index">Open project index</a>
+      </div>
+    </div>
+
+    <dialog class="consultation-modal" id="consultation-modal" aria-labelledby="consultation-title">
+      <div class="consultation-visual" aria-hidden="true">
+        <div class="consultation-visual__room"><span>30 min</span><strong>Free<br />consultation</strong><div class="table"></div><i class="chair chair--one"></i><i class="chair chair--two"></i></div>
+      </div>
+      <form class="consultation-form" id="consultation-form" method="dialog">
+        <button class="modal-close" id="close-consultation" type="button" aria-label="Close consultation form">×</button>
+        <p class="modal-meta">Journey complete / Let’s talk</p>
+        <h2 id="consultation-title">What should we build next?</h2>
+        <p>Tell us where you want to go. We’ll reply with a useful starting point and a time for a free 30-minute call.</p>
+        <div class="form-grid">
+          <label><span>Name</span><input name="name" autocomplete="name" required placeholder="Your name" /></label>
+          <label><span>Work email</span><input name="email" type="email" autocomplete="email" required placeholder="you@company.com" /></label>
+          <label class="form-grid__wide"><span>What are you planning?</span><textarea name="brief" rows="4" required placeholder="A short description of the product, challenge, or opportunity"></textarea></label>
+          <label class="form-grid__wide"><span>Ideal starting point</span><select name="timeline"><option>Within the next month</option><option>Within 2–3 months</option><option>Exploring for later</option></select></label>
+        </div>
+        <button class="primary-button" value="submit" type="submit">Request the consultation <span aria-hidden="true">→</span></button>
+        <small>No sales script. Just a focused conversation about the work.</small>
+      </form>
+    </dialog>
+
+    <dialog class="help-modal" id="help-modal" aria-labelledby="help-title" aria-describedby="help-description">
+      <button class="modal-close" id="close-help" type="button" aria-label="Close driving help">×</button>
+      <p class="modal-meta">Journey guide / Press H anytime</p>
+      <h2 id="help-title">Drive, stop, explore.</h2>
+      <p id="help-description">Everything in the journey works with a keyboard, mouse, trackpad, or touchscreen.</p>
+      <div class="help-grid">
+        <section><span class="help-grid__number">01</span><h3>Follow the road</h3><p>Use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or the arrow keys. On touchscreens, use the bottom driving controls.</p></section>
+        <section><span class="help-grid__number">02</span><h3>Find an orange bay</h3><p>Every project has a marked stop zone and roadside sign. Slow down and place the car inside it.</p></section>
+        <section><span class="help-grid__number">03</span><h3>Open the portfolio</h3><p>The showcase opens automatically. Close it to keep driving, or select the next project directly.</p></section>
+        <section><span class="help-grid__number">04</span><h3>Use quick controls</h3><p>Press <kbd>C</kbd> to change camera, <kbd>R</kbd> to restart, and <kbd>Esc</kbd> to close an open panel.</p></section>
+      </div>
+      <button class="primary-button" id="continue-journey" type="button">Continue the journey <span aria-hidden="true">→</span></button>
+    </dialog>
+
+    <main id="project-index" class="project-index">
+      <header><p class="eyebrow">Accessible project index</p><h2>Twenty stops.<br />One body of work.</h2><p>Browse every destination without entering the 3D experience.</p></header>
+      <div class="project-index__grid" id="project-grid"></div>
+      <button class="primary-button project-index__cta" id="index-consultation" type="button">Book a free consultation <span aria-hidden="true">→</span></button>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

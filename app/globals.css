@@ -67,6 +67,10 @@ body {
   overflow-x: hidden;
 }
 
+body.journey-mode {
+  overflow: hidden;
+}
+
 ::selection {
   background: var(--color-accent);
   color: var(--color-ink);
