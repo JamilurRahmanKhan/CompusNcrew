@@ -158,10 +158,10 @@ kbd { min-width: 24px; height: 24px; display: inline-grid; place-items: center; 
 .minimap canvas { width: 180px; height: 130px; display: block; border: 1px solid var(--line); border-radius: var(--radius-md); background: rgb(17 19 21 / 65%); backdrop-filter: blur(10px); }
 .minimap span { display: block; margin-top: 7px; color: var(--dim); font-size: 9px; letter-spacing: .11em; text-align: right; text-transform: uppercase; }
 
-.touch-controls { position: absolute; z-index: var(--z-panel); left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); display: none; align-items: end; gap: 8px; transform: translateX(-50%); }
+.touch-controls { position: absolute; z-index: var(--z-panel); left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); display: none; align-items: end; gap: 8px; transform: translateX(-50%); touch-action: none; overscroll-behavior: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 .touch-controls div { display: grid; gap: 8px; }
-.touch-controls button { width: 58px; height: 58px; border: 1px solid var(--line); border-radius: 50%; background: rgb(17 19 21 / 76%); color: var(--cream); font-size: 22px; backdrop-filter: blur(12px); touch-action: none; }
-.touch-controls button[data-active="true"] { background: rgb(220 116 49 / 82%); }
+.touch-controls button { width: 58px; height: 58px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: rgb(17 19 21 / 76%); color: var(--cream); font-size: 22px; line-height: 1; cursor: pointer; backdrop-filter: blur(12px); touch-action: none; -webkit-appearance: none; appearance: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; transition: background-color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out), transform var(--motion-fast) var(--ease-out); }
+.touch-controls button[data-active="true"] { border-color: rgb(244 234 214 / 38%); background: rgb(220 116 49 / 88%); transform: scale(.94); }
 .orientation-hint { display: none; }
 .webgl-fallback { position: absolute; z-index: var(--z-modal); inset: 0; place-content: center; padding: 30px; background: var(--canvas); text-align: center; }
 .webgl-fallback:not([hidden]) { display: grid; }

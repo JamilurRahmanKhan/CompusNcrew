@@ -37,6 +37,7 @@ const tourCountdownTrack = document.querySelector('#tour-countdown-track');
 const tourCountdownLabel = document.querySelector('#tour-countdown-label');
 const tourPauseButton = document.querySelector('#tour-pause');
 const tourExitButton = document.querySelector('#tour-exit');
+const touchControls = document.querySelector('.touch-controls');
 const minimap = document.querySelector('#minimap');
 const minimapContext = minimap.getContext('2d');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -90,6 +91,7 @@ const world = buildWorld(scene);
 const clock = new THREE.Clock();
 
 const input = { forward: false, backward: false, left: false, right: false };
+const activeTouchPointers = new Map();
 const vehicle = {
   speed: 0,
   heading: world.start.heading,
@@ -142,9 +144,10 @@ function resize() {
 }
 
 function setStarted(started = true) {
+  const wasStarted = vehicle.started;
   vehicle.started = started;
   experience.dataset.started = String(started);
-  if (started) {
+  if (started && !wasStarted) {
     startButton.blur();
     canvas.focus({ preventScroll: true });
     canvas.setAttribute('aria-label', 'Driving active. Use W A S D or the arrow keys. Stop beside a numbered platform to open its showcase.');
@@ -190,22 +193,61 @@ window.addEventListener('keyup', (event) => {
   if (!keyMap[event.code]) return;
   setInput(keyMap[event.code], false);
 });
-window.addEventListener('blur', () => Object.keys(input).forEach((key) => setInput(key, false)));
+function releaseTouchPointer(pointerId) {
+  const control = activeTouchPointers.get(pointerId);
+  if (!control) return;
+  activeTouchPointers.delete(pointerId);
+  const controlStillPressed = [...activeTouchPointers.values()].includes(control);
+  if (!controlStillPressed) setInput(control, false);
+}
+
+function releaseAllInputs() {
+  activeTouchPointers.clear();
+  Object.keys(input).forEach((key) => setInput(key, false));
+}
+
+window.addEventListener('blur', releaseAllInputs);
+window.addEventListener('pagehide', releaseAllInputs);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') releaseAllInputs();
+});
 
 document.querySelectorAll('[data-control]').forEach((button) => {
   const control = button.dataset.control;
   const press = (event) => {
     event.preventDefault();
+    event.stopPropagation();
+    document.getSelection()?.removeAllRanges();
     setStarted();
+    activeTouchPointers.set(event.pointerId, control);
     setInput(control, true);
-    button.setPointerCapture?.(event.pointerId);
+    try {
+      button.setPointerCapture?.(event.pointerId);
+    } catch {
+      // The global pointer listeners still guarantee release if capture is unavailable.
+    }
   };
-  const release = (event) => { event.preventDefault(); setInput(control, false); };
+  const release = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    releaseTouchPointer(event.pointerId);
+  };
   button.addEventListener('pointerdown', press);
   button.addEventListener('pointerup', release);
   button.addEventListener('pointercancel', release);
   button.addEventListener('lostpointercapture', release);
 });
+
+// Android and iOS may promote a long press into selection, a context menu, or
+// a drag operation. Keep those browser gestures disabled only on the driving
+// pad so ordinary page content remains selectable and accessible.
+['contextmenu', 'selectstart', 'dragstart'].forEach((eventName) => {
+  touchControls.addEventListener(eventName, (event) => event.preventDefault());
+});
+touchControls.addEventListener('touchstart', (event) => event.preventDefault(), { passive: false });
+touchControls.addEventListener('touchmove', (event) => event.preventDefault(), { passive: false });
+window.addEventListener('pointerup', (event) => releaseTouchPointer(event.pointerId), true);
+window.addEventListener('pointercancel', (event) => releaseTouchPointer(event.pointerId), true);
 
 function nearestRoad(position) {
   let nearestSquared = Infinity;
