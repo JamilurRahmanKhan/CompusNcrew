@@ -7,7 +7,7 @@ const elements = {
   description: $("#node-description"), input: $("#node-input"), action: $("#node-action"), output: $("#node-output"),
   state: $("#node-state"), system: $("#system-label"), engineState: $("#engine-state"), engineDetail: $("#engine-detail"),
   start: $("#start-button"), startLabel: $("#start-label"), journeyIndex: $("#journey-index"), journeyTitle: $("#journey-title"),
-  journeyPayload: $("#journey-payload"), result: $("#result-panel"),
+  journeyPayload: $("#journey-payload"), result: $("#result-panel"), services: $("#services-page"),
 };
 
 let activeNode = 0;
@@ -94,6 +94,11 @@ world = createWorld($("#world"), {
     elements.journeyIndex.textContent = "OUTPUT";
     elements.journeyTitle.textContent = "Campaign delivered to four channels";
     elements.journeyPayload.textContent = "12 assets created · human approved · results connected";
+    window.setTimeout(() => {
+      elements.body.classList.add("services-visible");
+      elements.services.setAttribute("aria-hidden", "false");
+      elements.services.focus({ preventScroll: true });
+    }, reducedMotion ? 120 : 650);
   },
   onReset() {
     stageButtons.forEach((button) => button.classList.remove("done", "active"));
@@ -109,20 +114,45 @@ world = createWorld($("#world"), {
   },
 });
 
-elements.start.addEventListener("click", () => world.toggle());
-$("#overview-button").addEventListener("click", () => world.overview());
-$("#reset-button").addEventListener("click", () => world.reset());
-const dialog = $("#help-dialog");
-$("#help-button").addEventListener("click", () => dialog.showModal());
-$("#close-help").addEventListener("click", () => dialog.close());
-dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
-window.addEventListener("keydown", (event) => {
-  if ((event.key === "Enter" || event.key === " ") && !dialog.open) { event.preventDefault(); world.toggle(); }
-  if (event.key.toLowerCase() === "r") world.reset();
-  if (event.key === "ArrowRight") world.select(Math.min(workflowNodes.length - 1, activeNode + 1), true);
-  if (event.key === "ArrowLeft") world.select(Math.max(0, activeNode - 1), true);
-  if (event.key === "ArrowDown") world.selectStage(Math.min(stages.length - 1, activeStage + 1), true);
-  if (event.key === "ArrowUp") world.selectStage(Math.max(0, activeStage - 1), true);
-});
+window.setTimeout(() => world.start(), reducedMotion ? 100 : 1000);
+
+function returnToWorkflow() {
+  if (!elements.body.classList.contains("services-visible")) return;
+  elements.body.classList.remove("services-visible");
+  elements.services.setAttribute("aria-hidden", "true");
+  elements.services.scrollTop = 0;
+  world.reset();
+  window.setTimeout(() => world.start(), reducedMotion ? 60 : 520);
+}
+
+const replayDialog = $("#replay-dialog");
+function requestWorkflowReplay() {
+  if (!elements.body.classList.contains("services-visible") || replayDialog.open) return;
+  replayDialog.showModal();
+}
+$("#replay-request").addEventListener("click", requestWorkflowReplay);
+$("#replay-stay").addEventListener("click", () => replayDialog.close());
+$("#replay-confirm").addEventListener("click", () => { replayDialog.close(); returnToWorkflow(); });
+replayDialog.addEventListener("click", (event) => { if (event.target === replayDialog) replayDialog.close(); });
+
+let serviceTouchStart = null;
+let serviceTouchDelta = 0;
+elements.services.addEventListener("wheel", (event) => {
+  if (elements.services.scrollTop <= 1 && event.deltaY < -32) requestWorkflowReplay();
+}, { passive: true });
+elements.services.addEventListener("touchstart", (event) => {
+  serviceTouchStart = elements.services.scrollTop <= 1 ? event.touches[0].clientY : null;
+  serviceTouchDelta = 0;
+}, { passive: true });
+elements.services.addEventListener("touchmove", (event) => {
+  if (serviceTouchStart === null) return;
+  serviceTouchDelta = event.touches[0].clientY - serviceTouchStart;
+}, { passive: true });
+elements.services.addEventListener("touchend", () => {
+  if (serviceTouchDelta > 72) requestWorkflowReplay();
+  serviceTouchStart = null;
+  serviceTouchDelta = 0;
+}, { passive: true });
+
 showNode(0);
 document.documentElement.dataset.workflowState = "ready";

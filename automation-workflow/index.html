@@ -63,6 +63,29 @@
       <nav class="stage-rail" aria-label="Workflow journey"><ol id="stage-list"></ol></nav>
       <div class="mobile-prompt">Swipe across the canvas to follow the complete journey</div>
 
+      <section class="services-page" id="services-page" aria-hidden="true" tabindex="-1">
+        <header class="services-nav"><a class="services-brand" href="/" aria-label="CompassNCrew home"><span>C</span>CompassNCrew</a><div class="services-nav-actions"><span>AI automation</span><button id="replay-request" type="button">Replay 3D</button></div></header>
+        <div class="services-content">
+          <section class="services-hero"><div><p class="services-kicker">Automation, designed around your operation</p><h1>Systems that keep working after your team logs off.</h1></div><p>We connect your tools, data and decisions into reliable workflows that remove repetitive work while keeping people in control.</p></section>
+          <section class="services-list" aria-label="AI automation services">
+            <article><div class="service-mark">WF</div><div><h2>Workflow automation</h2><p>Connected operational workflows that move information between your CRM, inbox, spreadsheets and internal tools without manual handoffs.</p></div><ul><li>Process mapping</li><li>System integrations</li><li>Approval logic</li></ul></article>
+            <article><div class="service-mark">SM</div><div><h2>Social media automation</h2><p>Campaign systems that plan, create, approve, publish and measure content across every connected social channel.</p></div><ul><li>Content pipelines</li><li>Multi-channel publishing</li><li>Performance loops</li></ul></article>
+            <article><div class="service-mark">AI</div><div><h2>AI agents</h2><p>Purpose-built agents that qualify leads, answer customer questions, summarize conversations and route work to the right person.</p></div><ul><li>Lead qualification</li><li>Support agents</li><li>Knowledge retrieval</li></ul></article>
+            <article><div class="service-mark">OP</div><div><h2>Internal operations</h2><p>Quiet automation for reporting, scheduling, document processing and recurring administrative work across your business.</p></div><ul><li>Document workflows</li><li>Scheduled reporting</li><li>Data synchronization</li></ul></article>
+          </section>
+          <section class="services-proof"><p>Every system includes</p><div><span>Human approval where it matters</span><span>Clear monitoring and recovery</span><span>Documentation your team can own</span></div></section>
+          <section class="services-cta"><div><p>Have a process that should run itself?</p><h2>Let’s map the first workflow.</h2></div><a href="/#contact">Book an automation consultation <span aria-hidden="true">→</span></a></section>
+        </div>
+      </section>
+
+      <dialog class="replay-dialog" id="replay-dialog" aria-labelledby="replay-title" aria-describedby="replay-description">
+        <div class="replay-symbol" aria-hidden="true"><span></span></div>
+        <p class="replay-context">3D experience</p>
+        <h2 id="replay-title">Replay the automation journey?</h2>
+        <p id="replay-description">The workflow will run once more, then bring you back to these services automatically.</p>
+        <div class="replay-actions"><button id="replay-stay" type="button">Stay on services</button><button id="replay-confirm" type="button">Replay experience <span aria-hidden="true">→</span></button></div>
+      </dialog>
+
       <dialog id="help-dialog" class="help-dialog">
         <button id="close-help" class="dialog-close" aria-label="Close controls">×</button><p class="eyebrow">How to explore</p><h2>Follow the campaign</h2>
         <ul><li><kbd>Enter</kbd> or <kbd>Space</kbd> runs or pauses the workflow</li><li>The camera follows each active automation step while the workflow runs</li><li>Drag with a mouse or one finger to travel across the workflow; scroll or pinch to zoom</li><li>Use Journey start to return to the opening steps at any time</li><li>Tap any node to inspect what it receives, does and delivers</li><li><kbd>R</kbd> resets the demonstration</li></ul>

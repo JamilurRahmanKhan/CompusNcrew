@@ -7,8 +7,8 @@ const [html, main, world, data] = await Promise.all([
   readFile(resolve(root, "src/world.js"), "utf8"), readFile(resolve(root, "src/data.js"), "utf8"),
 ]);
 const checks = [
-  [html.includes('id="start-button"'), "start control"], [html.includes('id="world"'), "3D canvas"],
-  [main.includes("keydown"), "keyboard controls"], [world.includes("pointerdown"), "pointer controls"],
+  [html.includes('id="world"'), "3D canvas"], [main.includes("setTimeout(() => world.start()"), "automatic one-time start"],
+  [html.includes('id="services-page"') && main.includes("services-visible"), "in-page services transition"], [world.includes("pointerdown"), "pointer controls"],
   [world.includes("touchmove"), "pinch controls"], [world.includes("stageEdges"), "multi-branch execution"],
   [world.includes("getViewDistance") && world.includes("ResizeObserver"), "aspect-ratio-aware responsive camera"],
   [world.includes("packetCount") && world.includes("AdditiveBlending"), "visible multi-packet light system"],
