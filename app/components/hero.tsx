@@ -30,19 +30,38 @@ import { ServiceTakeover } from "./service-takeover";
  */
 export function Hero() {
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
+  const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
+
+  const activeSlug = selectedSlug ?? hoveredSlug;
+
+  function previewService(slug: string | null) {
+    if (!selectedSlug) setHoveredSlug(slug);
+  }
+
+  function selectService(slug: string) {
+    setSelectedSlug(slug);
+    setHoveredSlug(slug);
+  }
+
+  function closeService() {
+    setSelectedSlug(null);
+    setHoveredSlug(null);
+  }
 
   return (
     <section className="relative isolate flex min-h-[100svh] flex-col justify-center pb-14 pt-28">
       <LiquidVideoBackdrop />
-      <ServiceTakeover activeSlug={hoveredSlug} />
+      <ServiceTakeover activeSlug={activeSlug} />
 
       <div className="on-dark relative mx-auto grid w-full max-w-[80rem] gap-12 px-6 lg:grid-cols-[auto_minmax(0,1fr)] lg:px-20 xl:px-28">
         <ServiceChipRail
           chips={home.hero.chips}
           headline={home.hero.headline}
           lead={home.hero.lead}
-          hoveredSlug={hoveredSlug}
-          onHover={setHoveredSlug}
+          hoveredSlug={activeSlug}
+          onHover={previewService}
+          onSelect={selectService}
+          onClose={closeService}
         />
       </div>
     </section>

@@ -1404,12 +1404,16 @@ export function ServiceChipRail({
   lead,
   hoveredSlug,
   onHover,
+  onSelect,
+  onClose,
 }: {
   chips: Chip[];
   headline: string[];
   lead: string;
   hoveredSlug: string | null;
   onHover: (slug: string | null) => void;
+  onSelect: (slug: string) => void;
+  onClose: () => void;
 }) {
   const active = hoveredSlug ? getService(hoveredSlug) : null;
   const ActiveCard = hoveredSlug ? GLASS_CARDS[hoveredSlug] : null;
@@ -1530,7 +1534,7 @@ export function ServiceChipRail({
                   // default instead of switching. The × button (see
                   // GlassCard) is the one way back to default now.
                   e.preventDefault();
-                  onHover(chip.slug);
+                  onSelect(chip.slug);
                 }}
                 className={`
                   pill
@@ -1802,7 +1806,7 @@ export function ServiceChipRail({
               <button
                 type="button"
                 aria-label="Back to default"
-                onClick={() => onHover(null)}
+                onClick={onClose}
                 className="
                   absolute
                   right-3

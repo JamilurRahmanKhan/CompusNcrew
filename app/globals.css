@@ -236,6 +236,35 @@ button.pill:hover {
     transform: none;
     will-change: auto;
   }
+
+  /* The hero contains the site's primary service navigation. If a browser
+     blocks or delays the Next development chunks, never leave those options
+     permanently invisible behind a progressive-enhancement animation. */
+  .on-dark .reveal {
+    animation: reveal-failsafe 0s 1200ms forwards;
+  }
+}
+
+@keyframes reveal-failsafe {
+  to {
+    opacity: 1;
+    transform: none;
+    will-change: auto;
+  }
+}
+
+/* The WebGL experience is a same-origin static build. The React shell normally
+   removes this veil on iframe load; this CSS timeout is the independent safety
+   net that prevents a permanently blocked screen if hydration is interrupted. */
+.automation-loading-veil {
+  animation: automation-veil-failsafe 400ms ease 2600ms forwards;
+}
+
+@keyframes automation-veil-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
 
 /* ─── Horizontal highlight rail (Apple) ───────────────────────────────────── */

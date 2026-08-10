@@ -6,6 +6,7 @@ node_modules/
 out/
 build/
 /public/software-portfolio-app/
+/public/ai-automation-app/
 
 # env
 .env

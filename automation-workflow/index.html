@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#33273c" />
+    <title>Social Media Automation Workflow</title>
+    <script>document.documentElement.dataset.workflowState="booting";window.addEventListener("error",event=>document.documentElement.dataset.workflowError=event.message);window.addEventListener("unhandledrejection",event=>document.documentElement.dataset.workflowError=String(event.reason));</script>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <main class="experience">
+      <canvas id="world" aria-label="Interactive 3D social media automation workflow"></canvas>
+      <div class="grain" aria-hidden="true"></div>
+
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark">C</span><span>CompassNCrew</span></div>
+        <div class="workflow-facts" aria-label="Workflow summary"><span>14 nodes</span><i></i><span>4 channels</span><i></i><span>Human approved</span></div>
+        <div class="top-actions">
+          <div class="top-status"><span class="live-dot"></span><span id="system-label">Ready to run</span></div>
+          <button class="icon-button" id="overview-button" aria-label="Return to the start of the workflow" title="Journey start"><span>⌖</span></button>
+          <button class="icon-button" id="reset-button" aria-label="Reset workflow" title="Reset"><span>↻</span></button>
+          <button class="icon-button" id="help-button" aria-label="Show controls" title="Controls"><span>?</span></button>
+        </div>
+      </header>
+
+      <section class="hero-copy" aria-labelledby="workflow-title">
+        <p class="eyebrow">Live AI automation</p>
+        <h1 id="workflow-title">One brief.<br /><em>A complete social campaign.</em></h1>
+        <p class="intro">Follow a real campaign from its content queue through AI creation, human approval, four social channels and a measurable result.</p>
+        <div class="legend" aria-label="Workflow node types"><span><i class="trigger"></i>Trigger</span><span><i class="ai"></i>AI creation</span><span><i class="human"></i>Human review</span><span><i class="channel"></i>Publishing</span></div>
+        <div class="hint"><span>Drag to explore</span><i></i><span>Scroll to zoom</span><i></i><span>Tap any node</span></div>
+      </section>
+
+      <div class="journey-status" id="journey-status" aria-live="polite">
+        <span class="journey-index" id="journey-index">READY</span>
+        <span class="journey-copy"><strong id="journey-title">Campaign workflow ready</strong><small id="journey-payload">Run the workflow to follow every payload</small></span>
+        <span class="journey-signal" aria-hidden="true"><i></i><i></i><i></i></span>
+      </div>
+
+      <aside class="inspector" id="inspector" aria-live="polite">
+        <div class="inspector-head"><span class="node-icon" id="node-icon">ST</span><div><p class="node-kind" id="node-kind">TRIGGER · STEP 01</p><h2 id="node-name">Schedule Trigger</h2></div><span class="node-state" id="node-state">Ready</span></div>
+        <p class="node-description" id="node-description">A scheduled trigger starts the social campaign without a manual handoff.</p>
+        <dl class="node-flow"><div><dt>Receives</dt><dd id="node-input">Weekdays · 09:00</dd></div><div><dt>What happens</dt><dd id="node-action">Starts the campaign automatically</dd></div><div><dt>Delivers</dt><dd id="node-output">New workflow run</dd></div></dl>
+      </aside>
+
+      <aside class="result-panel" id="result-panel" aria-live="polite" aria-hidden="true">
+        <div class="result-head"><span class="result-badge">OUTPUT</span><span class="result-state"><i></i>Campaign delivered</span></div>
+        <h2>Four posts. Twelve assets.<br /><em>One approved campaign.</em></h2>
+        <p>The complete social package is published and its performance loop is connected to the next campaign.</p>
+        <div class="result-stats"><div><strong>4</strong><span>Posts live</span></div><div><strong>12</strong><span>Assets created</span></div><div><strong>100%</strong><span>Human approved</span></div></div>
+        <div class="channel-results" aria-label="Published channel results">
+          <span><b>IG</b>Instagram<i>Live</i></span><span><b>in</b>LinkedIn<i>Live</i></span><span><b>f</b>Facebook<i>Live</i></span><span><b>X</b>X / Twitter<i>Live</i></span>
+        </div>
+        <div class="result-foot"><span>Optimization loop</span><strong>Insights returned to Brand Context →</strong></div>
+      </aside>
+
+      <section class="engine-panel" aria-label="Workflow controls">
+        <div class="engine-readout"><span id="engine-state">WORKFLOW READY</span><small id="engine-detail">14 connected steps waiting for a campaign</small></div>
+        <button id="start-button" class="start-button" type="button"><span class="button-light" aria-hidden="true"></span><span class="start-copy"><strong id="start-label">Run social workflow</strong><small>Follow the complete campaign</small></span><span class="start-arrow" aria-hidden="true">→</span></button>
+      </section>
+
+      <nav class="stage-rail" aria-label="Workflow journey"><ol id="stage-list"></ol></nav>
+      <div class="mobile-prompt">Swipe across the canvas to follow the complete journey</div>
+
+      <dialog id="help-dialog" class="help-dialog">
+        <button id="close-help" class="dialog-close" aria-label="Close controls">×</button><p class="eyebrow">How to explore</p><h2>Follow the campaign</h2>
+        <ul><li><kbd>Enter</kbd> or <kbd>Space</kbd> runs or pauses the workflow</li><li>The camera follows each active automation step while the workflow runs</li><li>Drag with a mouse or one finger to travel across the workflow; scroll or pinch to zoom</li><li>Use Journey start to return to the opening steps at any time</li><li>Tap any node to inspect what it receives, does and delivers</li><li><kbd>R</kbd> resets the demonstration</li></ul>
+      </dialog>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

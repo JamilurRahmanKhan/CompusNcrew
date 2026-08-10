@@ -1414,7 +1414,7 @@ export function AiAutomationGlassCard({
 
         {/* CTA */}
         <Link
-          href={`/services/${service.slug}`}
+          href="/ai-automation"
           className="
             group/cta
             relative
