@@ -609,6 +609,7 @@ function openConsultation() {
   if (autoTour.active) stopAutoTour(false);
   vehicle.speed = 0;
   Object.keys(input).forEach((key) => setInput(key, false));
+  consultationForm.scrollTop = 0;
   consultationModal.showModal();
 }
 
@@ -779,12 +780,20 @@ document.querySelector('#continue-journey').addEventListener('click', () => {
   if (!vehicle.started) setStarted();
 });
 consultationModal.addEventListener('click', (event) => { if (event.target === consultationModal) consultationModal.close(); });
+consultationForm.addEventListener('focusin', (event) => {
+  if (!event.target.matches('input, textarea, select')) return;
+  window.setTimeout(() => event.target.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' }), 120);
+});
 consultationForm.addEventListener('submit', () => {
   destinationCallout.querySelector('strong').textContent = 'Thank you. We’ll be in touch.';
   destinationCallout.querySelector('button').textContent = 'Request received';
 });
-window.addEventListener('resize', resize, { passive: true });
-window.visualViewport?.addEventListener('resize', resize, { passive: true });
+function syncViewportHeight() {
+  document.documentElement.style.setProperty('--journey-viewport-height', `${window.visualViewport?.height ?? window.innerHeight}px`);
+}
+syncViewportHeight();
+window.addEventListener('resize', () => { syncViewportHeight(); resize(); }, { passive: true });
+window.visualViewport?.addEventListener('resize', () => { syncViewportHeight(); resize(); }, { passive: true });
 const resizeObserver = new ResizeObserver(resize);
 resizeObserver.observe(experience);
 window.addEventListener('beforeunload', () => {

@@ -169,8 +169,8 @@ kbd { min-width: 24px; height: 24px; display: inline-grid; place-items: center; 
 .webgl-fallback p { color: var(--muted); }
 .webgl-fallback a { color: var(--orange); }
 
-.consultation-modal { width: min(980px, calc(100vw - 40px)); max-height: min(760px, calc(100dvh - 40px)); grid-template-columns: .82fr 1.18fr; padding: 0; overflow: hidden; border: 1px solid rgb(244 234 214 / 18%); border-radius: 20px; background: #181a1c; color: var(--cream); box-shadow: 0 40px 140px rgb(0 0 0 / 64%); opacity: 0; transform: translateY(18px) scale(.98); transition: opacity var(--motion-base) var(--ease-out), transform var(--motion-base) var(--ease-out), display var(--motion-base) allow-discrete, overlay var(--motion-base) allow-discrete; }
-.consultation-modal[open] { display: grid; opacity: 1; transform: translateY(0) scale(1); }
+.consultation-modal { width: min(980px, calc(100vw - 40px)); max-height: min(760px, calc(var(--journey-viewport-height, 100dvh) - 32px)); grid-template-columns: .82fr 1.18fr; padding: 0; overflow: hidden; overscroll-behavior: none; border: 1px solid rgb(244 234 214 / 18%); border-radius: 20px; background: #181a1c; color: var(--cream); box-shadow: 0 40px 140px rgb(0 0 0 / 64%); opacity: 0; transform: translateY(18px) scale(.98); transition: opacity var(--motion-base) var(--ease-out), transform var(--motion-base) var(--ease-out), display var(--motion-base) allow-discrete, overlay var(--motion-base) allow-discrete; }
+.consultation-modal[open] { display: grid; grid-template-rows: minmax(0, 1fr); opacity: 1; transform: translateY(0) scale(1); }
 .consultation-modal::backdrop { background: rgb(7 8 9 / 76%); backdrop-filter: blur(10px); opacity: 0; transition: opacity var(--motion-base) var(--ease-out), display var(--motion-base) allow-discrete, overlay var(--motion-base) allow-discrete; }
 .consultation-modal[open]::backdrop { opacity: 1; }
 @starting-style { .consultation-modal[open] { opacity: 0; transform: translateY(18px) scale(.98); } .consultation-modal[open]::backdrop { opacity: 0; } }
@@ -182,8 +182,11 @@ kbd { min-width: 24px; height: 24px; display: inline-grid; place-items: center; 
 .chair { position: absolute; bottom: 38px; width: 42px; height: 52px; border-radius: 14px 14px 8px 8px; background: #282a2b; }
 .chair--one { left: 34px; transform: rotate(-12deg); }
 .chair--two { right: 34px; transform: rotate(12deg); }
-.consultation-form { position: relative; overflow-y: auto; padding: 42px; }
-.consultation-form h2 { max-width: 560px; font-size: clamp(42px, 5vw, 65px); }
+.consultation-visual, .consultation-form { min-width: 0; min-height: 0; }
+.consultation-form { position: relative; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; touch-action: pan-y; -webkit-overflow-scrolling: touch; padding: 42px; }
+.consultation-form::-webkit-scrollbar { display: none; }
+.consultation-form .modal-close { position: sticky; top: 0; right: auto; float: right; margin: -26px -26px 0 12px; background: rgb(24 26 28 / 88%); box-shadow: 0 8px 24px rgb(0 0 0 / 28%); backdrop-filter: blur(14px); }
+.consultation-form h2 { max-width: 560px; padding-right: 44px; font-size: clamp(42px, 5vw, 65px); }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 26px 0 22px; }
 .form-grid label { display: grid; gap: 7px; }
 .form-grid label span { color: var(--muted); font-size: 11px; }
@@ -191,7 +194,9 @@ kbd { min-width: 24px; height: 24px; display: inline-grid; place-items: center; 
 .form-grid input, .form-grid textarea, .form-grid select { width: 100%; border: 1px solid var(--line); border-radius: var(--radius-sm); background: rgb(255 255 255 / 4%); color: var(--cream); padding: 12px 13px; resize: vertical; transition: border-color var(--motion-fast), background-color var(--motion-fast); }
 .form-grid input:hover, .form-grid textarea:hover, .form-grid select:hover { border-color: rgb(244 234 214 / 28%); background: rgb(255 255 255 / 6%); }
 .form-grid select option { background: #1c1e20; }
-.consultation-form > small { display: block; margin-top: 13px; color: var(--dim); }
+.consultation-actions { position: sticky; z-index: 1; bottom: 0; margin: 0 -42px -42px; padding: 18px 42px max(24px, env(safe-area-inset-bottom)); border-top: 1px solid rgb(244 234 214 / 10%); background: linear-gradient(180deg, rgb(24 26 28 / 76%), #181a1c 30%); backdrop-filter: blur(16px); }
+.consultation-actions .primary-button { width: 100%; min-height: 52px; justify-content: space-between; }
+.consultation-actions small { display: block; margin-top: 11px; color: var(--dim); line-height: 1.4; }
 
 .help-modal { width: min(760px, calc(100vw - 40px)); max-height: calc(100dvh - 40px); padding: clamp(28px, 4vw, 44px); overflow-y: auto; border: 1px solid rgb(244 234 214 / 18%); border-radius: 20px; background: #181a1c; color: var(--cream); box-shadow: 0 40px 140px rgb(0 0 0 / 64%); opacity: 0; transform: translateY(16px) scale(.98); transition: opacity var(--motion-base) var(--ease-out), transform var(--motion-base) var(--ease-out), display var(--motion-base) allow-discrete, overlay var(--motion-base) allow-discrete; }
 .help-modal[open] { opacity: 1; transform: translateY(0) scale(1); }
@@ -240,8 +245,11 @@ kbd { min-width: 24px; height: 24px; display: inline-grid; place-items: center; 
   .showcase-modal[aria-hidden="false"] { transform: translate(-50%, 0); }
   .showcase-modal__stage { min-height: 330px; }
   .mockup-orbit { transform: scale(.78); }
-  .consultation-modal { grid-template-columns: 1fr; }
+  .consultation-modal { width: calc(100vw - 32px); height: min(720px, calc(var(--journey-viewport-height, 100dvh) - 32px)); grid-template-columns: 1fr; }
   .consultation-visual { display: none; }
+  .consultation-form { padding: 34px; }
+  .consultation-form .modal-close { margin: -18px -18px 0 12px; }
+  .consultation-actions { margin: 0 -34px -34px; padding-right: 34px; padding-left: 34px; }
   .approach-hint { bottom: 176px; }
   .tour-controller { bottom: max(18px, env(safe-area-inset-bottom)); }
 }
@@ -275,11 +283,19 @@ kbd { min-width: 24px; height: 24px; display: inline-grid; place-items: center; 
   .showcase-modal__content { padding: 22px; }
   .showcase-modal h2 { padding-right: 34px; font-size: 40px; }
   .project-details { margin-block: 16px; }
-  .consultation-modal { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); }
-  .consultation-form { padding: 28px 22px; }
+  .consultation-modal { width: calc(100vw - 16px); height: calc(var(--journey-viewport-height, 100dvh) - 16px); max-height: none; margin: 8px auto; border-radius: 17px; }
+  .consultation-modal[open] { display: block; }
+  .consultation-form { width: 100%; height: 100%; padding: 24px 18px 0; }
+  .consultation-form .modal-close { width: 44px; height: 44px; margin: -12px -6px 0 10px; background: rgb(24 26 28 / 94%); }
+  .consultation-form h2 { padding-right: 36px; font-size: clamp(38px, 11vw, 52px); }
+  .consultation-form > p:not(.modal-meta) { font-size: 14px; }
+  .form-grid { gap: 14px; margin: 22px 0 18px; }
   .form-grid { grid-template-columns: 1fr; }
   .form-grid__wide { grid-column: auto; }
-  .form-grid input, .form-grid textarea, .form-grid select { font-size: 16px; }
+  .form-grid input, .form-grid textarea, .form-grid select { min-height: 52px; padding: 13px 14px; font-size: 16px; }
+  .form-grid textarea { min-height: 118px; max-height: 190px; }
+  .consultation-actions { margin: 0 -18px; padding: 14px 18px max(14px, env(safe-area-inset-bottom)); }
+  .consultation-actions small { margin-top: 8px; font-size: 10px; }
   .help-modal { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); padding: 28px 20px; }
   .help-grid { grid-template-columns: 1fr; }
   .help-grid section { padding: 17px; }
@@ -289,6 +305,13 @@ kbd { min-width: 24px; height: 24px; display: inline-grid; place-items: center; 
   .tour-controller__actions button { width: 44px; padding: 0; justify-content: center; }
   .tour-controller__actions button strong { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .project-index { padding: 84px 20px 100px; }
+}
+
+@media (max-width: 380px) {
+  .consultation-modal { width: calc(100vw - 8px); height: calc(var(--journey-viewport-height, 100dvh) - 8px); margin: 4px auto; border-radius: 14px; }
+  .consultation-form { padding: 18px 14px 0; }
+  .consultation-form h2 { font-size: clamp(34px, 10.6vw, 42px); }
+  .consultation-actions { margin-inline: -14px; padding-inline: 14px; }
 }
 
 @media (max-width: 460px) {
@@ -363,12 +386,14 @@ kbd { min-width: 24px; height: 24px; display: inline-grid; place-items: center; 
   .approach-hint { bottom: max(14px, env(safe-area-inset-bottom)); width: min(400px, 48vw); }
   .tour-controller { right: max(12px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); left: auto; width: min(560px, 67vw); transform: translateY(14px); }
   .tour-controller[aria-hidden="false"] { transform: translateY(0); }
-  .consultation-modal { grid-template-columns: 230px 1fr; max-height: calc(100dvh - 20px); }
+  .consultation-modal { width: calc(100vw - 12px); height: calc(var(--journey-viewport-height, 100dvh) - 12px); max-height: none; margin: 6px auto; grid-template-columns: minmax(150px, 230px) minmax(0, 1fr); }
+  .consultation-modal[open] { display: grid; }
   .consultation-visual { min-height: 0; }
   .consultation-visual__room { transform: scale(.7) rotateX(8deg) rotateY(14deg); }
-  .consultation-form { padding: 24px; }
+  .consultation-form { height: 100%; padding: 20px 24px 0; }
   .consultation-form h2 { font-size: 40px; }
   .form-grid { margin-block: 15px; }
+  .consultation-actions { margin: 0 -24px; padding: 12px 24px max(12px, env(safe-area-inset-bottom)); }
   .help-modal { max-height: calc(100dvh - 20px); }
   .help-grid { grid-template-columns: repeat(4, 1fr); margin-block: 18px; }
   .help-grid section { padding: 13px; }

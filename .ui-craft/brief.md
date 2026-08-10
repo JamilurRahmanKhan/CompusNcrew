@@ -26,6 +26,8 @@ A visitor can open the software portfolio from the homepage, view projects autom
 
 # Learned constraints
 
+- **2026-08-10** — The software-portfolio consultation form must stay fully operable inside the mobile visual viewport, including when browser chrome or the on-screen keyboard reduces the usable height. Keep the close and submit actions reachable, preserve native 16px form text to prevent mobile zoom, and use a contained touch-scroll region without a visible secondary scrollbar.
+
 - **2026-08-10** — Upward overscroll at the top of services requests confirmation instead of immediately replaying the 3D workflow. Use a calm native confirmation sheet with “Stay on services” as a safe exit and an explicit persistent replay action in the services header. *Why:* accidental replay is disruptive, but intentional access to the experience must remain obvious.
 
 - **2026-08-10** — Returning from the 2D services surface restarts the complete 3D automation sequence automatically, then restores the services surface on completion. Normal playback should finish in roughly seven to eight seconds with camera easing tuned to keep pace. *Why:* the completed static scene created a dead end and the previous replay pacing still felt slow.
