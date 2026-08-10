@@ -151,3 +151,20 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+/* Dark social-automation console. Introductory copy is rendered inside the 3D world. */
+html, body { background: #071020; }
+.experience { background: radial-gradient(circle at 50% 38%, rgba(43,63,114,.24), transparent 48%), linear-gradient(145deg, #0b1428, #070d1a 62%, #050914); }
+.experience::after { background: linear-gradient(180deg, rgba(70,91,142,.06), transparent 38%, rgba(0,0,0,.16)); box-shadow: inset 0 0 11rem rgba(0,0,0,.52); }
+.hero-copy { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; clip-path: inset(50%) !important; white-space: nowrap !important; }
+.topbar { color: #edf3ff; background: linear-gradient(180deg, rgba(8,14,27,.96), rgba(8,14,27,.86)); box-shadow: inset 0 -1px rgba(118,143,199,.18), 0 15px 38px rgba(0,0,0,.3); }
+.brand, .workflow-facts { color: #dce6fb; }.brand-mark { background: linear-gradient(145deg, #765cff, #334be0); }.workflow-facts i { background: #35e6d2; }
+.top-status, .icon-button { color: #c9d3e9; background: rgba(17,27,49,.86); box-shadow: inset 0 0 0 1px rgba(126,151,207,.22), 0 10px 24px rgba(0,0,0,.24); }
+.inspector { color: #eaf0ff; background: linear-gradient(145deg, rgba(18,29,52,.96), rgba(8,15,29,.96)); box-shadow: inset 0 0 0 1px rgba(117,145,207,.24), 0 30px 78px rgba(0,0,0,.42); }
+.node-kind, .node-description, .node-flow dt { color: #8998b7; }.inspector h2, .node-flow dd { color: #f4f7ff; }.node-flow div { background: rgba(118,145,203,.08); box-shadow: inset 0 0 0 1px rgba(118,145,203,.1); }
+.node-state { color: #52ddb0; background: rgba(39,178,130,.14); }
+.journey-status { background: rgba(8,15,31,.94); box-shadow: inset 0 0 0 1px rgba(118,145,207,.22), 0 18px 44px rgba(0,0,0,.36); }
+.engine-readout, .stage-rail ol { color: #dce6fb; background: rgba(10,18,35,.94); box-shadow: inset 0 0 0 1px rgba(118,145,207,.2), 0 18px 44px rgba(0,0,0,.34); }
+.engine-readout small, .stage-rail button { color: #8593af; }.stage-rail button.active { color: #e9edff; background: linear-gradient(rgba(91,92,255,.2), transparent); }.stage-rail button.done { color: #56d9b2; }
+.mobile-prompt { color: #b7c4df !important; background: rgba(10,18,35,.9) !important; box-shadow: inset 0 0 0 1px rgba(118,145,207,.2), 0 12px 28px rgba(0,0,0,.3) !important; }
+@media (max-width: 820px) { .journey-status { top: 4.45rem; }.inspector, .result-panel { backdrop-filter: blur(18px); } }

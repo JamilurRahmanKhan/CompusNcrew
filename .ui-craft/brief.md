@@ -26,6 +26,8 @@ A visitor can open the software portfolio from the homepage, view projects autom
 
 # Learned constraints
 
+- **2026-08-10** — Introductory copy for the automation showcase belongs to the explorable Three.js world, not a fixed DOM overlay. The visual language follows a dark navy social-automation console with portrait neon nodes, explicit channel branching, glowing directional cables, and a persistent stage rail. *Why:* fixed marketing copy obscured active nodes, while the supplied reference communicated the automation journey more directly.
+
 - **2026-08-10** — Keep the automation narrative permanently anchored on screen during playback, complete a normal run in roughly ten seconds, and use the supplied dark eggplant studio field with a restrained lilac floor glow. *Why:* the disappearing context made the guided journey harder to follow, the previous pacing felt slow, and the brighter lavender field lacked the requested depth.
 
 - **2026-08-10** — The automation scene uses the supplied lavender studio reference: softly lit lilac-to-purple depth, warm elevated cards, and visible contact shadows. Node identity must remain inside the node—never repeat it in a floating label—and multi-branch stages must frame every participating node during playback. *Why:* redundant floating labels and cropped branch nodes weaken comprehension and make the scene feel artificially assembled.

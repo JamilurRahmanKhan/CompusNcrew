@@ -2,14 +2,16 @@ import * as THREE from "three";
 import { connections, stages, workflowNodes } from "./data.js";
 
 const clamp = THREE.MathUtils.clamp;
-const NODE_WIDTH = 3.55;
-const NODE_DEPTH = 1.92;
+const NODE_WIDTH = 2.72;
+const NODE_DEPTH = 3.34;
 const nodeById = new Map(workflowNodes.map((node, index) => [node.id, { node, index }]));
 const stageEdges = [[0], [1], [2, 3], [4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14], [15, 16, 17]];
 const stageViews = [
   { target: [-11.8, 4], span: 10, vertical: 6.5 }, { target: [-5, 4], span: 8, vertical: 6.5 }, { target: [0, 4], span: 10.5, vertical: 12 },
-  { target: [2.5, 4], span: 13, vertical: 12 }, { target: [12.5, 4], span: 14, vertical: 14 }, { target: [17.5, 4], span: 14, vertical: 14 }, { target: [26.5, 4], span: 11, vertical: 7 },
+  { target: [2.5, 4], span: 13, vertical: 12 }, { target: [12.5, 4], span: 14, vertical: 18.5 }, { target: [17.5, 4], span: 14, vertical: 18.5 }, { target: [26.5, 4], span: 11, vertical: 7 },
 ];
+const channelLayout = new Map([["instagram", 11], ["linkedin", 6.3], ["facebook", 1.6], ["x", -3.1]]);
+workflowNodes.forEach((node) => { if (channelLayout.has(node.id)) node.position[2] = channelLayout.get(node.id); });
 
 export function createWorld(canvas, callbacks = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
@@ -20,28 +22,28 @@ export function createWorld(canvas, callbacks = {}) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x352a3e, 42, 96);
+  scene.fog = new THREE.Fog(0x071020, 40, 92);
   const camera = new THREE.PerspectiveCamera(47, 1, 0.1, 140);
   const target = new THREE.Vector3(-3.5, 0, 4);
   const desiredTarget = target.clone();
   let yaw = -0.08; let pitch = 1.02; let distance = 28; let desiredDistance = 28; let overviewMode = true;
   let viewportWidth = 1; let viewportHeight = 1;
 
-  scene.add(new THREE.HemisphereLight(0xfff8f0, 0x201923, 1.7));
-  const key = new THREE.DirectionalLight(0xfff4e8, 3.7); key.position.set(-11, 24, 13); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); scene.add(key);
-  const violet = new THREE.DirectionalLight(0xc8a9ff, 1.8); violet.position.set(14, 10, -12); scene.add(violet);
+  scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x020611, 1.45));
+  const key = new THREE.DirectionalLight(0xdce8ff, 3.7); key.position.set(-11, 24, 13); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); scene.add(key);
+  const violet = new THREE.DirectionalLight(0x765cff, 2.2); violet.position.set(14, 10, -12); scene.add(violet);
   const cyan = new THREE.PointLight(0x8fd7df, 9, 34); cyan.position.set(10, 5, 4); scene.add(cyan);
 
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(64, 26), new THREE.MeshStandardMaterial({ color: 0x3e3047, roughness: 0.91, metalness: 0.02 }));
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(64, 28), new THREE.MeshStandardMaterial({ color: 0x0d1730, roughness: 0.9, metalness: 0.04 }));
   floor.rotation.x = -Math.PI / 2; floor.position.set(7.5, -0.22, 4); floor.receiveShadow = true; scene.add(floor);
-  const board = new THREE.Mesh(new THREE.BoxGeometry(60, 0.26, 23), new THREE.MeshStandardMaterial({ color: 0x493650, roughness: 0.85, metalness: 0.025 }));
+  const board = new THREE.Mesh(new THREE.BoxGeometry(60, 0.26, 25), new THREE.MeshStandardMaterial({ color: 0x101a32, roughness: 0.84, metalness: 0.06 }));
   board.position.set(7.5, -0.34, 4); board.receiveShadow = true; scene.add(board);
-  const grid = new THREE.GridHelper(60, 60, 0x806b8d, 0x604c6b); grid.position.set(7.5, -0.14, 4); grid.material.transparent = true; grid.material.opacity = 0.052; scene.add(grid);
+  const grid = new THREE.GridHelper(60, 60, 0x263761, 0x172744); grid.position.set(7.5, -0.14, 4); grid.material.transparent = true; grid.material.opacity = 0.11; scene.add(grid);
 
   const nodeGroups = []; const clickable = []; const edges = [];
-  const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x312d35, roughness: 0.5, metalness: 0.22 });
-  const cardMaterial = new THREE.MeshStandardMaterial({ color: 0xf4f1ea, roughness: 0.58, metalness: 0.03 });
-  const shadowMaterial = new THREE.MeshStandardMaterial({ color: 0x211d25, transparent: true, opacity: 0.5, roughness: 1, depthWrite: false });
+  const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x070c18, roughness: 0.34, metalness: 0.58 });
+  const cardMaterial = new THREE.MeshStandardMaterial({ color: 0x111a2e, roughness: 0.42, metalness: 0.28 });
+  const shadowMaterial = new THREE.MeshStandardMaterial({ color: 0x01030a, transparent: true, opacity: 0.72, roughness: 1, depthWrite: false });
   const packetGlowTexture = makeGlowTexture();
 
   function colorCss(color) { return `#${color.toString(16).padStart(6, "0")}`; }
@@ -56,25 +58,23 @@ export function createWorld(canvas, callbacks = {}) {
   }
   function addMesh(group, geometry, material, position, rotation) { const mesh = new THREE.Mesh(geometry, material); mesh.position.set(...position); if (rotation) mesh.rotation.set(...rotation); mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh); return mesh; }
   function fitText(context, text, maxWidth, initialSize, minimumSize = 58) { let size = initialSize; do { context.font = `750 ${size}px Arial`; if (context.measureText(text).width <= maxWidth) return size; size -= 4; } while (size >= minimumSize); return minimumSize; }
+  function wrapText(context, text, x, y, maxWidth, lineHeight, maxLines = 3) { const words = text.split(" "); const lines = []; let line = ""; words.forEach((word) => { const test = line ? `${line} ${word}` : word; if (context.measureText(test).width > maxWidth && line) { lines.push(line); line = word; } else line = test; }); if (line) lines.push(line); lines.slice(0, maxLines).forEach((item, index) => context.fillText(item, x, y + index * lineHeight)); }
   function makeGlowTexture() { const c = document.createElement("canvas"); c.width = 256; c.height = 256; const x = c.getContext("2d"); const gradient = x.createRadialGradient(128, 128, 2, 128, 128, 128); gradient.addColorStop(0, "rgba(255,255,255,1)"); gradient.addColorStop(.16, "rgba(255,255,255,.9)"); gradient.addColorStop(.42, "rgba(255,255,255,.28)"); gradient.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = gradient; x.fillRect(0, 0, 256, 256); const texture = new THREE.CanvasTexture(c); texture.colorSpace = THREE.SRGBColorSpace; return texture; }
   function makeFlowTexture(color) { const c = document.createElement("canvas"); c.width = 1024; c.height = 64; const x = c.getContext("2d"); const gradient = x.createLinearGradient(0, 0, 1024, 0); gradient.addColorStop(0, "rgba(255,255,255,0)"); gradient.addColorStop(.08, colorCss(color)); gradient.addColorStop(.38, "#ffffff"); gradient.addColorStop(.68, colorCss(color)); gradient.addColorStop(.78, "rgba(255,255,255,0)"); gradient.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = gradient; x.fillRect(0, 13, 1024, 38); const texture = new THREE.CanvasTexture(c); texture.colorSpace = THREE.SRGBColorSpace; texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.ClampToEdgeWrapping; return texture; }
 
   function makeNodeTexture(node) {
-    const surface = document.createElement("canvas"); surface.width = 2048; surface.height = 1024; const context = surface.getContext("2d");
-    const background = context.createLinearGradient(0, 0, 2048, 1024); background.addColorStop(0, "#fffdf8"); background.addColorStop(1, "#f1eee7"); context.fillStyle = background; roundedRect(context, 12, 12, 2024, 1000, 108); context.fill();
-    context.strokeStyle = "rgba(31,27,38,.12)"; context.lineWidth = 5; context.stroke();
-    const color = colorCss(node.color); context.fillStyle = color; context.beginPath(); context.arc(137, 192, 70, 0, Math.PI * 2); context.fill();
-    const initials = node.name.split(/\s|\//).filter(Boolean).slice(0, 2).map((word) => word[0]).join("").toUpperCase(); context.fillStyle = "#ffffff"; context.font = "720 50px Arial"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(initials, 137, 194);
-    context.textAlign = "left"; context.fillStyle = "#766f7d"; context.font = "600 36px Arial"; context.fillText(node.kind, 250, 156);
-    const titleSize = fitText(context, node.name, 1710, 102, 66); context.fillStyle = "#221e27"; context.font = `600 ${titleSize}px Georgia`; context.fillText(node.name, 250, 272);
-    context.strokeStyle = "rgba(38,32,45,.11)"; context.lineWidth = 3; context.beginPath(); context.moveTo(66, 396); context.lineTo(1982, 396); context.stroke();
-    context.fillStyle = "#8a828e"; context.font = "600 34px Arial"; context.fillText("Delivers", 66, 492);
-    context.fillStyle = "#332d37"; const outputSize = fitText(context, node.output, 1870, 72, 50); context.font = `560 ${outputSize}px Arial`; context.fillText(node.output, 66, 600);
-    context.fillStyle = "rgba(35,30,41,.055)"; roundedRect(context, 66, 724, 1916, 178, 60); context.fill();
-    context.fillStyle = "#766f7d"; context.font = "600 34px Arial"; context.fillText(`Step ${String(node.stage + 1).padStart(2, "0")}`, 112, 830);
-    context.textAlign = "right"; context.fillStyle = color; context.font = "650 34px Arial"; context.fillText("Connected", 1930, 830);
+    const surface = document.createElement("canvas"); surface.width = 1024; surface.height = 1400; const context = surface.getContext("2d");
+    const color = colorCss(node.color); const background = context.createLinearGradient(0, 0, 1024, 1400); background.addColorStop(0, "#18243c"); background.addColorStop(1, "#0b1222"); context.fillStyle = background; roundedRect(context, 18, 18, 988, 1364, 88); context.fill();
+    context.shadowColor = color; context.shadowBlur = 28; context.strokeStyle = color; context.globalAlpha = .78; context.lineWidth = 7; context.stroke(); context.shadowBlur = 0; context.globalAlpha = 1;
+    context.fillStyle = "rgba(255,255,255,.06)"; roundedRect(context, 72, 96, 880, 116, 46); context.fill(); context.fillStyle = color; context.font = "800 58px Arial"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(String(node.stage + 1).padStart(2, "0"), 512, 155);
+    const initials = node.name.split(/\s|\//).filter(Boolean).slice(0, 2).map((word) => word[0]).join("").toUpperCase(); context.shadowColor = color; context.shadowBlur = 32; context.strokeStyle = color; context.lineWidth = 7; context.beginPath(); context.roundRect(340, 278, 344, 250, 72); context.stroke(); context.shadowBlur = 0; context.fillStyle = color; context.font = "800 92px Arial"; context.fillText(initials, 512, 405);
+    context.fillStyle = "#ffffff"; context.font = "700 72px Arial"; wrapText(context, node.name, 512, 650, 800, 84, 2); context.fillStyle = "#7f8ca8"; context.font = "650 34px Arial"; context.fillText(node.kind.toUpperCase(), 512, 828);
+    context.strokeStyle = "rgba(146,164,201,.2)"; context.lineWidth = 3; context.beginPath(); context.moveTo(116, 900); context.lineTo(908, 900); context.stroke(); context.fillStyle = "#c8d2e6"; context.font = "500 38px Arial"; wrapText(context, node.output, 512, 1010, 800, 54, 3); context.fillStyle = color; context.font = "700 28px Arial"; context.fillText("CONNECTED", 512, 1285);
     const texture = new THREE.CanvasTexture(surface); texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy()); return texture;
   }
+
+  function addWorldIntro() { const c = document.createElement("canvas"); c.width = 1800; c.height = 640; const x = c.getContext("2d"); x.fillStyle = "#7c6cff"; x.font = "800 54px Arial"; x.textAlign = "left"; x.fillText("LIVE SOCIAL AUTOMATION", 40, 90); x.fillStyle = "#f5f7ff"; x.font = "700 118px Arial"; x.fillText("One brief.", 40, 245); x.font = "500 86px Georgia"; x.fillStyle = "#aebbe1"; x.fillText("One connected campaign.", 40, 365); x.fillStyle = "#8491ad"; x.font = "500 38px Arial"; x.fillText("Drag to explore  ·  Tap any node  ·  Run the complete workflow", 40, 490); const texture = new THREE.CanvasTexture(c); texture.colorSpace = THREE.SRGBColorSpace; const panel = new THREE.Mesh(new THREE.PlaneGeometry(9.8, 3.5), new THREE.MeshBasicMaterial({ map: texture, transparent: true, toneMapped: false, depthWrite: false })); panel.rotation.x = -Math.PI / 2; panel.position.set(-9.5, .03, -2.2); scene.add(panel); }
+  addWorldIntro();
 
   function makeFlag(text, color) { const c = document.createElement("canvas"); c.width = 1024; c.height = 220; const x = c.getContext("2d"); x.fillStyle = "rgba(255,255,255,.98)"; roundedRect(x, 8, 8, 1008, 204, 70); x.fill(); x.strokeStyle = colorCss(color); x.lineWidth = 10; x.stroke(); x.fillStyle = "#2a2342"; x.font = "800 62px Arial"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(text, 512, 113); const texture = new THREE.CanvasTexture(c); texture.colorSpace = THREE.SRGBColorSpace; return new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false })); }
 
@@ -84,7 +84,7 @@ export function createWorld(canvas, callbacks = {}) {
     addMesh(group, roundedBoxGeometry(NODE_WIDTH, NODE_DEPTH, .34, .22, .045), darkMaterial, [0, .2, 0]);
     addMesh(group, roundedBoxGeometry(NODE_WIDTH - .1, NODE_DEPTH - .1, .075, .19, .022), cardMaterial, [0, .405, 0]);
     const accent = new THREE.MeshStandardMaterial({ color: node.color, emissive: node.color, emissiveIntensity: .48, roughness: .22, metalness: .26 });
-    const rail = addMesh(group, roundedBoxGeometry(NODE_WIDTH - .28, .12, .06, .06, .01), accent, [0, .49, -.79]); group.userData.rail = rail;
+    const rail = addMesh(group, roundedBoxGeometry(NODE_WIDTH - .28, .11, .06, .055, .01), accent, [0, .49, -(NODE_DEPTH / 2 - .12)]); group.userData.rail = rail;
     const face = new THREE.Mesh(new THREE.PlaneGeometry(NODE_WIDTH - .22, NODE_DEPTH - .22), new THREE.MeshBasicMaterial({ map: makeNodeTexture(node), toneMapped: false, transparent: true, alphaTest: .015 })); face.rotation.x = -Math.PI / 2; face.position.y = .505; group.add(face);
     [-1, 1].forEach((side) => { const ring = addMesh(group, new THREE.TorusGeometry(.13, .042, 12, 28), new THREE.MeshStandardMaterial({ color: node.color, emissive: node.color, emissiveIntensity: .62, metalness: .28, roughness: .34 }), [side * (NODE_WIDTH / 2 + .06), .34, 0], [Math.PI / 2, 0, 0]); ring.userData.index = index; const core = addMesh(group, new THREE.SphereGeometry(.062, 16, 10), new THREE.MeshBasicMaterial({ color: 0xfffdf7 }), [side * (NODE_WIDTH / 2 + .06), .34, 0]); core.userData.index = index; });
     if (node.kind === "OUTPUT") { const ring = addMesh(group, new THREE.RingGeometry(2.05, 2.2, 72), new THREE.MeshBasicMaterial({ color: node.color, transparent: true, opacity: .34, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }), [0, -.07, 0], [-Math.PI / 2, 0, 0]); group.userData.outputRing = ring; }
@@ -109,11 +109,11 @@ export function createWorld(canvas, callbacks = {}) {
   function createCable(connection, edgeIndex) {
     const [fromId, toId, options = {}] = connection; const from = nodeById.get(fromId).node; const to = nodeById.get(toId).node;
     const curve = new THREE.CatmullRomCurve3(routePoints(from, to, options.feedback), false, "centripetal", .38); const length = curve.getLength();
-    const shadow = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(48, Math.round(length * 9)), .13, 12, false), new THREE.MeshStandardMaterial({ color: 0x282334, transparent: true, opacity: .3, roughness: .72, metalness: .22, depthWrite: false })); shadow.position.y = -.055; scene.add(shadow);
-    const casingMaterial = new THREE.MeshStandardMaterial({ color: 0x332d43, emissive: to.color, emissiveIntensity: .04, metalness: .68, roughness: .27, transparent: true, opacity: .7, depthWrite: false });
+    const shadow = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(48, Math.round(length * 9)), .14, 12, false), new THREE.MeshStandardMaterial({ color: 0x01040c, transparent: true, opacity: .74, roughness: .72, metalness: .22, depthWrite: false })); shadow.position.y = -.075; scene.add(shadow);
+    const casingMaterial = new THREE.MeshStandardMaterial({ color: 0x10192e, emissive: to.color, emissiveIntensity: .09, metalness: .72, roughness: .24, transparent: true, opacity: .9, depthWrite: false });
     const casing = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(48, Math.round(length * 9)), .085, 12, false), casingMaterial); scene.add(casing);
     const flowTexture = makeFlowTexture(to.color); flowTexture.repeat.set(Math.max(1, length / 1.4), 1);
-    const flowMaterial = new THREE.MeshBasicMaterial({ map: flowTexture, color: to.color, transparent: true, opacity: .28, blending: THREE.AdditiveBlending, depthWrite: false });
+    const flowMaterial = new THREE.MeshBasicMaterial({ map: flowTexture, color: to.color, transparent: true, opacity: .46, blending: THREE.AdditiveBlending, depthWrite: false });
     const fiber = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(48, Math.round(length * 9)), .034, 10, false), flowMaterial); scene.add(fiber);
     const glowMaterial = new THREE.MeshBasicMaterial({ color: to.color, transparent: true, opacity: .035, blending: THREE.AdditiveBlending, depthWrite: false });
     const glow = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(48, Math.round(length * 9)), .125, 10, false), glowMaterial); scene.add(glow);
