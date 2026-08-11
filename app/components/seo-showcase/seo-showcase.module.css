@@ -321,12 +321,10 @@
 
 @media (max-width: 800px) {
   .heroOrbitA,
-  .heroOrbitB { display: none; }
-
-  .floatCard { transform: scale(0.82); padding: 0.6rem 0.8rem; }
-  .floatOrganic { left: -0.5rem; top: 55%; }
-  .floatTarget { right: 0.5rem; top: 0.5rem; }
-  .floatSignal { right: -0.5rem; top: 25%; }
+  .heroOrbitB,
+  .floatCard {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
