@@ -79,10 +79,13 @@ export function createWorld(canvas, callbacks = {}) {
   function makeFlag(text, color) { const c = document.createElement("canvas"); c.width = 1024; c.height = 220; const x = c.getContext("2d"); x.fillStyle = "rgba(255,255,255,.98)"; roundedRect(x, 8, 8, 1008, 204, 70); x.fill(); x.strokeStyle = colorCss(color); x.lineWidth = 10; x.stroke(); x.fillStyle = "#2a2342"; x.font = "800 62px Arial"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(text, 512, 113); const texture = new THREE.CanvasTexture(c); texture.colorSpace = THREE.SRGBColorSpace; return new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false })); }
 
   function createNode(node, index) {
-    const group = new THREE.Group(); group.position.set(...node.position); group.userData = { index, active: false, rail: null };
+    const group = new THREE.Group(); group.position.set(...node.position); group.userData = { index, active: false, rail: null, aura: null, cardMaterial: null };
+    const auraMaterial = new THREE.MeshBasicMaterial({ map: packetGlowTexture, color: node.color, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+    const aura = new THREE.Mesh(new THREE.PlaneGeometry(4.7, 5.2), auraMaterial); aura.rotation.x = -Math.PI / 2; aura.position.y = .025; group.add(aura); group.userData.aura = aura;
     addMesh(group, roundedBoxGeometry(NODE_WIDTH + .28, NODE_DEPTH + .26, .08, .26, .02), shadowMaterial, [0, .005, .17]);
     addMesh(group, roundedBoxGeometry(NODE_WIDTH, NODE_DEPTH, .34, .22, .045), darkMaterial, [0, .2, 0]);
-    addMesh(group, roundedBoxGeometry(NODE_WIDTH - .1, NODE_DEPTH - .1, .075, .19, .022), cardMaterial, [0, .405, 0]);
+    const nodeCardMaterial = cardMaterial.clone(); nodeCardMaterial.emissive = new THREE.Color(node.color); nodeCardMaterial.emissiveIntensity = .035; group.userData.cardMaterial = nodeCardMaterial;
+    addMesh(group, roundedBoxGeometry(NODE_WIDTH - .1, NODE_DEPTH - .1, .075, .19, .022), nodeCardMaterial, [0, .405, 0]);
     const accent = new THREE.MeshStandardMaterial({ color: node.color, emissive: node.color, emissiveIntensity: .48, roughness: .22, metalness: .26 });
     const rail = addMesh(group, roundedBoxGeometry(NODE_WIDTH - .28, .11, .06, .055, .01), accent, [0, .49, -(NODE_DEPTH / 2 - .12)]); group.userData.rail = rail;
     const face = new THREE.Mesh(new THREE.PlaneGeometry(NODE_WIDTH - .22, NODE_DEPTH - .22), new THREE.MeshBasicMaterial({ map: makeNodeTexture(node), toneMapped: false, transparent: true, alphaTest: .015 })); face.rotation.x = -Math.PI / 2; face.position.y = .505; group.add(face);
@@ -154,7 +157,7 @@ export function createWorld(canvas, callbacks = {}) {
     requestAnimationFrame(animate); const dt = Math.min((now - last) / 1000, .05); last = now;
     edges.forEach((edge) => { edge.flowTexture.offset.x -= dt * (running && !paused ? 1.05 : .12); });
     if (running && !paused && stage >= 0) {
-      const duration = reduced ? .28 : stage === 4 ? 1.25 : 1.05; progress += dt / duration;
+      const duration = reduced ? .28 : stage === 4 ? 1.7 : 1.42; progress += dt / duration;
       stageEdges[stage].forEach((edgeIndex, lane) => {
         const edge = edges[edgeIndex]; edge.flowMaterial.opacity = .82; edge.glowMaterial.opacity = .1; edge.casingMaterial.emissiveIntensity = .5; edge.casingMaterial.opacity = .82;
         edge.packets.forEach((packet, packetIndex) => { const raw = progress * (edge.feedback ? 1.35 : 1.85) - packetIndex * .13 - lane * .022; packet.visible = raw >= 0 && progress < 1; if (!packet.visible) return; const point = edge.curve.getPoint(raw % 1); packet.position.copy(point).setY(point.y + .065); if (packetIndex === 0) { edge.light.position.copy(point); edge.light.intensity = 5.5; } });
@@ -164,7 +167,9 @@ export function createWorld(canvas, callbacks = {}) {
         if (stage < stages.length - 1) beginStage(stage + 1); else { running = false; completed = true; focusStage(6); const outputIndex = nodeById.get("campaign-output").index; select(outputIndex, false, false); callbacks.onComplete?.(); callbacks.onRunning?.(false); }
       }
     }
-    nodeGroups.forEach((group, index) => { const active = group.userData.active; const node = workflowNodes[index]; const targetY = active ? .28 : 0; group.position.y += (targetY - group.position.y) * .1; const scale = active ? 1.055 : 1; group.scale.lerp(new THREE.Vector3(scale, scale, scale), .1); group.rotation.y = Math.sin(now * .00032 + index) * .006; group.userData.rail.material.emissiveIntensity += ((active || (node.stage === stage && running) ? 1.8 : .48) - group.userData.rail.material.emissiveIntensity) * .12; if (group.userData.outputRing) { group.userData.outputRing.rotation.z += dt * .22; group.userData.outputRing.material.opacity = completed ? .58 + Math.sin(now * .003) * .12 : .22; } });
+    const receivingNodes = running && !paused && stage >= 0 ? new Set(stageEdges[stage].map((edgeIndex) => edges[edgeIndex].toId)) : null;
+    const arrivalGlow = receivingNodes ? THREE.MathUtils.smoothstep(progress, .48, .84) : 0;
+    nodeGroups.forEach((group, index) => { const active = group.userData.active; const node = workflowNodes[index]; const receivingSignal = Boolean(receivingNodes?.has(node.id)); const signalGlow = receivingSignal ? arrivalGlow : 0; const targetY = active ? .28 : 0; group.position.y += (targetY - group.position.y) * .1; const scale = active ? 1.055 : 1; group.scale.lerp(new THREE.Vector3(scale, scale, scale), .1); group.rotation.y = Math.sin(now * .00032 + index) * .006; const railTarget = .48 + (active ? .35 : 0) + signalGlow * 2.35; group.userData.rail.material.emissiveIntensity += (railTarget - group.userData.rail.material.emissiveIntensity) * .12; group.userData.cardMaterial.emissiveIntensity += ((.035 + signalGlow * .72) - group.userData.cardMaterial.emissiveIntensity) * .1; group.userData.aura.material.opacity += (((active ? .035 : 0) + signalGlow * .34) - group.userData.aura.material.opacity) * .11; const auraScale = 1 + signalGlow * .12; group.userData.aura.scale.lerp(new THREE.Vector3(auraScale, auraScale, 1), .1); if (group.userData.outputRing) { group.userData.outputRing.rotation.z += dt * .22; group.userData.outputRing.material.opacity = completed ? .58 + Math.sin(now * .003) * .12 : .22; } });
     target.lerp(desiredTarget, reduced ? 1 : .07); distance += (desiredDistance - distance) * (reduced ? 1 : .075);
     const cameraPosition = new THREE.Vector3(target.x + Math.sin(yaw) * Math.cos(pitch) * distance, target.y + Math.sin(pitch) * distance, target.z + Math.cos(yaw) * Math.cos(pitch) * distance); camera.position.lerp(cameraPosition, reduced ? 1 : .095); camera.lookAt(target); renderer.render(scene, camera);
   }
