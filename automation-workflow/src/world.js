@@ -157,7 +157,7 @@ export function createWorld(canvas, callbacks = {}) {
     requestAnimationFrame(animate); const dt = Math.min((now - last) / 1000, .05); last = now;
     edges.forEach((edge) => { edge.flowTexture.offset.x -= dt * (running && !paused ? 1.05 : .12); });
     if (running && !paused && stage >= 0) {
-      const duration = reduced ? .28 : stage === 4 ? 1.7 : 1.42; progress += dt / duration;
+      const duration = reduced ? .28 : stage === 4 ? 2.05 : 1.72; progress += dt / duration;
       stageEdges[stage].forEach((edgeIndex, lane) => {
         const edge = edges[edgeIndex]; edge.flowMaterial.opacity = .82; edge.glowMaterial.opacity = .1; edge.casingMaterial.emissiveIntensity = .5; edge.casingMaterial.opacity = .82;
         edge.packets.forEach((packet, packetIndex) => { const raw = progress * (edge.feedback ? 1.35 : 1.85) - packetIndex * .13 - lane * .022; packet.visible = raw >= 0 && progress < 1; if (!packet.visible) return; const point = edge.curve.getPoint(raw % 1); packet.position.copy(point).setY(point.y + .065); if (packetIndex === 0) { edge.light.position.copy(point); edge.light.intensity = 5.5; } });
