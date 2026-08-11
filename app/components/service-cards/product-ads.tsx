@@ -288,7 +288,7 @@ export function ProductAdsGlassCard({
 
       {/* CTA */}
       <Link
-        href={`/services/${service.slug}`}
+        href="/paid-ads"
         className="
           group
 
