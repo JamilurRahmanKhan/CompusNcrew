@@ -1,0 +1,13 @@
+import type { Metadata } from "next";
+import { DesignStudio } from "../../components/design-studio/design-studio";
+
+export const metadata: Metadata = {
+  title: "Graphic design — Brand systems and creative direction",
+  description:
+    "Brand identity, campaign creative, social systems, print and presentation design built as one coherent visual language.",
+  alternates: { canonical: "/services/graphic-design" },
+};
+
+export default function GraphicDesignPage() {
+  return <DesignStudio />;
+}

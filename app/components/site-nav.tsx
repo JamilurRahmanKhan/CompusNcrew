@@ -23,7 +23,10 @@ export function SiteNav() {
   // the hero (or the overlay is open), the header gets its own light pill
   // background from `scrolled` below and reads fine in the normal palette,
   // so the swap only needs to cover the unscrolled state on "/".
-  const onDarkHero = pathname === "/" && !scrolled && !open;
+  const immersiveDark =
+    pathname === "/services/social-media-marketing" ||
+    pathname === "/services/graphic-design";
+  const onDarkHero = (pathname === "/" && !scrolled && !open) || (immersiveDark && !open);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -51,7 +54,11 @@ export function SiteNav() {
     <>
       <header
         className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${
-          scrolled && !open ? "bg-ink/70 backdrop-blur-xl" : ""
+          scrolled && !open
+            ? immersiveDark
+              ? "bg-black/65 backdrop-blur-xl"
+              : "bg-ink/70 backdrop-blur-xl"
+            : ""
         } ${onDarkHero ? "on-dark" : ""}`}
       >
         <nav
@@ -76,8 +83,8 @@ export function SiteNav() {
             {brand.name}
           </Link>
 
-          <div className="flex items-center gap-4">
-            <LocalTime />
+          <div className="flex items-center gap-2 sm:gap-4">
+            <span className="hidden sm:inline-flex"><LocalTime /></span>
             <Link href="/contact" className="pill">
               Start
             </Link>
