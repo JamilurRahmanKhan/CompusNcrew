@@ -81,16 +81,21 @@ const FLAME: { p: number; v: number }[] = [
   { p: 1.0, v: 0.8 },
 ];
 
+/* Hard pose swaps, not a crossfade — the upright and banked renders are two
+   different photographed silhouettes, so blending their opacity together
+   (the previous 0.06-wide fade windows) showed both at once as a ghosted
+   double image. A near-instant swap at the peak of each turn reads as a
+   clean sprite change instead, hidden by the rocket's own motion. */
 const BANK: { p: number; o: number }[] = [
   { p: 0.0, o: 0 },
-  { p: 0.15, o: 0 },
-  { p: 0.21, o: 1 },
-  { p: 0.27, o: 1 },
-  { p: 0.33, o: 0 },
-  { p: 0.56, o: 0 },
-  { p: 0.6, o: 1 },
-  { p: 0.66, o: 1 },
-  { p: 0.71, o: 0 },
+  { p: 0.18, o: 0 },
+  { p: 0.181, o: 1 },
+  { p: 0.3, o: 1 },
+  { p: 0.301, o: 0 },
+  { p: 0.63, o: 0 },
+  { p: 0.631, o: 1 },
+  { p: 0.69, o: 1 },
+  { p: 0.691, o: 0 },
   { p: 1.0, o: 0 },
 ];
 

@@ -14,8 +14,24 @@ import {
   Check,
 } from "lucide-react";
 import Link from "next/link";
+import { DM_Sans, Space_Grotesk } from "next/font/google";
 import { useEffect, useState } from "react";
 import styles from "./seo-showcase.module.css";
+
+// Scoped to this page only — the rest of the site keeps Instrument Serif +
+// Inter (see app/layout.tsx). Space Grotesk stands in for the reference
+// design's headline face; DM Sans for its body copy.
+const seoDisplay = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--seo-font-display",
+});
+
+const seoSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--seo-font-sans",
+});
 
 const services = [
   {
@@ -50,11 +66,37 @@ const services = [
   },
 ] as const;
 
-const localProof = [
+const geoChecklist = [
   "Google Business Profile optimisation",
-  "Local search and location-page strategy",
-  "Review, citation and conversion foundations",
+  "Local keyword targeting",
+  "Map ranking and review management",
+  "Local citations and directory listings",
 ];
+
+const aiEngines = [
+  {
+    name: "ChatGPT Search",
+    icon: "/media/services/seo-chatgpt-icon.webp",
+    copy: "Citation-ready pages and structured data built for OpenAI's answer engine.",
+  },
+  {
+    name: "Claude",
+    icon: "/media/services/seo-claude-icon.webp",
+    copy: "Entity-rich, well-sourced content designed to earn trust with Claude's reasoning.",
+  },
+  {
+    name: "DeepSeek",
+    icon: "/media/services/seo-deepseek-icon.webp",
+    copy: "Fast-indexing, technically precise content tuned for DeepSeek's retrieval search.",
+  },
+] as const;
+
+const impactStats = [
+  ["01", "Entity-first", "Structured data ships before content scales"],
+  ["02", "4 engines", "ChatGPT, Claude, Gemini and DeepSeek"],
+  ["03", "Fast indexing", "Pages built to be crawlable from day one"],
+  ["04", "24/7", "Ranking and citation signal monitoring"],
+] as const;
 
 const signalFrames = [
   {
@@ -131,24 +173,25 @@ export function SeoShowcase() {
   }, []);
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${seoDisplay.variable} ${seoSans.variable}`}>
       <section className={styles.hero} aria-labelledby="seo-title">
         <div className={styles.heroGlow} aria-hidden="true" />
         <div className={styles.heroInner}>
           <div className={styles.heroCopy}>
-            <div className={styles.heroMeta}>
-              <span>Search intelligence</span>
-              <span>SEO / 01</span>
+            <div className={styles.heroEyebrow}>
+              <span className={styles.eyebrowDot} aria-hidden="true" />
+              Search &amp; GEO growth engine
             </div>
 
             <h1 id="seo-title" className={styles.heroTitle}>
-              Search visibility,
-              <span> engineered to compound.</span>
+              Rank higher.
+              <span> Get found everywhere.</span>
             </h1>
 
             <p className={styles.heroLead}>
-              We connect technical SEO, search strategy and useful content into
-              one accountable system—built to turn intent into qualified demand.
+              We connect technical SEO, content intelligence and local GEO
+              signals into one accountable system — built to turn search
+              visibility into qualified demand.
             </p>
 
             <div className={styles.heroActions}>
@@ -176,6 +219,8 @@ export function SeoShowcase() {
           </div>
 
           <div className={styles.machineStage}>
+            <div className={styles.heroOrbitA} aria-hidden="true" />
+            <div className={styles.heroOrbitB} aria-hidden="true" />
             <div className={styles.mediaFrame}>
               <div className={styles.mediaBar}>
                 <span>
@@ -234,6 +279,22 @@ export function SeoShowcase() {
               </div>
               <span className={`${styles.frameCorner} ${styles.frameCornerTop}`} aria-hidden="true" />
               <span className={`${styles.frameCorner} ${styles.frameCornerBottom}`} aria-hidden="true" />
+            </div>
+
+            <div className={`${styles.floatCard} ${styles.floatOrganic}`}>
+              <small>Organic traffic</small>
+              <b>+175% ↑</b>
+            </div>
+            <div className={`${styles.floatCard} ${styles.floatTarget}`}>
+              <span aria-hidden="true">◎</span>
+              <div>
+                <b>Top 3</b>
+                <small>Keyword positions</small>
+              </div>
+            </div>
+            <div className={`${styles.floatCard} ${styles.floatSignal}`}>
+              <small>Search visibility</small>
+              <b>+230% ↗</b>
             </div>
           </div>
         </div>
@@ -388,62 +449,103 @@ export function SeoShowcase() {
         </div>
       </section>
 
-      <section className={styles.localSection}>
-        <div className={styles.localVisual} aria-hidden="true">
-          <div className={styles.localFrame}>
-            <div className={styles.localFrameBar}>
-              <span>Local visibility model</span>
-              <span>Area / active</span>
-            </div>
-            <div className={styles.mapTile}>
-              <span className={`${styles.mapRoad} ${styles.roadOne}`} />
-              <span className={`${styles.mapRoad} ${styles.roadTwo}`} />
-              <span className={`${styles.mapRoad} ${styles.roadThree}`} />
-              <span className={`${styles.mapBlock} ${styles.blockOne}`} />
-              <span className={`${styles.mapBlock} ${styles.blockTwo}`} />
-              <span className={`${styles.mapBlock} ${styles.blockThree}`} />
-              <div className={styles.pinCore}>
-                <MapPin size={58} strokeWidth={1.7} />
-              </div>
-              <span className={`${styles.mapLabel} ${styles.mapLabelOne}`}>Profile</span>
-              <span className={`${styles.mapLabel} ${styles.mapLabelTwo}`}>Direction</span>
-            </div>
-            <div className={styles.localFrameFooter}>
-              <span>Search → profile → action</span>
-              <strong>Connected</strong>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.localCopy}>
-          <span className={styles.kicker}>Local search, made useful</span>
-          <h2>Be visible when nearby customers are ready.</h2>
+      <section className={styles.geoSection} id="geo">
+        <div className={styles.geoCopy}>
+          <span className={styles.kicker}>Dominate local. Grow faster.</span>
+          <h2>
+            GEO services that put you<span> on the map.</span>
+          </h2>
           <p>
-            Local SEO should connect a real search to a real next step: a call,
-            a direction request, a booking or a visit.
+            Our local search system connects your business to the places,
+            categories and intent signals that matter — so customers find you
+            when they are ready to act.
           </p>
           <ul>
-            {localProof.map((item) => (
+            {geoChecklist.map((item) => (
               <li key={item}>
-                <Check size={16} aria-hidden="true" />
+                <Check size={15} aria-hidden="true" />
                 {item}
               </li>
             ))}
           </ul>
-          <Link href="/contact" className={styles.textLink}>
-            Talk about local SEO
+          <Link href="/contact" className={styles.primaryButton}>
+            Get started now
             <ArrowRight size={16} aria-hidden="true" />
           </Link>
+        </div>
+
+        <div className={styles.geoVisual}>
+          <div className={styles.geoGlow} aria-hidden="true" />
+          <div className={styles.geoImageWrap}>
+            <img
+              src="/media/services/seo-geo-map.webp"
+              alt="3D illustration of a location pin on a local map with ranking metrics"
+              loading="lazy"
+            />
+            <span className={`${styles.mapPulse} ${styles.pulseA}`} aria-hidden="true" />
+            <span className={`${styles.mapPulse} ${styles.pulseB}`} aria-hidden="true" />
+          </div>
+          <div className={`${styles.geoBadge} ${styles.geoBadgeOne}`} aria-hidden="true">
+            <span>⌖</span>
+            <div>
+              <b>#1 ranking</b>
+              <small>Local intent captured</small>
+            </div>
+          </div>
+          <div className={`${styles.geoBadge} ${styles.geoBadgeTwo}`} aria-hidden="true">
+            <b>+230%</b>
+            <small>Local searches</small>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.aiSection} aria-labelledby="ai-search-title">
+        <div className={styles.aiHeading}>
+          <span className={styles.kicker}>Generative engine optimization</span>
+          <h2 id="ai-search-title">Be the answer AI search gives.</h2>
+          <p>
+            Beyond the SERP, we structure your entities, sources and content
+            so answer engines pull your brand directly into their responses.
+          </p>
+        </div>
+
+        <div className={styles.aiGrid}>
+          {aiEngines.map((engine) => (
+            <article key={engine.name} className={styles.aiCard}>
+              <img src={engine.icon} alt="" width={64} height={64} loading="lazy" />
+              <h3>{engine.name}</h3>
+              <p>{engine.copy}</p>
+            </article>
+          ))}
+        </div>
+
+        <div className={styles.statsBand} aria-label="What GEO-ready content covers">
+          {impactStats.map(([index, label, detail]) => (
+            <div key={label}>
+              <span>{index}</span>
+              <b>{label}</b>
+              <small>{detail}</small>
+            </div>
+          ))}
         </div>
       </section>
 
       <section className={styles.ctaSection}>
-        <div>
-          <span className={styles.kicker}>Start with the evidence</span>
-          <h2>Find the search opportunity your competitors missed.</h2>
+        <div className={styles.ctaOrbit} aria-hidden="true" />
+        <div className={styles.ctaWaves} aria-hidden="true">
+          <span /><span /><span /><span />
         </div>
+        <span className={styles.kicker}>Ready to be found?</span>
+        <h2>
+          Turn search visibility into
+          <span> business momentum.</span>
+        </h2>
+        <p>
+          Get a free audit with your biggest ranking opportunities, local
+          gaps and a clear action plan.
+        </p>
         <Link href="/contact" className={styles.primaryButton}>
-          Request an SEO audit
+          Request my free audit
           <ArrowRight size={17} aria-hidden="true" />
         </Link>
       </section>
