@@ -32,7 +32,7 @@ export function AiAutomationShell() {
 
   return (
     <section className="fixed inset-0 z-[70] grid min-h-[100dvh] grid-rows-[3.75rem_minmax(0,1fr)] bg-[#090b0f] text-[#f4ead6]" aria-label="CompassNCrew AI automation workflow">
-      <header className="relative z-20 flex items-center justify-between border-b border-white/10 bg-[#0b0d10]/95 px-[max(0.75rem,env(safe-area-inset-left))] shadow-[0_10px_32px_rgba(0,0,0,0.3)] backdrop-blur-xl sm:px-5">
+      <header className="safe-area-inline relative z-20 flex items-center justify-between border-b border-white/10 bg-[#0b0d10]/95 shadow-[0_10px_32px_rgba(0,0,0,0.3)] backdrop-blur-xl">
         <button type="button" onClick={goBack} className="group inline-flex min-h-11 items-center gap-2 rounded-[0.625rem] border border-white/12 bg-white/[0.045] px-3 text-sm font-medium transition hover:-translate-y-px hover:border-[#ff7a35]/50 hover:bg-[#ff7a35]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff7a35]" aria-label="Go back to the previous page">
           <ArrowLeft className="size-4" aria-hidden="true"/><span>Back</span>
         </button>

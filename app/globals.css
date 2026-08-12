@@ -67,6 +67,18 @@ body {
   overflow-x: hidden;
 }
 
+/* Keep safe-area math in CSS. Tailwind's Windows scanner can corrupt this
+   particular arbitrary-value expression while compiling unrelated routes. */
+.safe-area-inline {
+  padding-inline: max(0.75rem, env(safe-area-inset-left));
+}
+
+@media (min-width: 40rem) {
+  .safe-area-inline {
+    padding-inline: 1.25rem;
+  }
+}
+
 body.journey-mode {
   overflow: hidden;
 }

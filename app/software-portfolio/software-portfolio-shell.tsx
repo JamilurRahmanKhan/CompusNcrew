@@ -40,7 +40,7 @@ export function SoftwarePortfolioShell() {
       className="fixed inset-0 z-[70] grid min-h-[100dvh] grid-rows-[3.75rem_minmax(0,1fr)] bg-[#111315] text-[#f4ead6]"
       aria-label="CompassNCrew software portfolio journey"
     >
-      <header className="relative z-10 flex items-center justify-between border-b border-white/10 bg-[#111315]/95 px-[max(0.75rem,env(safe-area-inset-left))] shadow-[0_10px_32px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:px-5">
+      <header className="safe-area-inline relative z-10 flex items-center justify-between border-b border-white/10 bg-[#111315]/95 shadow-[0_10px_32px_rgba(0,0,0,0.24)] backdrop-blur-xl">
         <button
           type="button"
           onClick={returnToPreviousPage}

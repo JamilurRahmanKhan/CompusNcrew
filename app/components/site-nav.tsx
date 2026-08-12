@@ -15,6 +15,7 @@ import { LocalTime } from "./local-time";
  */
 export function SiteNav() {
   const pathname = usePathname();
+  const videoEditingLayout = pathname === "/services/video-editing";
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -25,7 +26,8 @@ export function SiteNav() {
   // so the swap only needs to cover the unscrolled state on "/".
   const immersiveDark =
     pathname === "/services/social-media-marketing" ||
-    pathname === "/services/graphic-design";
+    pathname === "/services/graphic-design" ||
+    pathname === "/services/email-sms";
   const onDarkHero = (pathname === "/" && !scrolled && !open) || (immersiveDark && !open);
 
   useEffect(() => {
@@ -49,6 +51,26 @@ export function SiteNav() {
       window.removeEventListener("keydown", onKey);
     };
   }, [open]);
+
+  if (videoEditingLayout) {
+    return (
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-black/[0.08] bg-[#f7f7f4]/95 backdrop-blur-xl">
+        <nav className="mx-auto flex h-[3.875rem] w-[calc(100%_-_2rem)] max-w-[72rem] items-center justify-between" aria-label="Primary">
+          <Link href="/" className="flex flex-col text-[0.8125rem] font-extrabold uppercase leading-[0.86] tracking-[-0.025em] text-[#191919]" aria-label={`${brand.name} — home`}>
+            <span>CompassNCrew</span>
+            <span>Video Studio</span>
+          </Link>
+          <div className="hidden items-center gap-8 text-[0.875rem] text-[#191919] md:flex">
+            <Link href="/work" className="hover:opacity-60">Cases</Link>
+            <Link href="/method" className="hover:opacity-60">Insights</Link>
+            <Link href="#video-package" className="hover:opacity-60">Pricing</Link>
+            <Link href="/contact" className="inline-flex min-h-[2.25rem] items-center rounded-[0.45rem] border border-black/15 px-3.5 hover:bg-black hover:text-white">Start your project</Link>
+          </div>
+          <Link href="/contact" className="inline-flex min-h-11 items-center rounded-[0.45rem] border border-black/15 px-3 text-sm text-[#191919] md:hidden">Start</Link>
+        </nav>
+      </header>
+    );
+  }
 
   return (
     <>
