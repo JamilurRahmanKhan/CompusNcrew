@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Check, ChevronDown, Play } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Heart, Lightbulb, Play, ScanSearch, Send, SlidersHorizontal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import styles from "./video-editing.module.css";
 
@@ -30,6 +30,7 @@ const faqs = [
 export function VideoEditingStudio() {
   const pageRef = useRef<HTMLDivElement>(null);
   const heroMediaRef = useRef<HTMLElement>(null);
+  const processRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState("All work");
 
   useEffect(() => {
@@ -44,6 +45,46 @@ export function VideoEditingStudio() {
     }), { threshold: .12, rootMargin: "0px 0px -7%" });
     elements.forEach((element) => observer.observe(element));
     return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const section = processRef.current;
+    if (!section) return;
+
+    const cards = [...section.querySelectorAll<HTMLElement>("[data-process-card]")];
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let frame = 0;
+
+    const updateRoadmap = () => {
+      frame = 0;
+      if (reducedMotion.matches || window.innerWidth <= 650) {
+        cards.forEach((card) => card.style.setProperty("--card-progress", "1"));
+        return;
+      }
+
+      const viewportHeight = window.innerHeight;
+      cards.forEach((card) => {
+        const top = card.getBoundingClientRect().top;
+        const raw = Math.min(1, Math.max(0, (viewportHeight * .92 - top) / (viewportHeight * .58)));
+        const eased = raw * raw * (3 - 2 * raw);
+        card.style.setProperty("--card-progress", eased.toFixed(4));
+      });
+    };
+
+    const requestUpdate = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateRoadmap);
+    };
+
+    updateRoadmap();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+    reducedMotion.addEventListener("change", requestUpdate);
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+      reducedMotion.removeEventListener("change", requestUpdate);
+    };
   }, []);
 
   useEffect(() => {
@@ -126,9 +167,22 @@ export function VideoEditingStudio() {
         </div>
       </section>
 
-      <section className={styles.process} data-reveal aria-labelledby="process-title">
-        <h2 id="process-title">How the edit moves. Clear & controlled.</h2>
-        <div className={styles.processGrid}>{process.map(([index,title,copy]) => <article key={index}><span>{index}</span><h3>{title}</h3><p>{copy}</p></article>)}</div>
+      <section ref={processRef} className={styles.process} aria-labelledby="process-title">
+        <div className={styles.processHeading}><h2 id="process-title">How the edit moves.<br />Clear & controlled.</h2></div>
+        <div className={styles.roadmap}>
+          <div className={styles.roadmapGlow} aria-hidden="true" />
+          <div className={styles.roadmapLine} aria-hidden="true" />
+          {process.map(([index,title,copy], cardIndex) => {
+            const Icon = [Lightbulb, ScanSearch, SlidersHorizontal, Send][cardIndex];
+            return (
+              <article key={index} data-process-card className={styles.processCard}>
+                <Icon aria-hidden="true" />
+                <p><strong>{title}.</strong> {copy}</p>
+              </article>
+            );
+          })}
+          <Heart className={styles.roadmapHeart} fill="currentColor" aria-hidden="true" />
+        </div>
       </section>
 
       <section id="video-package" className={styles.package} data-reveal aria-labelledby="package-title">
