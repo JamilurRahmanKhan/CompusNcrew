@@ -1,218 +1,278 @@
 import {
+  ArrowDown,
   ArrowRight,
-  ArrowUpRight,
   Check,
   FileText,
   Grid2X2,
   Layers3,
-  Palette,
+  Package,
   PenTool,
-  Sparkles,
+  Smartphone,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./design-studio.module.css";
 
-const disciplines = [
+const services = [
   {
-    title: "Identity systems",
-    description: "Naming, marks, type, colour and guidelines that keep a brand recognizable as it grows.",
-    detail: "Strategy · identity · guidelines",
+    index: "01",
+    title: "Brand identity",
+    description: "Distinctive identities that make your business recognizable before the logo is even seen.",
+    deliverables: "Strategy · Logo systems · Guidelines",
     icon: PenTool,
   },
   {
-    title: "Campaign direction",
-    description: "A central visual idea translated into launch assets, ads and moments people remember.",
-    detail: "Concept · art direction · campaigns",
-    icon: Sparkles,
+    index: "02",
+    title: "Digital experiences",
+    description: "Web and product interfaces shaped around clarity, conversion and memorable interaction.",
+    deliverables: "Web design · UI systems · Prototypes",
+    icon: Smartphone,
   },
   {
-    title: "Social design systems",
-    description: "Flexible templates and motion rules that give every post a consistent point of view.",
-    detail: "Templates · content series · motion",
+    index: "03",
+    title: "Campaign creative",
+    description: "A strong central idea translated into a visual campaign that can live everywhere.",
+    deliverables: "Art direction · Launch assets · Ads",
+    icon: Layers3,
+  },
+  {
+    index: "04",
+    title: "Social systems",
+    description: "Flexible content systems that keep every post fresh without losing brand recognition.",
+    deliverables: "Templates · Motion rules · Content kits",
     icon: Grid2X2,
   },
   {
-    title: "Editorial & print",
-    description: "Reports, packaging and physical pieces with clarity, rhythm and tactile consideration.",
-    detail: "Editorial · packaging · print",
-    icon: FileText,
+    index: "05",
+    title: "Packaging design",
+    description: "Shelf-ready packaging that balances visual distinction with practical information.",
+    deliverables: "Concepts · Dielines · Production files",
+    icon: Package,
   },
   {
-    title: "Pitch & proposal decks",
-    description: "Complex stories shaped into persuasive visual narratives that are easy to present.",
-    detail: "Story flow · data design · decks",
-    icon: Layers3,
+    index: "06",
+    title: "Editorial & decks",
+    description: "Complex stories turned into persuasive, well-paced documents people want to read.",
+    deliverables: "Reports · Pitch decks · Editorial",
+    icon: FileText,
   },
 ] as const;
 
 const process = [
-  ["Find the signal", "We clarify the audience, context and job the design must do."],
-  ["Frame the direction", "We explore distinct territories and explain the reasoning behind each."],
-  ["Build the system", "The chosen direction becomes a repeatable visual language."],
-  ["Prepare it to live", "We test, document and hand over files your team can keep using."],
+  ["Discover", "We find the business signal, audience and purpose the design must serve."],
+  ["Direct", "We explore distinct creative territories and make the reasoning visible."],
+  ["Design", "The chosen direction becomes a coherent system across every required format."],
+  ["Deliver", "We test, document and hand over files your team can confidently keep using."],
 ] as const;
 
-function ArrowLink({ children, href, light = false }: { children: React.ReactNode; href: string; light?: boolean }) {
+function ActionLink({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
   return (
-    <Link href={href} className={light ? styles.lightAction : styles.darkAction}>
-      <span>{children}</span><ArrowRight size={17} aria-hidden="true" />
+    <Link href="/contact" className={light ? styles.actionLight : styles.actionDark}>
+      <span>{children}</span>
+      <ArrowRight size={17} aria-hidden="true" />
     </Link>
   );
 }
 
 export function DesignStudio() {
   return (
-    <main className={styles.page}>
-      <a className={styles.skipLink} href="#design-main">Skip to design services</a>
-
+    <div className={styles.page}>
       <section className={styles.hero} aria-labelledby="design-title">
-        <div className={styles.heroGrain} aria-hidden="true" />
-        <div className={styles.heroInner} id="design-main">
-          <div className={styles.heroCopy}>
-            <p className={styles.heroKicker}>CompassNCrew design studio</p>
-            <h1 id="design-title">
-              <span>Design people</span>
-              <span><em>feel</em> before</span>
-              <span>they read.</span>
-            </h1>
-            <p className={styles.heroLead}>
-              Identity, campaigns and visual systems made to be recognized in a crowded world.
-            </p>
-            <div className={styles.heroActions}>
-              <a className={styles.primaryAction} href="#selected-work">
-                See the work <ArrowRight size={17} aria-hidden="true" />
-              </a>
-              <Link className={styles.heroTextLink} href="/contact">Brief the studio</Link>
-            </div>
-          </div>
+        <Image
+          src="/media/services/design-gallery-hero.png"
+          alt="A premium three-dimensional gallery exhibiting brand identity, packaging, editorial and digital interface design"
+          fill
+          priority
+          sizes="100vw"
+          className={styles.heroImage}
+        />
+        <div className={styles.heroShade} aria-hidden="true" />
+        <div className={styles.heroGrid} aria-hidden="true" />
 
-          <div className={styles.heroVisual} aria-label="A three-dimensional creative control deck with design tools">
-            <Image
-              src="/media/services/design-creative-console.png"
-              alt="A premium three-dimensional creative control deck with a stylus, colour wheel and tactile keys"
-              fill
-              priority
-              sizes="(max-width: 820px) 100vw, 58vw"
-              className={styles.heroImage}
-            />
-            <div className={styles.softwareDock} aria-label="Creative software toolkit">
-              <span>Ps</span><span>Ai</span><span>Id</span><span>Ae</span>
-            </div>
-            <div className={styles.visualNote} aria-hidden="true">
-              <span>Creative instrument</span><strong>Form follows meaning.</strong>
-            </div>
+        <div className={styles.heroTopline}>
+          <span>CompassNCrew / Design Studio</span>
+          <span>Digital exhibition · 2026</span>
+        </div>
+
+        <div className={styles.heroContent}>
+          <p className={styles.eyebrow}>Design for businesses with something to say</p>
+          <h1 id="design-title">
+            Built to be
+            <em>remembered.</em>
+          </h1>
+          <p className={styles.heroLead}>
+            Brand identities, campaigns and digital experiences curated into one clear visual language.
+          </p>
+          <div className={styles.heroActions}>
+            <a href="#services" className={styles.heroPrimary}>
+              Explore the studio <ArrowDown size={17} aria-hidden="true" />
+            </a>
+            <Link href="/contact" className={styles.heroSecondary}>Start a project</Link>
           </div>
         </div>
-        <div className={styles.heroFooter}>
-          <span>Strategy before styling</span>
-          <span>Systems before one-offs</span>
-          <span>Source files made usable</span>
+
+        <div className={styles.heroFoot}>
+          <span>Brand</span><span>Digital</span><span>Campaign</span><span>Editorial</span>
         </div>
       </section>
 
-      <section className={styles.disciplines} aria-labelledby="disciplines-title">
-        <div className={styles.disciplineIntro}>
-          <span className={styles.sectionMark}>What we shape</span>
-          <h2 id="disciplines-title">One language.<br />Every place your brand appears.</h2>
-          <p>Not a pile of assets. A coherent design system that stays distinctive and practical in everyday use.</p>
-        </div>
+      <div id="design-main">
+        <section className={styles.manifesto} aria-labelledby="manifesto-title">
+          <div className={styles.sectionLabel}>
+            <span>01</span>
+            <span>Our point of view</span>
+          </div>
+          <div className={styles.manifestoCopy}>
+            <h2 id="manifesto-title">
+              Design is not the <em>decoration.</em><br />It is the difference.
+            </h2>
+            <div className={styles.manifestoDetail}>
+              <p>
+                We create visual systems that help businesses look credible, communicate clearly and stay recognizable as they grow.
+              </p>
+              <p>
+                Every choice earns its place—from the first strategic idea to the last production-ready file.
+              </p>
+            </div>
+          </div>
+        </section>
 
-        <div className={styles.disciplineList}>
-          {disciplines.map(({ title, description, detail, icon: Icon }, index) => (
-            <article className={styles.disciplineItem} key={title}>
-              <span className={styles.itemIndex}>{String(index + 1).padStart(2, "0")}</span>
-              <div className={styles.itemIcon}><Icon size={20} strokeWidth={1.7} aria-hidden="true" /></div>
-              <div className={styles.itemCopy}><h3>{title}</h3><p>{description}</p></div>
-              <span className={styles.itemDetail}>{detail}</span>
-              <ArrowUpRight className={styles.itemArrow} size={19} aria-hidden="true" />
+        <section className={styles.services} id="services" aria-labelledby="services-title">
+          <div className={styles.servicesIntro}>
+            <div className={`${styles.sectionLabel} ${styles.sectionLabelDark}`}>
+              <span>02</span>
+              <span>What we design</span>
+            </div>
+            <h2 id="services-title">One studio.<br /><em>Every expression.</em></h2>
+            <p>Choose a focused engagement or build one complete design system across your business.</p>
+          </div>
+
+          <div className={styles.serviceGrid}>
+            {services.map(({ index, title, description, deliverables, icon: Icon }) => (
+              <article className={styles.serviceCard} key={title}>
+                <div className={styles.serviceCardTop}>
+                  <span>{index}</span>
+                  <Icon size={22} strokeWidth={1.45} aria-hidden="true" />
+                </div>
+                <h3>{title}</h3>
+                <p>{description}</p>
+                <span className={styles.deliverables}>{deliverables}</span>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className={styles.work} id="selected-work" aria-labelledby="work-title">
+          <div className={styles.workHeading}>
+            <div className={styles.sectionLabel}>
+              <span>03</span>
+              <span>Selected directions</span>
+            </div>
+            <h2 id="work-title">A glimpse inside<br />the <em>collection.</em></h2>
+            <p>Three studies in identity, campaign and information design.</p>
+          </div>
+
+          <div className={styles.workGrid}>
+            <article className={`${styles.project} ${styles.projectIdentity}`}>
+              <div className={styles.projectMeta}><span>Identity system</span><span>CN / 001</span></div>
+              <div className={styles.identityArt} aria-hidden="true">
+                <span className={styles.identityLetter}>C</span>
+                <span className={styles.identityName}>Common<br />Form</span>
+                <div className={styles.identityLines}><i /><i /><i /></div>
+              </div>
+              <div className={styles.projectCaption}>
+                <h3>Recognition, built into every detail.</h3>
+                <span>Brand architecture · Visual identity</span>
+              </div>
             </article>
-          ))}
-        </div>
-      </section>
 
-      <section className={styles.work} id="selected-work" aria-labelledby="work-title">
-        <div className={styles.workHeader}>
-          <div><span className={styles.sectionMark}>Selected studies</span><h2 id="work-title">A system you can see working.</h2></div>
-          <p>Three visual territories showing how one idea can become a complete, usable design language.</p>
-        </div>
+            <article className={`${styles.project} ${styles.projectCampaign}`}>
+              <div className={styles.projectMeta}><span>Campaign direction</span><span>CN / 002</span></div>
+              <div className={styles.campaignArt} aria-hidden="true">
+                <span>MOVE</span>
+                <i />
+                <small>Make the first impression move.</small>
+              </div>
+              <div className={styles.projectCaption}>
+                <h3>One idea, amplified across every touchpoint.</h3>
+                <span>Art direction · Launch campaign</span>
+              </div>
+            </article>
 
-        <div className={styles.workGrid}>
-          <article className={`${styles.project} ${styles.projectPrimary}`}>
-            <div className={styles.projectMeta}><span>Identity system</span><span>01 / Brand architecture</span></div>
-            <div className={styles.identityCanvas} aria-hidden="true">
-              <span className={styles.giantC}>C</span><span className={styles.verticalWord}>COMMON FORM</span>
-              <div className={styles.identityBars}><i /><i /><i /></div>
-            </div>
-            <div className={styles.projectCaption}><h3>A flexible identity built to stay recognizable.</h3><ArrowUpRight size={19} /></div>
-          </article>
-
-          <article className={`${styles.project} ${styles.projectCampaign}`}>
-            <div className={styles.projectMeta}><span>Campaign direction</span><span>02 / Launch system</span></div>
-            <div className={styles.campaignCanvas} aria-hidden="true">
-              <strong>MOVE</strong><span>Make the first impression move.</span><i />
-            </div>
-            <div className={styles.projectCaption}><h3>One idea, expressed across every touchpoint.</h3><ArrowUpRight size={19} /></div>
-          </article>
-
-          <article className={`${styles.project} ${styles.projectEditorial}`}>
-            <div className={styles.projectMeta}><span>Editorial design</span><span>03 / Information system</span></div>
-            <div className={styles.editorialCanvas} aria-hidden="true">
-              <span>Studio notes / 04—19</span><strong>Ideas need<br /><em>structure.</em></strong><div><i /><i /><i /></div>
-            </div>
-            <div className={styles.projectCaption}><h3>Information made beautiful, useful and easy to navigate.</h3><ArrowUpRight size={19} /></div>
-          </article>
-        </div>
-      </section>
-
-      <section className={styles.principle} aria-label="Our design principle">
-        <div className={styles.principleGlyph} aria-hidden="true">D</div>
-        <blockquote>“Good design is understood <em>before</em> it is explained.”</blockquote>
-        <p>Clarity leads. Character makes it memorable. A usable system keeps it alive.</p>
-      </section>
-
-      <section className={styles.process} aria-labelledby="process-title">
-        <div className={styles.processTitle}>
-          <span className={styles.sectionMark}>How the work takes shape</span>
-          <h2 id="process-title">Clear thinking before polished files.</h2>
-        </div>
-        <ol className={styles.processRail}>
-          {process.map(([title, description], index) => (
-            <li key={title}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <h3>{title}</h3>
-              <p>{description}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className={styles.handover} aria-labelledby="handover-title">
-        <div className={styles.toolSculpture} aria-hidden="true">
-          <div className={styles.toolBase}>
-            <span className={styles.keyPs}>Ps</span><span className={styles.keyAi}>Ai</span>
-            <span className={styles.keyId}>Id</span><span className={styles.keyAe}>Ae</span>
-            <div className={styles.paletteDisc}><Palette size={28} /></div>
+            <article className={`${styles.project} ${styles.projectEditorial}`}>
+              <div className={styles.projectMeta}><span>Editorial system</span><span>CN / 003</span></div>
+              <div className={styles.editorialArt} aria-hidden="true">
+                <small>Studio journal / Issue 04</small>
+                <span>Ideas need<br /><em>structure.</em></span>
+                <div><i /><i /><i /></div>
+              </div>
+              <div className={styles.projectCaption}>
+                <h3>Information with rhythm, order and character.</h3>
+                <span>Editorial · Information design</span>
+              </div>
+            </article>
           </div>
-        </div>
-        <div className={styles.handoverCopy}>
-          <span className={styles.sectionMark}>A handover built to last</span>
-          <h2 id="handover-title">Beautiful only works when your team can keep using it.</h2>
-          <ul>
-            <li><Check size={16} /> Organized, editable source files</li>
-            <li><Check size={16} /> Clear usage and consistency guidance</li>
-            <li><Check size={16} /> Assets prepared for print and screen</li>
-            <li><Check size={16} /> Licensed fonts and assets documented</li>
-          </ul>
-          <ArrowLink href="/contact">Talk through your design brief</ArrowLink>
-        </div>
-      </section>
+        </section>
 
-      <section className={styles.cta}>
-        <p>Have an idea that needs a visual language?</p>
-        <h2>Let’s give it a form only your brand could own.</h2>
-        <ArrowLink href="/contact" light>Start a design project</ArrowLink>
-      </section>
-    </main>
+        <section className={styles.quote} aria-label="Design principle">
+          <span className={styles.quoteMark} aria-hidden="true">D</span>
+          <blockquote>
+            “Good design is understood <em>before</em> it is explained.”
+          </blockquote>
+          <p>Clarity makes it useful. Character makes it memorable. A system keeps it alive.</p>
+        </section>
+
+        <section className={styles.process} aria-labelledby="process-title">
+          <div className={`${styles.sectionLabel} ${styles.sectionLabelDark}`}>
+            <span>04</span>
+            <span>How it takes shape</span>
+          </div>
+          <div className={styles.processHeading}>
+            <h2 id="process-title">A clear path from<br /><em>thinking to form.</em></h2>
+            <p>Enough structure to stay focused. Enough room for the unexpected idea.</p>
+          </div>
+          <ol className={styles.processGrid}>
+            {process.map(([title, description], index) => (
+              <li key={title}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <h3>{title}</h3>
+                <p>{description}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className={styles.handover} aria-labelledby="handover-title">
+          <div className={styles.handoverVisual} aria-hidden="true">
+            <span className={styles.sheetOne}>Aa</span>
+            <span className={styles.sheetTwo}>#E86F35</span>
+            <span className={styles.sheetThree}>01—04</span>
+            <div className={styles.handoverDisc}>C</div>
+          </div>
+          <div className={styles.handoverCopy}>
+            <div className={styles.sectionLabel}>
+              <span>05</span>
+              <span>Made to keep working</span>
+            </div>
+            <h2 id="handover-title">A beautiful system your team can actually use.</h2>
+            <ul>
+              <li><Check size={16} aria-hidden="true" /> Organized, editable source files</li>
+              <li><Check size={16} aria-hidden="true" /> Clear consistency and usage guidance</li>
+              <li><Check size={16} aria-hidden="true" /> Assets prepared for print and screen</li>
+              <li><Check size={16} aria-hidden="true" /> Fonts and licensing documented</li>
+            </ul>
+            <ActionLink>Talk through your brief</ActionLink>
+          </div>
+        </section>
+
+        <section className={styles.cta}>
+          <div>
+            <span>Have an idea that needs a visual language?</span>
+            <h2>Let’s make it<br /><em>impossible to ignore.</em></h2>
+          </div>
+          <ActionLink light>Start a design project</ActionLink>
+        </section>
+      </div>
+    </div>
   );
 }
