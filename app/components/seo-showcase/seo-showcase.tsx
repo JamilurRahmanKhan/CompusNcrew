@@ -14,6 +14,7 @@ import {
   Check,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { DM_Sans, Space_Grotesk } from "next/font/google";
 import { useEffect, useState } from "react";
 import styles from "./seo-showcase.module.css";
@@ -65,13 +66,6 @@ const services = [
     scope: "Editorial strategy · credible links",
   },
 ] as const;
-
-const geoChecklist = [
-  "Google Business Profile optimisation",
-  "Local keyword targeting",
-  "Map ranking and review management",
-  "Local citations and directory listings",
-];
 
 const aiEngines = [
   {
@@ -300,6 +294,57 @@ export function SeoShowcase() {
         </div>
       </section>
 
+      <section id="geo" className={styles.geoIntroSection} aria-labelledby="geo-services-title">
+        <div className={styles.geoIntroInner}>
+          <div className={styles.geoIntroCopy}>
+            <span className={styles.kicker}>Dominate local. Grow faster.</span>
+            <h2 id="geo-services-title">
+              GEO services that put you <span>on the map.</span>
+            </h2>
+            <p>
+              Our local search system connects your business to the places,
+              categories and intent signals that matter — so customers find
+              you when they are ready to act.
+            </p>
+
+            <ul className={styles.geoIntroList}>
+              {[
+                "Google Business Profile optimisation",
+                "Local keyword targeting",
+                "Map ranking and review management",
+                "Local citations and directory listings",
+              ].map((item) => (
+                <li key={item}>
+                  <Check size={14} strokeWidth={3} aria-hidden="true" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+
+            <Link href="/contact" className={styles.geoIntroButton}>
+              Get started now
+              <ArrowRight size={16} strokeWidth={2.2} aria-hidden="true" />
+            </Link>
+          </div>
+
+          <div className={styles.geoIntroVisual} aria-label="Local search growth illustration">
+            <div className={styles.geoIntroHalo} aria-hidden="true" />
+            <Image
+              className={styles.geoIntroImage}
+              src="/media/services/seo-geo-map.webp"
+              alt="Local search map with improved rankings, calls and direction requests"
+              width={1200}
+              height={800}
+              sizes="(max-width: 800px) 94vw, 52vw"
+            />
+            <div className={styles.geoSignalCard} aria-hidden="true">
+              <span>Local intent</span>
+              <strong>Captured</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="seo-services" className={styles.servicesSection}>
         <div className={styles.sectionHeading}>
           <div>
@@ -445,56 +490,6 @@ export function SeoShowcase() {
                 <p>Add the final case study URL when the project page is published.</p>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.geoSection} id="geo">
-        <div className={styles.geoCopy}>
-          <span className={styles.kicker}>Dominate local. Grow faster.</span>
-          <h2>
-            GEO services that put you<span> on the map.</span>
-          </h2>
-          <p>
-            Our local search system connects your business to the places,
-            categories and intent signals that matter — so customers find you
-            when they are ready to act.
-          </p>
-          <ul>
-            {geoChecklist.map((item) => (
-              <li key={item}>
-                <Check size={15} aria-hidden="true" />
-                {item}
-              </li>
-            ))}
-          </ul>
-          <Link href="/contact" className={styles.primaryButton}>
-            Get started now
-            <ArrowRight size={16} aria-hidden="true" />
-          </Link>
-        </div>
-
-        <div className={styles.geoVisual}>
-          <div className={styles.geoGlow} aria-hidden="true" />
-          <div className={styles.geoImageWrap}>
-            <img
-              src="/media/services/seo-geo-map.webp"
-              alt="3D illustration of a location pin on a local map with ranking metrics"
-              loading="lazy"
-            />
-            <span className={`${styles.mapPulse} ${styles.pulseA}`} aria-hidden="true" />
-            <span className={`${styles.mapPulse} ${styles.pulseB}`} aria-hidden="true" />
-          </div>
-          <div className={`${styles.geoBadge} ${styles.geoBadgeOne}`} aria-hidden="true">
-            <span>⌖</span>
-            <div>
-              <b>#1 ranking</b>
-              <small>Local intent captured</small>
-            </div>
-          </div>
-          <div className={`${styles.geoBadge} ${styles.geoBadgeTwo}`} aria-hidden="true">
-            <b>+230%</b>
-            <small>Local searches</small>
           </div>
         </div>
       </section>
