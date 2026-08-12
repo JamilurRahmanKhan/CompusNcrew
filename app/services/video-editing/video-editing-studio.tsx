@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Check, ChevronDown, Clapperboard, Layers, Lightbulb, Play, ScanSearch, Send, SlidersHorizontal, Sparkles, Zap } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -141,9 +140,13 @@ export function VideoEditingStudio() {
         return;
       }
 
-      const pageTop = page.getBoundingClientRect().top + window.scrollY;
-      const travel = Math.max(560, window.innerHeight * 0.92);
-      const rawProgress = Math.min(1, Math.max(0, (window.scrollY - pageTop) / travel));
+      // Key progress off the media element's own position in the viewport
+      // (not distance scrolled from the page top) so full scale lands
+      // while it's still fully in view, not after it's scrolled past.
+      const top = media.getBoundingClientRect().top;
+      const start = window.innerHeight * 0.85;
+      const end = window.innerHeight * 0.1;
+      const rawProgress = Math.min(1, Math.max(0, (start - top) / (start - end)));
       const easedProgress = rawProgress * rawProgress * (3 - 2 * rawProgress);
       media.style.setProperty("--media-progress", easedProgress.toFixed(4));
     };
@@ -175,7 +178,7 @@ export function VideoEditingStudio() {
 
       <div className={styles.heroMediaStage}>
         <section ref={heroMediaRef} className={styles.heroMedia} aria-label="Video editing preview">
-          <Image src="/media/services/video-editing-bg-2.jpg" alt="Video editing interface showing a fast-paced automotive project" fill priority sizes="(max-width: 650px) calc(100vw - 1.5rem), calc(100vw - 8rem)" />
+          <video className={styles.heroMediaVideo} src="/video/video-hero.mp4" autoPlay loop muted playsInline preload="auto" aria-label="Video editing interface showing a fast-paced automotive project" />
           <span><Play size={16} fill="currentColor" aria-hidden="true" /> From raw footage to final cut</span>
         </section>
       </div>
@@ -200,9 +203,9 @@ export function VideoEditingStudio() {
       <section className={styles.work} data-reveal aria-labelledby="work-title">
         <div className={styles.workTop}><h2 id="work-title">Examples of the editing system.</h2><div className={styles.filters} role="group" aria-label="Filter work examples">{["All work", "Product", "Social", "Ads"].map(label => <button key={label} type="button" aria-pressed={active === label} onClick={() => setActive(label)}>{label}</button>)}</div></div>
         <div className={styles.workGrid}>
-          <article className={styles.workLarge}><div><Image src="/media/services/video-editing-bg-2.jpg" alt="Automotive product video being edited" fill sizes="(max-width: 760px) 100vw, 60vw" /></div><h3>Velocity / Product launch</h3><p>Master film · vertical cuts · motion graphics</p></article>
-          <article><div><Image src="/media/services/video-editing-bg.jpg" alt="Professional colour grading workflow" fill sizes="(max-width: 760px) 100vw, 40vw" /></div><h3>Proof / Brand story</h3><p>Interview edit · colour · captions</p></article>
-          <article><div><Image src="/media/services/video-editing-bg.jpg" alt="Editor building multiple video variants" fill sizes="(max-width: 760px) 100vw, 40vw" /></div><h3>Loop / Social system</h3><p>Hook variants · platform formats</p></article>
+          <article className={styles.workLarge}><div><video className={styles.heroMediaVideo} src="/video/v1.mp4" autoPlay loop muted playsInline preload="auto" aria-label="Automotive product video being edited" /></div><h3>Velocity / Product launch</h3><p>Master film · vertical cuts · motion graphics</p></article>
+          <article><div><video className={styles.heroMediaVideo} src="/video/v2.mp4" autoPlay loop muted playsInline preload="auto" aria-label="Professional colour grading workflow" /></div><h3>Proof / Brand story</h3><p>Interview edit · colour · captions</p></article>
+          <article><div><video className={styles.heroMediaVideo} src="/video/v3.mp4" autoPlay loop muted playsInline preload="auto" aria-label="Editor building multiple video variants" /></div><h3>Loop / Social system</h3><p>Hook variants · platform formats</p></article>
         </div>
       </section>
 
