@@ -106,9 +106,9 @@ export function getArtworkViewingPose(artwork: Artwork): ArtworkViewingPose {
 }
 
 export function getQualityTier(width: number, dpr: number): QualityTier {
-  if (width < 720) return { tier: "mobile", dpr: Math.min(dpr, 1) };
-  if (width < 1100) return { tier: "balanced", dpr: Math.min(dpr, 1.25) };
-  return { tier: "desktop", dpr: Math.min(dpr, 1.5) };
+  if (width < 720) return { tier: "mobile", dpr: Math.min(dpr, 2.5) };
+  if (width < 1100) return { tier: "balanced", dpr: Math.min(dpr, 2.5) };
+  return { tier: "desktop", dpr: Math.min(dpr, 2.5) };
 }
 
 function clamp(value: number, min: number, max: number): number {

@@ -274,7 +274,7 @@ export function DesignGalleryCanvas({
       const dimensions = getDimensions();
       const quality = getQualityTier(dimensions.width, window.devicePixelRatio || 1);
       renderer = new THREE.WebGLRenderer({
-        antialias: quality.tier === "desktop",
+        antialias: true,
         powerPreference: "high-performance",
       });
       renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -288,10 +288,13 @@ export function DesignGalleryCanvas({
       contextLossTarget = renderer.domElement;
       contextLossTarget.addEventListener("webglcontextlost", handleContextLost);
 
+      const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+
       sceneHandle = createGalleryScene({
         ...dimensions,
         bounds: GALLERY_BOUNDS,
         quality,
+        maxAnisotropy,
       });
       controls = new GalleryInputController();
       controlsRef.current = controls;

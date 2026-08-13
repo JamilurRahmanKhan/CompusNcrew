@@ -8,6 +8,7 @@ export interface GallerySceneOptions {
   height: number;
   bounds: GalleryBounds;
   quality: QualityTier;
+  maxAnisotropy: number;
 }
 
 export interface GallerySceneHandle {
@@ -121,7 +122,7 @@ function buildGalleryScene(
   options: GallerySceneOptions,
   construction: GallerySceneConstruction,
 ): GallerySceneHandle {
-  const { bounds, quality } = options;
+  const { bounds, quality, maxAnisotropy } = options;
   const roomHalfWidth = Math.max(Math.abs(bounds.minX), Math.abs(bounds.maxX)) + WALL_PADDING;
   const roomMinZ = bounds.minY - FRONT_WALL_PADDING;
   const roomMaxZ = bounds.maxY + WALL_PADDING + ENTRANCE_DEPTH;
@@ -215,7 +216,7 @@ function buildGalleryScene(
   }
   scene.add(directionalLight, directionalLight.target);
 
-  addServiceWall(scene, roomMinZ);
+  addServiceWall(scene, roomMinZ, maxAnisotropy);
 
   const frameStates = new Map<string, ArtworkFrameState>();
   const artworkFrames = new Map<string, THREE.Group>();
@@ -235,6 +236,7 @@ function buildGalleryScene(
       artworkPlaneGeometry,
       textureLoader,
       () => construction.disposed,
+      maxAnisotropy,
     );
     const frameState = frameResult.frame;
     frameStates.set(artwork.id, frameState);
@@ -343,11 +345,11 @@ function addViewingMarkers(scene: THREE.Scene): void {
   const markers = new THREE.Group();
   markers.name = "Artwork viewing markers";
   scene.add(markers);
-  const geometry = new THREE.RingGeometry(0.5, 0.535, 64);
+  const geometry = new THREE.RingGeometry(0.5, 0.565, 64);
   const material = new THREE.MeshBasicMaterial({
-    color: 0x161616,
+    color: 0x0a0a0a,
     transparent: true,
-    opacity: 0.72,
+    opacity: 0.88,
     side: THREE.DoubleSide,
     depthWrite: false,
   });
@@ -430,10 +432,10 @@ function addCeilingLights(
   isMobile: boolean,
 ): void {
   const fixtureY = WALL_HEIGHT + 1.55;
-  const shadeGeometry = new THREE.CylinderGeometry(0.22, 0.16, 0.28, 16, 1, true);
+  const shadeGeometry = new THREE.CylinderGeometry(0.22, 0.16, 0.28, 24, 1, true);
   const shadeMaterial = new THREE.MeshStandardMaterial({ color: 0x161616, roughness: 0.4, metalness: 0.4, side: THREE.DoubleSide });
-  const bulbGeometry = new THREE.SphereGeometry(0.09, 12, 12);
-  const bulbMaterial = new THREE.MeshStandardMaterial({ color: 0xffe2ab, emissive: 0xffb457, emissiveIntensity: 1.6, roughness: 0.3 });
+  const bulbGeometry = new THREE.SphereGeometry(0.1, 20, 20);
+  const bulbMaterial = new THREE.MeshStandardMaterial({ color: 0xfff0d4, emissive: 0xffb457, emissiveIntensity: 2.4, roughness: 0.25 });
 
   const count = 4;
   for (let index = 0; index < count; index += 1) {
@@ -454,8 +456,8 @@ function addCeilingLights(
     bulb.position.y = -0.12;
     fixture.add(bulb);
 
-    if (!isMobile) {
-      const glow = new THREE.PointLight(0xffc27a, 6, 6.5, 2);
+    {
+      const glow = new THREE.PointLight(0xffc27a, isMobile ? 4 : 6, 6.5, 2);
       glow.position.set(0, fixtureY - 0.15, z);
       scene.add(glow);
     }
@@ -471,6 +473,7 @@ function createArtworkFrame(
   artworkPlaneGeometry: THREE.PlaneGeometry,
   textureLoader: THREE.TextureLoader,
   isDisposed: () => boolean,
+  maxAnisotropy: number,
 ): ArtworkFrameResult {
   const { width, height } = artwork.dimensions;
   const group = new THREE.Group();
@@ -548,7 +551,7 @@ function createArtworkFrame(
             return;
           }
           loadedTexture.colorSpace = THREE.SRGBColorSpace;
-          loadedTexture.anisotropy = 4;
+          loadedTexture.anisotropy = maxAnisotropy;
           artworkMaterial.map = loadedTexture;
           artworkMaterial.emissiveMap = loadedTexture;
           artworkMaterial.needsUpdate = true;
@@ -567,7 +570,7 @@ function createArtworkFrame(
   // Applying it now lets Three upload the completed image on the first ready render.
   if (texture) {
     texture.colorSpace = THREE.SRGBColorSpace;
-    texture.anisotropy = 4;
+    texture.anisotropy = maxAnisotropy;
     artworkMaterial.map = texture;
     artworkMaterial.emissiveMap = texture;
   }
@@ -578,29 +581,29 @@ function createArtworkFrame(
   };
 }
 
-function addServiceWall(scene: THREE.Scene, frontWallZ: number): void {
+function addServiceWall(scene: THREE.Scene, frontWallZ: number, maxAnisotropy: number): void {
   const wallCopy = new THREE.Group();
   wallCopy.name = "Design services wall copy";
   wallCopy.position.set(0, 0, frontWallZ + 0.101);
   scene.add(wallCopy);
 
   const heading = createTextPanel("COMPASSNCREW / DESIGN STUDIO", {
-    width: 960,
-    height: 116,
-    font: "600 48px Arial, sans-serif",
-    letterSpacing: 5,
-  });
+    width: 1920,
+    height: 232,
+    font: "600 96px Arial, sans-serif",
+    letterSpacing: 10,
+  }, maxAnisotropy);
   heading.name = "Services wall heading";
   heading.scale.set(6.45, 0.79, 1);
   heading.position.set(0, 4.28, 0);
   wallCopy.add(heading);
 
   const statement = createTextPanel("IDENTITIES, CAMPAIGNS, AND DIGITAL EXPERIENCES BUILT TO MOVE.", {
-    width: 1080,
-    height: 92,
-    font: "400 28px Arial, sans-serif",
-    letterSpacing: 2,
-  });
+    width: 2160,
+    height: 184,
+    font: "400 56px Arial, sans-serif",
+    letterSpacing: 4,
+  }, maxAnisotropy);
   statement.name = "Services wall statement";
   statement.scale.set(6.75, 0.58, 1);
   statement.position.set(0, 3.48, 0);
@@ -608,11 +611,11 @@ function addServiceWall(scene: THREE.Scene, frontWallZ: number): void {
 
   designServices.forEach((service, index) => {
     const label = createTextPanel(`${String(index + 1).padStart(2, "0")}  ${service.toUpperCase()}`, {
-      width: 820,
-      height: 104,
-      font: "500 42px Arial, sans-serif",
-      letterSpacing: 3,
-    });
+      width: 1640,
+      height: 208,
+      font: "500 84px Arial, sans-serif",
+      letterSpacing: 6,
+    }, maxAnisotropy);
     label.name = `Services wall item ${index + 1}`;
     label.scale.set(5.95, 0.74, 1);
     label.position.set(0, 2.5 - index * 0.7, 0);
@@ -623,6 +626,7 @@ function addServiceWall(scene: THREE.Scene, frontWallZ: number): void {
 function createTextPanel(
   text: string,
   options: { width: number; height: number; font: string; letterSpacing: number },
+  maxAnisotropy: number,
 ): THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> {
   const canvas = document.createElement("canvas");
   canvas.width = options.width;
@@ -631,17 +635,31 @@ function createTextPanel(
   if (!context) throw new Error("Unable to create gallery text texture");
 
   context.clearRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = "#111111";
   context.font = options.font;
   context.textAlign = "center";
   context.textBaseline = "middle";
-  drawLetterSpacedText(context, text, canvas.width / 2, canvas.height / 2, options.letterSpacing);
+
+  // Embossed relief: a dark recessed shadow and a light raised highlight,
+  // offset either side of the main fill, fake carved-into-the-wall depth
+  // on what is otherwise a flat texture.
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const depth = Math.max(1.5, options.height * 0.018);
+
+  context.fillStyle = "rgba(0, 0, 0, 0.5)";
+  drawLetterSpacedText(context, text, cx + depth, cy + depth, options.letterSpacing);
+
+  context.fillStyle = "rgba(255, 255, 255, 0.55)";
+  drawLetterSpacedText(context, text, cx - depth * 0.6, cy - depth * 0.6, options.letterSpacing);
+
+  context.fillStyle = "#111111";
+  drawLetterSpacedText(context, text, cx, cy, options.letterSpacing);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.generateMipmaps = true;
-  texture.anisotropy = 4;
+  texture.anisotropy = maxAnisotropy;
   texture.userData.generatedCanvas = canvas;
   const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false });
   return new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);

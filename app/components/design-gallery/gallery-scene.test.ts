@@ -17,6 +17,7 @@ const gallerySceneOptions = {
   height: 720,
   bounds: { minX: -3.4, maxX: 3.4, minY: -8.75, maxY: 6.75 },
   quality: { tier: "desktop", dpr: 1.5 },
+  maxAnisotropy: 4,
 } as const;
 
 interface PendingTextureLoad {
