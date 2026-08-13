@@ -45,7 +45,7 @@ In-scene evidence remains concise:
 
 Cinematic copy:
 
-> You generated the lead.  
+> You generated the lead.<br>
 > But the message lost them.
 
 ### Scene 2 — The actual problem (4–7 seconds)
@@ -54,7 +54,7 @@ Several identical grey emails gather in the ignored tray. The lead capsule revea
 
 Cinematic copy:
 
-> Leads do not need more email.  
+> Leads do not need more email.<br>
 > They need the right reason to respond.
 
 ### Scene 3 — The atelier activates (7–15 seconds)
@@ -80,7 +80,7 @@ The earlier indicators update to **Opened**, **Engaged**, **Meeting booked**, an
 
 Cinematic copy:
 
-> Better emails do not chase attention.  
+> Better emails do not chase attention.<br>
 > They turn attention into action.
 
 ### Scene 5 — Transition (20–25 seconds)
@@ -89,7 +89,7 @@ The camera pulls back to reveal a calm, functioning correspondence system. The a
 
 Final copy:
 
-> We turn leads into conversations.  
+> We turn leads into conversations.<br>
 > And conversations into clients.
 
 The transition changes presentation without navigating to another route.
@@ -134,14 +134,14 @@ Headline: **Emails that turn interest into action.**
 
 Supporting copy explains that strategy, writing, design, and lifecycle journeys move qualified leads toward a conversation and decision.
 
-Primary CTA: **Build my email system**  
+Primary CTA: **Build my email system**<br>
 Secondary CTA: **Explore our approach**
 
 ### 2. The conversion gap
 
 Use one composed correspondence table rather than a grid of generic cards.
 
-**Before:** generic broadcasts, weak subjects, unclear offers, inconsistent follow-up, and cold leads.  
+**Before:** generic broadcasts, weak subjects, unclear offers, inconsistent follow-up, and cold leads.<br>
 **After:** relevant segmentation, clear messaging, branded design, timely sequences, and measurable conversations.
 
 ### 3. Service system
@@ -192,7 +192,7 @@ Return to the warmer atelier palette.
 
 Headline:
 
-> Your leads are already listening.  
+> Your leads are already listening.<br>
 > Give them something worth responding to.
 
 CTA: **Plan your email marketing system**
