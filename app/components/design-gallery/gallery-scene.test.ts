@@ -12,6 +12,22 @@ test("portfolio records preserve the existing project categories", () => {
   );
 });
 
+test("portfolio image alternatives describe each artwork's distinguishing content", () => {
+  const alternativesById = Object.fromEntries(
+    portfolioWorks.map((work) => [work.id, work.imageAlt.toLowerCase()]),
+  );
+
+  assert.match(alternativesById["coffee-campaign"], /dripping.*coffee cup|coffee cup.*dripping/);
+  assert.match(alternativesById["coffee-campaign"], /floating coffee beans/);
+  assert.doesNotMatch(alternativesById["coffee-campaign"], /packaging/);
+  assert.match(alternativesById["gaming-product"], /red-and-black.*gaming controller/);
+  assert.match(alternativesById["shampoo-product"], /purple.*shampoo bottle/);
+  assert.match(alternativesById["shampoo-product"], /blackberries/);
+  assert.match(alternativesById["lemonade-campaign"], /raspberry lemonade social poster/);
+  assert.match(alternativesById["lemonade-campaign"], /the bets is here/);
+  assert.match(alternativesById["lemonade-campaign"], /large: 30\.50 \/ small: 20\.50/);
+});
+
 test("camera follow converges equally across frame sizes", () => {
   const oneFrameBlend = getCameraFollowBlend(1 / 30, "desktop");
   const halfFrameBlend = getCameraFollowBlend(1 / 60, "desktop");

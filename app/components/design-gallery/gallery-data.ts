@@ -30,7 +30,8 @@ export const portfolioWorks = [
     description:
       "A tactile launch system pairing rich product photography with bold, editorial typography for a modern coffee brand.",
     imageSrc: "/media/design-portfolio/coffee-campaign.png",
-    imageAlt: "Coffee campaign poster and packaging design",
+    imageAlt:
+      "Chocolate coffee poster with a dripping brown coffee cup, floating coffee beans, and the headline “The essence of pure chocolate coffee.”",
     wallSide: "left",
     zPosition: 5.25,
     dimensions: { width: 2.24, height: 2.8 },
@@ -44,7 +45,8 @@ export const portfolioWorks = [
     description:
       "A high-energy product visual language built around dramatic lighting, crisp interface graphics, and competitive play.",
     imageSrc: "/media/design-portfolio/gaming-product.png",
-    imageAlt: "Gaming controller product campaign artwork",
+    imageAlt:
+      "Red-and-black gaming controller with dual thumbsticks, photographed against a deep red background.",
     wallSide: "right",
     zPosition: 1.25,
     dimensions: { width: 2.1, height: 2.8 },
@@ -58,7 +60,8 @@ export const portfolioWorks = [
     description:
       "A playful personal-care identity using saturated berry color, expressive type, and clean product storytelling.",
     imageSrc: "/media/design-portfolio/shampoo-product.png",
-    imageAlt: "Berry shampoo packaging and campaign design",
+    imageAlt:
+      "Purple pump shampoo bottle covered in water droplets and surrounded by floating frosted blackberries.",
     wallSide: "left",
     zPosition: -3.25,
     dimensions: { width: 1.58, height: 2.8 },
@@ -72,7 +75,8 @@ export const portfolioWorks = [
     description:
       "A bright beverage identity balancing nostalgic fruit illustration with a confident, contemporary packaging system.",
     imageSrc: "/media/design-portfolio/lemonade-campaign.png",
-    imageAlt: "Raspberry lemonade brand campaign artwork",
+    imageAlt:
+      "Raspberry lemonade social poster with a tall iced pink drink, raspberries and mint, the headline “The bets is here,” and prices “Large: 30.50 / Small: 20.50.”",
     wallSide: "right",
     zPosition: -7.25,
     dimensions: { width: 1.87, height: 2.8 },
