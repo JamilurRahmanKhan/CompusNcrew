@@ -16,7 +16,8 @@
     "automation:check": "node automation-workflow/scripts/check.mjs",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:gallery": "tsx --test app/components/design-gallery/*.test.ts"
   },
   "dependencies": {
     "lucide-react": "^1.30.0",
@@ -32,6 +33,7 @@
     "@types/react-dom": "^19.0.0",
     "@types/three": "^0.185.4",
     "tailwindcss": "^4.1.0",
+    "tsx": "^4.19.4",
     "typescript": "^5.7.0",
     "vite": "^7.3.6"
   }
