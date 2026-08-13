@@ -9,13 +9,31 @@ class FakeDocument extends EventTarget {
   hidden = false;
 }
 
-function keyboardEvent(type: "keydown" | "keyup", key: string, repeat = false): Event {
+function keyboardEvent(
+  type: "keydown" | "keyup",
+  key: string,
+  repeat = false,
+  target?: EventTarget,
+): Event {
   const event = new Event(type, { cancelable: true });
   Object.defineProperties(event, {
     key: { value: key },
     repeat: { value: repeat },
+    ...(target ? { target: { value: target } } : {}),
   });
   return event;
+}
+
+function interactiveTarget(selectorToken: string): EventTarget {
+  const target = {
+    closest(selector: string) {
+      const selectors = selector.split(",").map((value) => value.trim());
+      return selectors.some((value) => value === selectorToken || value.startsWith(`${selectorToken}:`))
+        ? target
+        : null;
+    },
+  };
+  return target as unknown as EventTarget;
 }
 
 function setupController() {
@@ -66,11 +84,12 @@ test("non-finite joystick axes are ignored instead of poisoning movement", () =>
   controller.dispose();
 });
 
-test("Enter notifies active subscribers once per physical key press", () => {
+test("Enter delivers one contextual action per physical key press", () => {
   const { controller, windowTarget } = setupController();
   let actions = 0;
   const unsubscribe = controller.subscribeAction(() => {
     actions += 1;
+    return true;
   });
 
   const initialPress = keyboardEvent("keydown", "Enter");
@@ -81,6 +100,76 @@ test("Enter notifies active subscribers once per physical key press", () => {
 
   assert.equal(initialPress.defaultPrevented, true);
   assert.equal(actions, 1);
+  controller.dispose();
+});
+
+test("Enter remains native when no contextual action is handled", () => {
+  const { controller, windowTarget } = setupController();
+  const unhandledPress = keyboardEvent("keydown", "Enter");
+
+  windowTarget.dispatchEvent(unhandledPress);
+
+  assert.equal(unhandledPress.defaultPrevented, false);
+  controller.dispose();
+});
+
+test("interactive and editable targets retain native keyboard behavior", () => {
+  const { controller, windowTarget } = setupController();
+  let actions = 0;
+  controller.subscribeAction(() => {
+    actions += 1;
+    return true;
+  });
+
+  for (const selector of ["a", "button", "input", "[contenteditable]"]) {
+    const target = interactiveTarget(selector);
+    const movement = keyboardEvent("keydown", "ArrowUp", false, target);
+    const action = keyboardEvent("keydown", "Enter", false, target);
+    windowTarget.dispatchEvent(movement);
+    windowTarget.dispatchEvent(action);
+    assert.equal(movement.defaultPrevented, false, `${selector} movement should remain native`);
+    assert.equal(action.defaultPrevented, false, `${selector} Enter should remain native`);
+  }
+
+  assert.deepEqual(controller.getVector(), { x: 0, y: 0 });
+  assert.equal(actions, 0);
+  controller.dispose();
+});
+
+test("movement keyup from an editable target clears a key held by the gallery", () => {
+  const { controller, windowTarget } = setupController();
+  windowTarget.dispatchEvent(keyboardEvent("keydown", "w"));
+  const editableKeyup = keyboardEvent(
+    "keyup",
+    "w",
+    false,
+    interactiveTarget("input"),
+  );
+
+  windowTarget.dispatchEvent(editableKeyup);
+
+  assert.equal(editableKeyup.defaultPrevented, false);
+  assert.deepEqual(controller.getVector(), { x: 0, y: 0 });
+  controller.dispose();
+});
+
+test("already handled keyboard events do not reach gallery controls", () => {
+  const { controller, windowTarget } = setupController();
+  let actions = 0;
+  controller.subscribeAction(() => {
+    actions += 1;
+    return true;
+  });
+  const movement = keyboardEvent("keydown", "w");
+  const action = keyboardEvent("keydown", "Enter");
+  movement.preventDefault();
+  action.preventDefault();
+
+  windowTarget.dispatchEvent(movement);
+  windowTarget.dispatchEvent(action);
+
+  assert.deepEqual(controller.getVector(), { x: 0, y: 0 });
+  assert.equal(actions, 0);
   controller.dispose();
 });
 

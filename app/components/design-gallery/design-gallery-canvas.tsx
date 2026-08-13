@@ -21,6 +21,7 @@ export interface DesignGalleryCanvasProps {
   joystickVector: Vector2;
   onReady: () => void;
   onNearbyArtworkChange: (artwork: GalleryArtwork | null) => void;
+  onAction: (artwork: GalleryArtwork) => void;
   onFatalError: (error: Error) => void;
 }
 
@@ -41,12 +42,25 @@ const INITIAL_CHARACTER_STATE: CharacterState = {
 
 const MAX_FRAME_DELTA_SECONDS = 0.1;
 
+export function createGalleryActionHandler(
+  getNearbyArtwork: () => GalleryArtwork | null,
+  onAction: (artwork: GalleryArtwork) => void,
+): () => boolean {
+  return () => {
+    const artwork = getNearbyArtwork();
+    if (!artwork) return false;
+    onAction(artwork);
+    return true;
+  };
+}
+
 export function DesignGalleryCanvas({
   paused,
   reducedMotion,
   joystickVector,
   onReady,
   onNearbyArtworkChange,
+  onAction,
   onFatalError,
 }: DesignGalleryCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -56,6 +70,7 @@ export function DesignGalleryCanvas({
   const joystickRef = useRef(joystickVector);
   const onReadyRef = useRef(onReady);
   const onNearbyArtworkChangeRef = useRef(onNearbyArtworkChange);
+  const onActionRef = useRef(onAction);
   const onFatalErrorRef = useRef(onFatalError);
 
   pausedRef.current = paused;
@@ -63,6 +78,7 @@ export function DesignGalleryCanvas({
   joystickRef.current = joystickVector;
   onReadyRef.current = onReady;
   onNearbyArtworkChangeRef.current = onNearbyArtworkChange;
+  onActionRef.current = onAction;
   onFatalErrorRef.current = onFatalError;
 
   useEffect(() => {
@@ -82,6 +98,7 @@ export function DesignGalleryCanvas({
     let previousFrameTime: number | null = null;
     let simulationTime = 0;
     let nearbyArtworkId: string | null | undefined;
+    let nearbyArtwork: GalleryArtwork | null = null;
     let disposed = false;
     let cleanedUp = false;
 
@@ -120,7 +137,7 @@ export function DesignGalleryCanvas({
         sceneHandle.updateCharacter(characterState, simulationTime, reducedMotionRef.current);
 
         const nearbyCandidate = findNearbyArtwork(characterState.position, portfolioWorks);
-        const nearbyArtwork = nearbyCandidate
+        nearbyArtwork = nearbyCandidate
           ? portfolioWorks.find((artwork) => artwork.id === nearbyCandidate.id) ?? null
           : null;
         const nextArtworkId = nearbyArtwork?.id ?? null;
@@ -188,6 +205,12 @@ export function DesignGalleryCanvas({
       controlsRef.current = controls;
       controls.setEnabled(!pausedRef.current && !document.hidden);
       controls.setJoystick(joystickRef.current.x, joystickRef.current.y);
+      controls.subscribeAction(
+        createGalleryActionHandler(
+          () => nearbyArtwork,
+          (artwork) => onActionRef.current(artwork),
+        ),
+      );
 
       sceneHandle.updateCharacter(characterState, simulationTime, reducedMotionRef.current);
       renderer.render(sceneHandle.scene, sceneHandle.camera);

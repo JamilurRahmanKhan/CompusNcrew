@@ -35,6 +35,12 @@ interface ArtworkFrameState {
   artworkMaterial: THREE.MeshStandardMaterial;
 }
 
+interface GallerySceneConstruction {
+  scene: THREE.Scene;
+  directionalLight: THREE.DirectionalLight | null;
+  disposed: boolean;
+}
+
 const WALL_HEIGHT = 5.6;
 const WALL_PADDING = 1.35;
 const FRONT_WALL_PADDING = 2.1;
@@ -53,13 +59,32 @@ export function getCameraFollowBlend(deltaSeconds: number, tier: QualityTier["ti
 }
 
 export function createGalleryScene(options: GallerySceneOptions): GallerySceneHandle {
+  const construction: GallerySceneConstruction = {
+    scene: new THREE.Scene(),
+    directionalLight: null,
+    disposed: false,
+  };
+
+  try {
+    return buildGalleryScene(options, construction);
+  } catch (error) {
+    construction.disposed = true;
+    disposeSceneResources(construction.scene, construction.directionalLight);
+    throw error;
+  }
+}
+
+function buildGalleryScene(
+  options: GallerySceneOptions,
+  construction: GallerySceneConstruction,
+): GallerySceneHandle {
   const { bounds, quality } = options;
   const roomHalfWidth = Math.max(Math.abs(bounds.minX), Math.abs(bounds.maxX)) + WALL_PADDING;
   const roomMinZ = bounds.minY - FRONT_WALL_PADDING;
   const roomMaxZ = bounds.maxY + WALL_PADDING;
   const roomDepth = roomMaxZ - roomMinZ;
   const roomCenterZ = (roomMinZ + roomMaxZ) / 2;
-  const scene = new THREE.Scene();
+  const { scene } = construction;
   scene.background = new THREE.Color(0xf3f1eb);
   scene.fog = new THREE.Fog(0xf3f1eb, quality.tier === "mobile" ? 16 : 22, quality.tier === "mobile" ? 34 : 46);
 
@@ -121,6 +146,7 @@ export function createGalleryScene(options: GallerySceneOptions): GallerySceneHa
   scene.add(ambientLight);
 
   const directionalLight = new THREE.DirectionalLight(0xffffff, 2.4);
+  construction.directionalLight = directionalLight;
   directionalLight.name = "Gallery directional light";
   directionalLight.position.set(-4, WALL_HEIGHT + 3, roomMaxZ - 2);
   directionalLight.target.position.set(0, 1, roomCenterZ);
@@ -144,25 +170,23 @@ export function createGalleryScene(options: GallerySceneOptions): GallerySceneHa
   const artworkBackingGeometry = new THREE.BoxGeometry(1, 1, FRAME_DEPTH * 0.55);
   const artworkPlaneGeometry = new THREE.PlaneGeometry(1, 1);
   const textureLoader = new THREE.TextureLoader();
-  let disposed = false;
 
   for (const artwork of portfolioWorks) {
     const frameState = createArtworkFrame(
+      scene,
       artwork,
       roomHalfWidth,
       frameBarGeometry,
       artworkBackingGeometry,
       artworkPlaneGeometry,
       textureLoader,
-      () => disposed,
+      () => construction.disposed,
     );
-    scene.add(frameState.group);
     frameStates.set(artwork.id, frameState);
     artworkFrames.set(artwork.id, frameState.group);
   }
 
-  const rig = createCharacterRig();
-  scene.add(rig.group);
+  const rig = createCharacterRig(scene);
 
   let focusedArtworkId: string | null = null;
   let previousUpdateTime: number | null = null;
@@ -213,38 +237,12 @@ export function createGalleryScene(options: GallerySceneOptions): GallerySceneHa
   }
 
   function dispose(): void {
-    if (disposed) return;
-    disposed = true;
-
-    const geometries = new Set<THREE.BufferGeometry>();
-    const materials = new Set<THREE.Material>();
-    const textures = new Set<THREE.Texture>();
-
-    scene.traverse((object) => {
-      if (!(object instanceof THREE.Mesh)) return;
-      geometries.add(object.geometry);
-      const meshMaterials = Array.isArray(object.material) ? object.material : [object.material];
-      for (const material of meshMaterials) {
-        materials.add(material);
-        collectMaterialTextures(material, textures);
-      }
-    });
-
-    for (const texture of textures) {
-      const canvas = texture.userData.generatedCanvas;
-      if (canvas instanceof HTMLCanvasElement) {
-        canvas.width = 0;
-        canvas.height = 0;
-      }
-      texture.dispose();
-    }
-    for (const material of materials) material.dispose();
-    for (const geometry of geometries) geometry.dispose();
-    directionalLight.shadow.dispose();
+    if (construction.disposed) return;
+    construction.disposed = true;
+    disposeSceneResources(scene, directionalLight);
 
     frameStates.clear();
     artworkFrames.clear();
-    scene.clear();
   }
 
   return {
@@ -260,6 +258,7 @@ export function createGalleryScene(options: GallerySceneOptions): GallerySceneHa
 }
 
 function createArtworkFrame(
+  scene: THREE.Scene,
   artwork: GalleryArtwork,
   roomHalfWidth: number,
   frameBarGeometry: THREE.BoxGeometry,
@@ -271,6 +270,7 @@ function createArtworkFrame(
   const { width, height } = artwork.dimensions;
   const group = new THREE.Group();
   group.name = `Artwork: ${artwork.title}`;
+  scene.add(group);
   group.position.set(
     artwork.wallSide === "left" ? -roomHalfWidth + 0.13 : roomHalfWidth - 0.13,
     2.55,
@@ -345,6 +345,7 @@ function addServiceWall(scene: THREE.Scene, frontWallZ: number): void {
   const wallCopy = new THREE.Group();
   wallCopy.name = "Design services wall copy";
   wallCopy.position.set(0, 0, frontWallZ + 0.101);
+  scene.add(wallCopy);
 
   const heading = createTextPanel("COMPASSNCREW / DESIGN STUDIO", {
     width: 960,
@@ -377,8 +378,6 @@ function addServiceWall(scene: THREE.Scene, frontWallZ: number): void {
     label.position.set(0, 2.54 - index * 0.66, 0);
     wallCopy.add(label);
   });
-
-  scene.add(wallCopy);
 }
 
 function createTextPanel(
@@ -425,9 +424,10 @@ function drawLetterSpacedText(
   }
 }
 
-function createCharacterRig(): CharacterRig {
+function createCharacterRig(scene: THREE.Scene): CharacterRig {
   const group = new THREE.Group();
   group.name = "Sketch character";
+  scene.add(group);
 
   const inkMaterial = new THREE.MeshStandardMaterial({ color: 0x080808, roughness: 0.93, flatShading: true });
   const shadowMaterial = new THREE.MeshBasicMaterial({
@@ -500,6 +500,38 @@ function collectMaterialTextures(material: THREE.Material, textures: Set<THREE.T
   for (const value of Object.values(material)) {
     if (value instanceof THREE.Texture) textures.add(value);
   }
+}
+
+function disposeSceneResources(
+  scene: THREE.Scene,
+  directionalLight: THREE.DirectionalLight | null,
+): void {
+  const geometries = new Set<THREE.BufferGeometry>();
+  const materials = new Set<THREE.Material>();
+  const textures = new Set<THREE.Texture>();
+
+  scene.traverse((object) => {
+    if (!(object instanceof THREE.Mesh)) return;
+    geometries.add(object.geometry);
+    const meshMaterials = Array.isArray(object.material) ? object.material : [object.material];
+    for (const material of meshMaterials) {
+      materials.add(material);
+      collectMaterialTextures(material, textures);
+    }
+  });
+
+  for (const texture of textures) {
+    const canvas = texture.userData.generatedCanvas;
+    if (typeof HTMLCanvasElement !== "undefined" && canvas instanceof HTMLCanvasElement) {
+      canvas.width = 0;
+      canvas.height = 0;
+    }
+    texture.dispose();
+  }
+  for (const material of materials) material.dispose();
+  for (const geometry of geometries) geometry.dispose();
+  directionalLight?.shadow.dispose();
+  scene.clear();
 }
 
 function safeAspect(width: number, height: number): number {

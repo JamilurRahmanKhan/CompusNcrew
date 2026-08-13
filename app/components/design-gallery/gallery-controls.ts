@@ -1,6 +1,6 @@
 import type { Vector2 } from "./gallery-controller";
 
-type ActionHandler = () => void;
+type ActionHandler = () => boolean;
 
 const MOVEMENT_KEYS = new Set([
   "arrowup",
@@ -12,6 +12,20 @@ const MOVEMENT_KEYS = new Set([
   "s",
   "d",
 ]);
+
+const INTERACTIVE_TARGET_SELECTOR = [
+  "a",
+  "button",
+  "input",
+  "textarea",
+  "select",
+  "option",
+  "[contenteditable]:not([contenteditable='false'])",
+  "[role='button']",
+  "[role='link']",
+  "[role='menuitem']",
+  "[role='textbox']",
+].join(", ");
 
 export class GalleryInputController {
   private readonly pressedKeys = new Set<string>();
@@ -78,7 +92,7 @@ export class GalleryInputController {
   }
 
   private readonly handleKeyDown = (event: KeyboardEvent): void => {
-    if (!this.enabled || this.disposed) return;
+    if (!this.enabled || this.disposed || shouldIgnoreKeyboardEvent(event)) return;
     const key = event.key.toLowerCase();
 
     if (MOVEMENT_KEYS.has(key)) {
@@ -87,11 +101,10 @@ export class GalleryInputController {
       return;
     }
 
-    if (key === "enter") {
-      event.preventDefault();
-      if (!event.repeat) {
-        for (const handler of this.actionHandlers) handler();
-      }
+    if (key === "enter" && !event.repeat) {
+      let handled = false;
+      for (const handler of this.actionHandlers) handled = handler() || handled;
+      if (handled) event.preventDefault();
     }
   };
 
@@ -99,8 +112,8 @@ export class GalleryInputController {
     if (!this.enabled || this.disposed) return;
     const key = event.key.toLowerCase();
     if (!MOVEMENT_KEYS.has(key)) return;
-    event.preventDefault();
     this.pressedKeys.delete(key);
+    if (!shouldIgnoreKeyboardEvent(event)) event.preventDefault();
   };
 
   private readonly clearKeys = (): void => {
@@ -116,4 +129,10 @@ function normalizeIfNeeded(vector: Vector2): Vector2 {
   const length = Math.hypot(vector.x, vector.y);
   if (length <= 1) return vector;
   return { x: vector.x / length, y: vector.y / length };
+}
+
+function shouldIgnoreKeyboardEvent(event: KeyboardEvent): boolean {
+  if (event.defaultPrevented) return true;
+  const target = event.target as (EventTarget & { closest?: (selector: string) => unknown }) | null;
+  return Boolean(target?.closest?.(INTERACTIVE_TARGET_SELECTOR));
 }
