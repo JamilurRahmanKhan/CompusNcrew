@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   findNearbyArtwork,
+  getArtworkViewingPose,
   getQualityTier,
   stepCharacter,
   type CharacterState,
@@ -117,6 +118,57 @@ test("findNearbyArtwork returns null when every artwork is out of range", () => 
   );
 
   assert.equal(artwork, null);
+});
+
+test("stepCharacter keeps an idle character planted on the floor", () => {
+  const idleMidCycle = {
+    ...restingCharacter,
+    bobPhase: Math.PI / 2,
+    bobOffset: 0.06,
+  };
+  const result = stepCharacter(idleMidCycle, { x: 0, y: 0 }, 1 / 30, bounds, false);
+
+  assert.equal(result.bobOffset, 0);
+  assert.equal(result.bobPhase, idleMidCycle.bobPhase);
+});
+
+test("stepCharacter scales walking bob by actual movement speed", () => {
+  const slow = stepCharacter(
+    { ...restingCharacter, velocity: { x: 0.25, y: 0 }, bobPhase: Math.PI / 2 },
+    { x: 0, y: 0 },
+    0,
+    bounds,
+    false,
+  );
+  const fast = stepCharacter(
+    { ...restingCharacter, velocity: { x: 3.5, y: 0 }, bobPhase: Math.PI / 2 },
+    { x: 0, y: 0 },
+    0,
+    bounds,
+    false,
+  );
+
+  assert.ok(Math.abs(slow.bobOffset) < Math.abs(fast.bobOffset));
+});
+
+test("artwork viewing pose places the character on the marker facing the wall", () => {
+  const leftPose = getArtworkViewingPose({
+    id: "left",
+    position: { x: -3.65, y: 2 },
+    interactionRadius: 0.8,
+    wallSide: "left",
+  });
+  const rightPose = getArtworkViewingPose({
+    id: "right",
+    position: { x: 3.65, y: -2 },
+    interactionRadius: 0.8,
+    wallSide: "right",
+  });
+
+  assert.equal(leftPose.facingAngle, Math.PI / 2);
+  assert.equal(rightPose.facingAngle, -Math.PI / 2);
+  assert.deepEqual(leftPose.cameraDirection, { x: -1, y: 0 });
+  assert.deepEqual(rightPose.cameraDirection, { x: 1, y: 0 });
 });
 
 test("getQualityTier applies mobile and desktop DPR caps", () => {

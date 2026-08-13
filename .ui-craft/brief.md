@@ -26,6 +26,8 @@ A visitor can open the software portfolio from the homepage, view projects autom
 
 # Learned constraints
 
+- **2026-08-13** — The redesigned social-media marketing page opens with a full-viewport cinematic video and absolutely no overlay interface: no header, copy, buttons, icons, controls, gradients, or chapter markers. The video autoplays muted, loops continuously, plays inline, and uses centered `cover` cropping on every screen size; service information begins only after the first scroll. *Why:* the video itself is the opening experience and must receive the visitor's complete attention.
+
 - **2026-08-12** — The SEO service page uses one editorial-tech visual system across hero, GEO, services, proof, AI-search and CTA: a soft mineral canvas, deep navy type, orange actions, green status signals, one display family, one body family, and shared border, radius and shadow tokens. A dark proof panel may invert the system, but it must not introduce a separate visual theme. *Why:* mixed section palettes, typography and component styling made the page feel assembled rather than professionally art-directed.
 
 - **2026-08-10** — The software-portfolio consultation form must stay fully operable inside the mobile visual viewport, including when browser chrome or the on-screen keyboard reduces the usable height. Keep the close and submit actions reachable, preserve native 16px form text to prevent mobile zoom, and use a contained touch-scroll region without a visible secondary scrollbar.

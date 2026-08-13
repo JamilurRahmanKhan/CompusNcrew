@@ -20,7 +20,7 @@ export interface GalleryArtwork {
   };
 }
 
-const WALL_INTERACTION_X = 4.25;
+const WALL_INTERACTION_X = 3.05;
 
 export const portfolioWorks = [
   {
@@ -35,7 +35,7 @@ export const portfolioWorks = [
     wallSide: "left",
     zPosition: 5.25,
     dimensions: { width: 2.24, height: 2.8 },
-    interactionRadius: 2,
+    interactionRadius: 0.9,
     position: { x: -WALL_INTERACTION_X, y: 5.25 },
   },
   {
@@ -50,7 +50,7 @@ export const portfolioWorks = [
     wallSide: "right",
     zPosition: 1.25,
     dimensions: { width: 2.1, height: 2.8 },
-    interactionRadius: 2,
+    interactionRadius: 0.9,
     position: { x: WALL_INTERACTION_X, y: 1.25 },
   },
   {
@@ -65,7 +65,7 @@ export const portfolioWorks = [
     wallSide: "left",
     zPosition: -3.25,
     dimensions: { width: 1.58, height: 2.8 },
-    interactionRadius: 2,
+    interactionRadius: 0.9,
     position: { x: -WALL_INTERACTION_X, y: -3.25 },
   },
   {
@@ -80,7 +80,7 @@ export const portfolioWorks = [
     wallSide: "right",
     zPosition: -7.25,
     dimensions: { width: 1.87, height: 2.8 },
-    interactionRadius: 2,
+    interactionRadius: 0.9,
     position: { x: WALL_INTERACTION_X, y: -7.25 },
   },
 ] as const satisfies readonly GalleryArtwork[];

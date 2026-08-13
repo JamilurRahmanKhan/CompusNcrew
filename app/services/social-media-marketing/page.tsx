@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SocialUniverse } from "../../components/social-universe/social-universe";
+import { SocialVideoHero } from "../../components/social-video-hero/social-video-hero";
 
 export const metadata: Metadata = {
   title: "Social Media Marketing",
@@ -8,5 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function SocialMediaMarketingPage() {
-  return <SocialUniverse />;
+  return (
+    <>
+      <SocialVideoHero />
+      <SocialUniverse />
+    </>
+  );
 }

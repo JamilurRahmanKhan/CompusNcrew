@@ -19,6 +19,7 @@ import { ProjectDetailPanel } from "./project-detail-panel";
 import { VirtualJoystick } from "./virtual-joystick";
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+const COMPACT_GALLERY_QUERY = "(max-width: 48rem)";
 const MOVEMENT_KEYS = new Set([
   "ArrowUp",
   "ArrowDown",
@@ -58,6 +59,14 @@ export function DesignGallery() {
     updatePreference();
     mediaQuery.addEventListener("change", updatePreference);
     return () => mediaQuery.removeEventListener("change", updatePreference);
+  }, []);
+
+  useEffect(() => {
+    // The touch controls are self-explanatory and the full guide obscures the
+    // gallery's establishing view on narrow screens. It remains available via ?.
+    if (window.matchMedia(COMPACT_GALLERY_QUERY).matches) {
+      dispatch({ type: "movement-detected" });
+    }
   }, []);
 
   useEffect(() => {
@@ -170,7 +179,7 @@ export function DesignGallery() {
                 aria-label={`View ${nearbyProject.title}`}
                 onClick={() => dispatch({ type: "open-nearby-project" })}
               >
-                {nearbyProject.title} — view work
+                See details <span aria-hidden="true">↵</span>
               </button>
             ) : null}
 
@@ -182,7 +191,7 @@ export function DesignGallery() {
                 disabled={!nearbyProject}
                 onClick={() => dispatch({ type: "open-nearby-project" })}
               >
-                {nearbyProject ? "View work" : "Explore gallery"}
+                {nearbyProject ? "See details" : "Walk to a marker"}
               </button>
             </div>
           </div>

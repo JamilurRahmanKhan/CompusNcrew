@@ -1,9 +1,20 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import test from "node:test";
 
 import * as canvasModule from "./design-gallery-canvas";
 import { GalleryInputController } from "./gallery-controls";
 import { portfolioWorks, type GalleryArtwork } from "./gallery-data";
+
+test("mobile presentation suppresses the duplicate floating proximity label", () => {
+  const stylesheet = readFileSync(
+    path.join(process.cwd(), "app/components/design-gallery/design-gallery.module.css"),
+    "utf8",
+  );
+  const mobileRules = stylesheet.slice(stylesheet.indexOf("@media (pointer: coarse), (max-width: 48rem)"));
+  assert.match(mobileRules, /\.proximityLabel\s*\{[^}]*display:\s*none;/s);
+});
 
 function enterEvent(): Event {
   const event = new Event("keydown", { cancelable: true });

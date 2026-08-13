@@ -22,6 +22,12 @@ export interface Artwork {
   id: string;
   position: Vector2;
   interactionRadius: number;
+  wallSide?: "left" | "right";
+}
+
+export interface ArtworkViewingPose {
+  facingAngle: number;
+  cameraDirection: Vector2;
 }
 
 export interface QualityTier {
@@ -60,14 +66,20 @@ export function stepCharacter(
     x: clamp(state.position.x + velocity.x * delta, bounds.minX, bounds.maxX),
     y: clamp(state.position.y + velocity.y * delta, bounds.minY, bounds.maxY),
   };
-  const bobPhase = reducedMotion ? state.bobPhase : state.bobPhase + delta * BOB_FREQUENCY;
+  const speedStrength = Math.min(Math.hypot(velocity.x, velocity.y) / MAX_SPEED, 1);
+  const isActuallyMoving = speedStrength > 0.035;
+  const bobPhase = reducedMotion || !isActuallyMoving
+    ? state.bobPhase
+    : state.bobPhase + delta * BOB_FREQUENCY;
 
   return {
     position,
     velocity,
     facingAngle: isMoving ? Math.atan2(-input.x, -input.y) : state.facingAngle,
     bobPhase,
-    bobOffset: reducedMotion ? 0 : Math.sin(bobPhase) * BOB_AMPLITUDE,
+    bobOffset: reducedMotion || !isActuallyMoving
+      ? 0
+      : Math.sin(bobPhase) * BOB_AMPLITUDE * speedStrength,
   };
 }
 
@@ -84,6 +96,13 @@ export function findNearbyArtwork(position: Vector2, artworks: readonly Artwork[
   }
 
   return nearestArtwork;
+}
+
+export function getArtworkViewingPose(artwork: Artwork): ArtworkViewingPose {
+  const isLeftWall = artwork.wallSide === "left" || (artwork.wallSide === undefined && artwork.position.x < 0);
+  return isLeftWall
+    ? { facingAngle: Math.PI / 2, cameraDirection: { x: -1, y: 0 } }
+    : { facingAngle: -Math.PI / 2, cameraDirection: { x: 1, y: 0 } };
 }
 
 export function getQualityTier(width: number, dpr: number): QualityTier {

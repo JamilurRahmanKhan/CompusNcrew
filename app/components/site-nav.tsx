@@ -23,6 +23,8 @@ export function SiteNav() {
   const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const onGraphicDesignGallery = pathname === "/services/graphic-design";
+  const socialVideoPage = pathname === "/services/social-media-marketing";
+  const [socialHeroVisible, setSocialHeroVisible] = useState(socialVideoPage);
 
   // The homepage hero is a dark, full-bleed video — the light-theme nav
   // text (dark ink) is invisible sitting directly on it. Once scrolled past
@@ -39,11 +41,18 @@ export function SiteNav() {
       setScrolled(false);
       return;
     }
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 24);
+      setSocialHeroVisible(socialVideoPage && window.scrollY < window.innerHeight - 1);
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [onGraphicDesignGallery]);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [onGraphicDesignGallery, socialVideoPage]);
 
   useEffect(() => {
     document.body.dataset.siteMenuOpen = String(open);
@@ -100,13 +109,17 @@ export function SiteNav() {
     <>
       <header
         ref={headerRef}
-        className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${
+        aria-hidden={socialHeroVisible && !open}
+        inert={socialHeroVisible && !open ? true : undefined}
+        className={`fixed inset-x-0 top-0 z-50 transition-[color,background-color,border-color,opacity,transform] duration-500 ${
           scrolled && !open && !onGraphicDesignGallery
             ? immersiveDark
               ? "bg-black/65 backdrop-blur-xl"
               : "bg-ink/70 backdrop-blur-xl"
             : ""
-        } ${onDarkHero ? "on-dark" : ""} ${onGraphicDesignGallery ? "pointer-events-none" : ""}`}
+        } ${onDarkHero ? "on-dark" : ""} ${
+          socialHeroVisible && !open ? "pointer-events-none -translate-y-full opacity-0" : "translate-y-0 opacity-100"
+        } ${onGraphicDesignGallery ? "pointer-events-none" : ""}`}
       >
         <nav
           className={`mx-auto flex h-16 max-w-[80rem] items-center justify-between px-6 ${

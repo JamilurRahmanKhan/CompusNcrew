@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import type { CharacterState, GalleryBounds, QualityTier } from "./gallery-controller";
+import { getArtworkViewingPose, type CharacterState, type GalleryBounds, type QualityTier } from "./gallery-controller";
 import { designServices, portfolioWorks, type GalleryArtwork } from "./gallery-data";
 
 export interface GallerySceneOptions {
@@ -41,18 +41,24 @@ interface ArtworkFrameResult {
   ready: Promise<void>;
 }
 
+export interface FreeCameraPose {
+  position: THREE.Vector3;
+  lookTarget: THREE.Vector3;
+}
+
 interface GallerySceneConstruction {
   scene: THREE.Scene;
   directionalLight: THREE.DirectionalLight | null;
   disposed: boolean;
 }
 
-const WALL_HEIGHT = 5.6;
+const WALL_HEIGHT = 5.8;
 const WALL_PADDING = 1.35;
+const ENTRANCE_DEPTH = 5.2;
 const FRONT_WALL_PADDING = 2.1;
 const FRAME_DEPTH = 0.12;
 const FRAME_BORDER = 0.12;
-const CHARACTER_BASE_Y = 0.08;
+const CHARACTER_BASE_Y = 0;
 const CAMERA_FOLLOW_RESPONSE: Record<QualityTier["tier"], number> = {
   mobile: 10,
   balanced: 7,
@@ -62,6 +68,36 @@ const CAMERA_FOLLOW_RESPONSE: Record<QualityTier["tier"], number> = {
 export function getCameraFollowBlend(deltaSeconds: number, tier: QualityTier["tier"]): number {
   const boundedDelta = THREE.MathUtils.clamp(deltaSeconds, 0, 0.1);
   return 1 - Math.exp(-CAMERA_FOLLOW_RESPONSE[tier] * boundedDelta);
+}
+
+export function getFreeCameraPose(
+  position: { x: number; y: number },
+  tier: QualityTier["tier"],
+  aspect = 16 / 9,
+): FreeCameraPose {
+  const isPhonePortrait = aspect < 0.62;
+  const isPortrait = aspect < 0.95;
+  const lateralFollow = isPhonePortrait ? 0.16 : isPortrait ? 0.27 : tier === "mobile" ? 0.34 : 0.42;
+  const followDistance = isPhonePortrait ? 8.15 : isPortrait ? 6.9 : tier === "mobile" ? 6.1 : 5.55;
+  return {
+    position: new THREE.Vector3(
+      position.x * lateralFollow,
+      isPhonePortrait ? 2.58 : isPortrait ? 2.82 : tier === "mobile" ? 2.75 : 3.08,
+      position.y + followDistance,
+    ),
+    lookTarget: new THREE.Vector3(position.x * (isPortrait ? 0.72 : 1), 1.32, position.y - 3.25),
+  };
+}
+
+export function getResponsiveCameraFov(
+  width: number,
+  height: number,
+  tier: QualityTier["tier"],
+): number {
+  const aspect = safeAspect(width, height);
+  if (aspect < 0.62) return 70;
+  if (aspect < 0.95) return 61;
+  return tier === "mobile" ? 56 : 50;
 }
 
 export function createGalleryScene(options: GallerySceneOptions): GallerySceneHandle {
@@ -87,15 +123,16 @@ function buildGalleryScene(
   const { bounds, quality } = options;
   const roomHalfWidth = Math.max(Math.abs(bounds.minX), Math.abs(bounds.maxX)) + WALL_PADDING;
   const roomMinZ = bounds.minY - FRONT_WALL_PADDING;
-  const roomMaxZ = bounds.maxY + WALL_PADDING;
+  const roomMaxZ = bounds.maxY + WALL_PADDING + ENTRANCE_DEPTH;
   const roomDepth = roomMaxZ - roomMinZ;
   const roomCenterZ = (roomMinZ + roomMaxZ) / 2;
   const { scene } = construction;
   scene.background = new THREE.Color(0xf3f1eb);
   scene.fog = new THREE.Fog(0xf3f1eb, quality.tier === "mobile" ? 16 : 22, quality.tier === "mobile" ? 34 : 46);
 
-  const camera = new THREE.PerspectiveCamera(43, safeAspect(options.width, options.height), 0.1, quality.tier === "mobile" ? 42 : 58);
-  camera.position.set(0, 3.4, Math.min(roomMaxZ - 0.5, bounds.maxY + 5.5));
+  let viewportAspect = safeAspect(options.width, options.height);
+  const camera = new THREE.PerspectiveCamera(getResponsiveCameraFov(options.width, options.height, quality.tier), viewportAspect, 0.1, quality.tier === "mobile" ? 42 : 58);
+  camera.position.set(0, 3.15, Math.min(roomMaxZ - 0.5, bounds.maxY + 7.8));
   camera.lookAt(0, 1.15, bounds.maxY - 2.5);
 
   const architecture = new THREE.Group();
@@ -129,6 +166,19 @@ function buildGalleryScene(
     rail.scale.set(0.08, 0.08, roomDepth - 0.6);
     rail.position.set(side * (roomHalfWidth - 0.14), 1.02, roomCenterZ);
     architecture.add(rail);
+
+    const postCount = Math.max(6, Math.floor(roomDepth / 2.25));
+    for (let index = 0; index <= postCount; index += 1) {
+      const post = new THREE.Mesh(unitBoxGeometry, blackMaterial);
+      post.name = `${wall.name} rail post ${index + 1}`;
+      post.scale.set(0.07, 0.92, 0.07);
+      post.position.set(
+        side * (roomHalfWidth - 0.14),
+        0.56,
+        THREE.MathUtils.lerp(roomMinZ + 0.45, roomMaxZ - 0.45, index / postCount),
+      );
+      architecture.add(post);
+    }
   }
 
   const frontWall = new THREE.Mesh(frontWallGeometry, plasterMaterial);
@@ -137,15 +187,7 @@ function buildGalleryScene(
   frontWall.receiveShadow = quality.tier !== "mobile";
   architecture.add(frontWall);
 
-  const beamCount = quality.tier === "mobile" ? 3 : 6;
-  for (let index = 0; index < beamCount; index += 1) {
-    const beam = new THREE.Mesh(unitBoxGeometry, blackMaterial);
-    const progress = index / (beamCount - 1);
-    beam.name = `Roof beam ${index + 1}`;
-    beam.scale.set(roomHalfWidth * 2, 0.1, 0.1);
-    beam.position.set(0, WALL_HEIGHT - 0.12, THREE.MathUtils.lerp(roomMinZ + 0.4, roomMaxZ - 0.4, progress));
-    architecture.add(beam);
-  }
+  addPitchedRoof(architecture, roomHalfWidth, roomDepth, roomCenterZ, blackMaterial);
 
   const ambientLight = new THREE.AmbientLight(0xffffff, 1.85);
   ambientLight.name = "Gallery ambient light";
@@ -194,6 +236,7 @@ function buildGalleryScene(
     artworkFrames.set(artwork.id, frameState.group);
     artworkTextureReadiness.push(frameResult.ready);
   }
+  addViewingMarkers(scene);
   const ready = Promise.all(artworkTextureReadiness).then(() => undefined);
 
   const rig = createCharacterRig(scene);
@@ -206,7 +249,12 @@ function buildGalleryScene(
   function updateCharacter(state: CharacterState, time: number, reducedMotion: boolean): void {
     const depth = state.position.y;
     rig.group.position.set(state.position.x, CHARACTER_BASE_Y + state.bobOffset, depth);
-    rig.group.rotation.y = state.facingAngle;
+    const focusedArtwork = focusedArtworkId
+      ? portfolioWorks.find((artwork) => artwork.id === focusedArtworkId) ?? null
+      : null;
+    rig.group.rotation.y = focusedArtwork
+      ? getArtworkViewingPose(focusedArtwork).facingAngle
+      : state.facingAngle;
 
     const speed = Math.hypot(state.velocity.x, state.velocity.y);
     const walkStrength = reducedMotion ? 0 : THREE.MathUtils.clamp(speed / 4, 0, 1);
@@ -216,13 +264,29 @@ function buildGalleryScene(
     rig.leftLeg.rotation.x = -stride * 0.72;
     rig.rightLeg.rotation.x = stride * 0.72;
 
-    desiredCameraPosition.set(state.position.x, 3.4, depth + 6.25);
+    if (focusedArtwork) {
+      const wallDirection = focusedArtwork.wallSide === "left" ? -1 : 1;
+      const inspectionDistance = viewportAspect < 0.62 ? 6.15 : viewportAspect < 0.95 ? 5.15 : 4.15;
+      desiredCameraPosition.set(
+        state.position.x - wallDirection * inspectionDistance,
+        viewportAspect < 0.95 ? 2.72 : 2.35,
+        focusedArtwork.zPosition + 0.08,
+      );
+      cameraLookTarget.set(
+        focusedArtwork.wallSide === "left" ? -roomHalfWidth + 0.12 : roomHalfWidth - 0.12,
+        2.5,
+        focusedArtwork.zPosition,
+      );
+    } else {
+      const freePose = getFreeCameraPose(state.position, quality.tier, viewportAspect);
+      desiredCameraPosition.copy(freePose.position);
+      cameraLookTarget.copy(freePose.lookTarget);
+    }
     const deltaSeconds = previousUpdateTime === null ? 1 / 60 : Math.max(0, time - previousUpdateTime);
     previousUpdateTime = time;
     if (reducedMotion) camera.position.copy(desiredCameraPosition);
     else camera.position.lerp(desiredCameraPosition, getCameraFollowBlend(deltaSeconds, quality.tier));
 
-    cameraLookTarget.set(state.position.x, 1.12, depth - 2.6);
     camera.lookAt(cameraLookTarget);
   }
 
@@ -242,7 +306,9 @@ function buildGalleryScene(
   }
 
   function resize(width: number, height: number): void {
-    camera.aspect = safeAspect(width, height);
+    viewportAspect = safeAspect(width, height);
+    camera.aspect = viewportAspect;
+    camera.fov = getResponsiveCameraFov(width, height, quality.tier);
     camera.updateProjectionMatrix();
   }
 
@@ -266,6 +332,89 @@ function buildGalleryScene(
     resize,
     dispose,
   };
+}
+
+function addViewingMarkers(scene: THREE.Scene): void {
+  const markers = new THREE.Group();
+  markers.name = "Artwork viewing markers";
+  scene.add(markers);
+  const geometry = new THREE.RingGeometry(0.5, 0.535, 64);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x161616,
+    transparent: true,
+    opacity: 0.72,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+
+  for (const artwork of portfolioWorks) {
+    const marker = new THREE.Mesh(geometry, material);
+    marker.name = `Viewing marker: ${artwork.id}`;
+    marker.rotation.x = -Math.PI / 2;
+    marker.position.set(artwork.position.x, 0.014, artwork.position.y);
+    markers.add(marker);
+  }
+}
+
+function addPitchedRoof(
+  architecture: THREE.Group,
+  roomHalfWidth: number,
+  roomDepth: number,
+  roomCenterZ: number,
+  blackMaterial: THREE.Material,
+): void {
+  const roofRise = 2.15;
+  const pitch = Math.atan2(roofRise, roomHalfWidth);
+  const panelWidth = Math.hypot(roomHalfWidth, roofRise);
+  const ridgeY = WALL_HEIGHT + roofRise;
+  const glassMaterial = new THREE.MeshStandardMaterial({
+    color: 0xe9eceb,
+    roughness: 0.42,
+    metalness: 0,
+  });
+  const ceilingMaterial = new THREE.MeshBasicMaterial({ color: 0xf5f3ed });
+  for (const side of [-1, 1] as const) {
+    const panel = new THREE.Mesh(
+      new THREE.BoxGeometry(panelWidth, 0.1, roomDepth),
+      ceilingMaterial,
+    );
+    panel.name = side < 0 ? "Left pitched ceiling" : "Right pitched ceiling";
+    panel.position.set(side * roomHalfWidth * 0.5, WALL_HEIGHT + roofRise * 0.5, roomCenterZ);
+    panel.rotation.z = -side * pitch;
+    architecture.add(panel);
+
+    const skylightCount = 3;
+    for (let index = 0; index < skylightCount; index += 1) {
+      const frame = new THREE.Group();
+      frame.name = `${side < 0 ? "Left" : "Right"} skylight frame ${index + 1}`;
+      frame.position.set(
+        side * roomHalfWidth * 0.53,
+        WALL_HEIGHT + roofRise * 0.54 + 0.045,
+        roomCenterZ + (index - 1) * roomDepth * 0.27,
+      );
+      frame.rotation.z = -side * pitch;
+
+      const glass = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.045, 2.05), glassMaterial);
+      glass.name = `${frame.name} glass`;
+      frame.add(glass);
+      for (const z of [-1.06, 1.06]) {
+        const border = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.075, 0.1), blackMaterial);
+        border.position.z = z;
+        frame.add(border);
+      }
+      for (const x of [-0.78, 0.78]) {
+        const border = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.075, 2.22), blackMaterial);
+        border.position.x = x;
+        frame.add(border);
+      }
+      architecture.add(frame);
+    }
+  }
+
+  const ridge = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.11, roomDepth), blackMaterial);
+  ridge.name = "Ceiling ridge rail";
+  ridge.position.set(0, ridgeY + 0.025, roomCenterZ);
+  architecture.add(ridge);
 }
 
 function createArtworkFrame(
@@ -323,6 +472,15 @@ function createArtworkFrame(
   backing.scale.set(width, height, 1);
   backing.position.z = -FRAME_DEPTH * 0.3;
   group.add(backing);
+
+  const mat = new THREE.Mesh(
+    artworkPlaneGeometry,
+    new THREE.MeshStandardMaterial({ color: 0xfaf9f5, roughness: 0.94 }),
+  );
+  mat.name = "Artwork presentation mat";
+  mat.scale.set(width + 0.34, height + 0.34, 1);
+  mat.position.z = FRAME_DEPTH * 0.43;
+  group.add(mat);
 
   const image = new THREE.Mesh(artworkPlaneGeometry, artworkMaterial);
   image.name = `${artwork.title} image`;
@@ -387,8 +545,9 @@ function addServiceWall(scene: THREE.Scene, frontWallZ: number): void {
     font: "600 48px Arial, sans-serif",
     letterSpacing: 5,
   });
-  heading.scale.set(5.5, 0.66, 1);
-  heading.position.set(0, 4.15, 0);
+  heading.name = "Services wall heading";
+  heading.scale.set(6.45, 0.79, 1);
+  heading.position.set(0, 4.28, 0);
   wallCopy.add(heading);
 
   const statement = createTextPanel("IDENTITIES, CAMPAIGNS, AND DIGITAL EXPERIENCES BUILT TO MOVE.", {
@@ -397,8 +556,9 @@ function addServiceWall(scene: THREE.Scene, frontWallZ: number): void {
     font: "400 28px Arial, sans-serif",
     letterSpacing: 2,
   });
-  statement.scale.set(6.15, 0.52, 1);
-  statement.position.set(0, 3.47, 0);
+  statement.name = "Services wall statement";
+  statement.scale.set(6.75, 0.58, 1);
+  statement.position.set(0, 3.48, 0);
   wallCopy.add(statement);
 
   designServices.forEach((service, index) => {
@@ -408,8 +568,9 @@ function addServiceWall(scene: THREE.Scene, frontWallZ: number): void {
       font: "500 42px Arial, sans-serif",
       letterSpacing: 3,
     });
-    label.scale.set(4.7, 0.6, 1);
-    label.position.set(0, 2.54 - index * 0.66, 0);
+    label.name = `Services wall item ${index + 1}`;
+    label.scale.set(5.95, 0.74, 1);
+    label.position.set(0, 2.5 - index * 0.7, 0);
     wallCopy.add(label);
   });
 }
@@ -478,36 +639,43 @@ function createCharacterRig(scene: THREE.Scene): CharacterRig {
   shadow.position.y = 0.012;
   group.add(shadow);
 
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.25, 0.54, 3, 7), inkMaterial);
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.19, 0.44, 5, 10), inkMaterial);
   body.name = "Character torso";
-  body.position.y = 0.92;
+  body.position.y = 0.76;
   body.rotation.z = -0.04;
   group.add(body);
 
-  const headGeometry = new THREE.IcosahedronGeometry(0.48, 1);
-  const positions = headGeometry.attributes.position;
-  for (let index = 0; index < positions.count; index += 1) {
-    const x = positions.getX(index);
-    const y = positions.getY(index);
-    const z = positions.getZ(index);
-    const wobble = 1 + Math.sin(index * 12.9898) * 0.065;
-    positions.setXYZ(index, x * wobble * 1.08, y * wobble, z * wobble * 0.92);
-  }
-  positions.needsUpdate = true;
-  headGeometry.computeVertexNormals();
+  const headGeometry = new THREE.SphereGeometry(0.34, 16, 12);
   const head = new THREE.Mesh(headGeometry, inkMaterial);
   head.name = "Irregular sketch head";
-  head.position.set(0.03, 1.72, 0);
+  head.position.set(0.02, 1.36, 0);
   head.rotation.set(0.08, -0.12, -0.06);
   group.add(head);
 
-  const leftArm = createLimbPivot("Left arm", -0.31, 1.23, 0.1, 0.46, inkMaterial);
-  const rightArm = createLimbPivot("Right arm", 0.31, 1.23, -0.08, 0.46, inkMaterial);
-  const leftLeg = createLimbPivot("Left leg", -0.14, 0.67, 0.06, 0.56, inkMaterial);
-  const rightLeg = createLimbPivot("Right leg", 0.14, 0.67, -0.06, 0.56, inkMaterial);
+  const scribbleMaterial = new THREE.MeshBasicMaterial({ color: 0x050505 });
+  for (let index = 0; index < 14; index += 1) {
+    const loop = new THREE.Mesh(
+      new THREE.TorusGeometry(0.35 + Math.sin(index * 2.13) * 0.035, 0.008, 4, 28),
+      scribbleMaterial,
+    );
+    loop.name = `Sketch head line ${index + 1}`;
+    loop.position.set(
+      0.02 + Math.sin(index * 4.17) * 0.035,
+      1.36 + Math.cos(index * 2.81) * 0.035,
+      Math.sin(index * 1.73) * 0.025,
+    );
+    loop.rotation.set(index * 0.71, index * 1.13, index * 0.37);
+    group.add(loop);
+  }
+
+  const leftArm = createLimbPivot("Left arm", -0.24, 1.0, 0.08, 0.36, inkMaterial);
+  const rightArm = createLimbPivot("Right arm", 0.24, 1.0, -0.06, 0.36, inkMaterial);
+  const leftLeg = createLimbPivot("Left leg", -0.105, 0.5, 0.04, 0.42, inkMaterial);
+  const rightLeg = createLimbPivot("Right leg", 0.105, 0.5, -0.04, 0.42, inkMaterial);
   group.add(leftArm, rightArm, leftLeg, rightLeg);
 
   group.position.y = CHARACTER_BASE_Y;
+  group.scale.setScalar(0.88);
   return { group, leftArm, rightArm, leftLeg, rightLeg };
 }
 
