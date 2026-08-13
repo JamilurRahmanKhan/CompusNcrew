@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DesignStudio } from "../../components/design-studio/design-studio";
+import { DesignGallery } from "../../components/design-gallery/design-gallery";
 
 export const metadata: Metadata = {
   title: "Graphic design — Brand systems and creative direction",
@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function GraphicDesignPage() {
-  return <DesignStudio />;
+  return <DesignGallery />;
 }

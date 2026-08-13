@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { brand } from "../brand";
 import { pathways, servicesByPathway } from "../content";
 import { LocalTime } from "./local-time";
+import { SITE_MENU_STATE_EVENT } from "./design-gallery/design-gallery-state";
 
 /**
  * MetaLab's navigation is a "Menu" pill, a wordmark and a local clock — that's
@@ -17,6 +18,7 @@ export function SiteNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const onGraphicDesignGallery = pathname === "/services/graphic-design";
 
   // The homepage hero is a dark, full-bleed video — the light-theme nav
   // text (dark ink) is invisible sitting directly on it. Once scrolled past
@@ -25,16 +27,24 @@ export function SiteNav() {
   // so the swap only needs to cover the unscrolled state on "/".
   const immersiveDark =
     pathname === "/services/social-media-marketing" ||
-    pathname === "/services/graphic-design" ||
     pathname === "/services/email-sms";
   const onDarkHero = (pathname === "/" && !scrolled && !open) || (immersiveDark && !open);
 
   useEffect(() => {
+    if (onGraphicDesignGallery) {
+      setScrolled(false);
+      return;
+    }
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [onGraphicDesignGallery]);
+
+  useEffect(() => {
+    document.body.dataset.siteMenuOpen = String(open);
+    window.dispatchEvent(new CustomEvent(SITE_MENU_STATE_EVENT, { detail: { open } }));
+  }, [open]);
 
   // Lock the page and wire Escape while the overlay is open.
   useEffect(() => {
@@ -55,15 +65,17 @@ export function SiteNav() {
     <>
       <header
         className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${
-          scrolled && !open
+          scrolled && !open && !onGraphicDesignGallery
             ? immersiveDark
               ? "bg-black/65 backdrop-blur-xl"
               : "bg-ink/70 backdrop-blur-xl"
             : ""
-        } ${onDarkHero ? "on-dark" : ""}`}
+        } ${onDarkHero ? "on-dark" : ""} ${onGraphicDesignGallery ? "pointer-events-none" : ""}`}
       >
         <nav
-          className="mx-auto flex h-16 max-w-[80rem] items-center justify-between px-6"
+          className={`mx-auto flex h-16 max-w-[80rem] items-center justify-between px-6 ${
+            onGraphicDesignGallery ? "pointer-events-auto" : ""
+          }`}
           aria-label="Primary"
         >
           <button
