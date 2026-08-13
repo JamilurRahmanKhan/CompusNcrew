@@ -26,7 +26,7 @@ export const portfolioWorks = [
   {
     id: "coffee-campaign",
     title: "Coffee Campaign",
-    category: "Campaign creative",
+    category: "Campaign design",
     description:
       "A tactile launch system pairing rich product photography with bold, editorial typography for a modern coffee brand.",
     imageSrc: "/media/design-portfolio/coffee-campaign.png",
@@ -40,7 +40,7 @@ export const portfolioWorks = [
   {
     id: "gaming-product",
     title: "Gaming Controller",
-    category: "Digital design",
+    category: "Product visual",
     description:
       "A high-energy product visual language built around dramatic lighting, crisp interface graphics, and competitive play.",
     imageSrc: "/media/design-portfolio/gaming-product.png",
@@ -54,7 +54,7 @@ export const portfolioWorks = [
   {
     id: "shampoo-product",
     title: "Berry Shampoo",
-    category: "Packaging & editorial",
+    category: "Product campaign",
     description:
       "A playful personal-care identity using saturated berry color, expressive type, and clean product storytelling.",
     imageSrc: "/media/design-portfolio/shampoo-product.png",
@@ -68,7 +68,7 @@ export const portfolioWorks = [
   {
     id: "lemonade-campaign",
     title: "Raspberry Lemonade",
-    category: "Brand identity",
+    category: "Social campaign",
     description:
       "A bright beverage identity balancing nostalgic fruit illustration with a confident, contemporary packaging system.",
     imageSrc: "/media/design-portfolio/lemonade-campaign.png",

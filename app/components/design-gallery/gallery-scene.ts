@@ -41,6 +41,16 @@ const FRONT_WALL_PADDING = 2.1;
 const FRAME_DEPTH = 0.12;
 const FRAME_BORDER = 0.12;
 const CHARACTER_BASE_Y = 0.08;
+const CAMERA_FOLLOW_RESPONSE: Record<QualityTier["tier"], number> = {
+  mobile: 10,
+  balanced: 7,
+  desktop: 5.5,
+};
+
+export function getCameraFollowBlend(deltaSeconds: number, tier: QualityTier["tier"]): number {
+  const boundedDelta = THREE.MathUtils.clamp(deltaSeconds, 0, 0.1);
+  return 1 - Math.exp(-CAMERA_FOLLOW_RESPONSE[tier] * boundedDelta);
+}
 
 export function createGalleryScene(options: GallerySceneOptions): GallerySceneHandle {
   const { bounds, quality } = options;
@@ -155,6 +165,7 @@ export function createGalleryScene(options: GallerySceneOptions): GallerySceneHa
   scene.add(rig.group);
 
   let focusedArtworkId: string | null = null;
+  let previousUpdateTime: number | null = null;
   const desiredCameraPosition = new THREE.Vector3();
   const cameraLookTarget = new THREE.Vector3();
 
@@ -172,8 +183,10 @@ export function createGalleryScene(options: GallerySceneOptions): GallerySceneHa
     rig.rightLeg.rotation.x = stride * 0.72;
 
     desiredCameraPosition.set(state.position.x, 3.4, depth + 6.25);
+    const deltaSeconds = previousUpdateTime === null ? 1 / 60 : Math.max(0, time - previousUpdateTime);
+    previousUpdateTime = time;
     if (reducedMotion) camera.position.copy(desiredCameraPosition);
-    else camera.position.lerp(desiredCameraPosition, 0.085);
+    else camera.position.lerp(desiredCameraPosition, getCameraFollowBlend(deltaSeconds, quality.tier));
 
     cameraLookTarget.set(state.position.x, 1.12, depth - 2.6);
     camera.lookAt(cameraLookTarget);
@@ -227,6 +240,7 @@ export function createGalleryScene(options: GallerySceneOptions): GallerySceneHa
     }
     for (const material of materials) material.dispose();
     for (const geometry of geometries) geometry.dispose();
+    directionalLight.shadow.dispose();
 
     frameStates.clear();
     artworkFrames.clear();
