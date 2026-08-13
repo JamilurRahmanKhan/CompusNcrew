@@ -68,7 +68,7 @@ export function DesignStudio() {
     <div className={styles.page}>
       <section className={styles.hero} aria-label="Selected design work">
         <Image
-          src="/media/services/design-gallery-real-work-hero-v3.png"
+          src="/media/services/design-gallery-poster-wall-v2.webp"
           alt="A sunlit design gallery with nine wooden easels showcasing campaign, product, social and editorial artwork"
           fill
           priority
