@@ -31,6 +31,19 @@ export type GalleryExperienceAction =
 
 const ZERO_VECTOR: Vector2 = { x: 0, y: 0 };
 
+interface GalleryPageLockTarget {
+  classList: Pick<DOMTokenList, "add" | "contains" | "remove">;
+}
+
+export function acquireGalleryPageLock(target: GalleryPageLockTarget): () => void {
+  const ownsLock = !target.classList.contains("journey-mode");
+  if (ownsLock) target.classList.add("journey-mode");
+
+  return () => {
+    if (ownsLock) target.classList.remove("journey-mode");
+  };
+}
+
 export function createInitialGalleryState(reducedMotion: boolean): GalleryExperienceState {
   return {
     status: "loading",

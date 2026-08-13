@@ -6,6 +6,7 @@ import { useCallback, useEffect, useReducer } from "react";
 import { DesignGalleryCanvas } from "./design-gallery-canvas";
 import styles from "./design-gallery.module.css";
 import {
+  acquireGalleryPageLock,
   createInitialGalleryState,
   galleryExperienceReducer,
   isGalleryBackgroundInert,
@@ -44,15 +45,7 @@ export function DesignGallery() {
     : portfolioWorks[state.activeProjectIndex] ?? null;
 
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    const previousOverscrollBehavior = document.body.style.overscrollBehavior;
-    document.body.style.overflow = "hidden";
-    document.body.style.overscrollBehavior = "none";
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.body.style.overscrollBehavior = previousOverscrollBehavior;
-    };
+    return acquireGalleryPageLock(document.body);
   }, []);
 
   useEffect(() => {

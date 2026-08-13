@@ -2,11 +2,26 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  acquireGalleryPageLock,
   createInitialGalleryState,
   galleryExperienceReducer,
   isGalleryBackgroundInert,
   isGalleryPaused,
 } from "./design-gallery-state";
+
+function createClassList(initial: readonly string[] = []) {
+  const classes = new Set(initial);
+  return {
+    classes,
+    target: {
+      classList: {
+        add: (name: string) => classes.add(name),
+        contains: (name: string) => classes.has(name),
+        remove: (name: string) => classes.delete(name),
+      },
+    },
+  };
+}
 
 test("renderer readiness and failure move the experience into the correct terminal state", () => {
   const initial = createInitialGalleryState(false);
@@ -101,4 +116,18 @@ test("opening the site menu closes a project panel so modal focus scopes cannot 
 
   assert.equal(menuOpen.menuOpen, true);
   assert.equal(menuOpen.activeProjectIndex, null);
+});
+
+test("the gallery page lock owns only the class it adds", () => {
+  const added = createClassList();
+  const releaseAddedLock = acquireGalleryPageLock(added.target);
+
+  assert.equal(added.classes.has("journey-mode"), true);
+  releaseAddedLock();
+  assert.equal(added.classes.has("journey-mode"), false);
+
+  const existing = createClassList(["journey-mode"]);
+  const releaseExistingLock = acquireGalleryPageLock(existing.target);
+  releaseExistingLock();
+  assert.equal(existing.classes.has("journey-mode"), true);
 });

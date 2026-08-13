@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { brand } from "../brand";
 import { pathways, servicesByPathway } from "../content";
 import { LocalTime } from "./local-time";
 import { SITE_MENU_STATE_EVENT } from "./design-gallery/design-gallery-state";
+import { getFocusWrapIndex } from "./design-gallery/gallery-ui-utils";
 
 /**
  * MetaLab's navigation is a "Menu" pill, a wordmark and a local clock — that's
@@ -18,6 +19,9 @@ export function SiteNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const onGraphicDesignGallery = pathname === "/services/graphic-design";
 
   // The homepage hero is a dark, full-bleed video — the light-theme nav
@@ -50,20 +54,52 @@ export function SiteNav() {
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
+    const pageSurfaces = Array.from(document.querySelectorAll<HTMLElement>("main, body > footer"));
+    const previouslyInert = pageSurfaces.map((surface) => surface.inert);
+    const focusFrame = window.requestAnimationFrame(() => {
+      menuRef.current?.querySelector<HTMLElement>("[data-site-menu-initial-focus]")
+        ?.focus({ preventScroll: true });
+    });
     document.body.style.overflow = "hidden";
+    pageSurfaces.forEach((surface) => { surface.inert = true; });
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+
+      const focusableElements = [headerRef.current, menuRef.current]
+        .flatMap((surface) => surface
+          ? Array.from(surface.querySelectorAll<HTMLElement>(
+            "a[href], button:not([disabled]), [tabindex]:not([tabindex='-1'])",
+          ))
+          : [])
+        .filter((element) => element.tabIndex >= 0);
+      const activeIndex = document.activeElement instanceof HTMLElement
+        ? focusableElements.indexOf(document.activeElement)
+        : -1;
+      const wrapIndex = getFocusWrapIndex(activeIndex, focusableElements.length, e.shiftKey);
+      if (wrapIndex === null) return;
+
+      e.preventDefault();
+      focusableElements[wrapIndex]?.focus({ preventScroll: true });
     };
-    window.addEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, true);
     return () => {
+      window.cancelAnimationFrame(focusFrame);
       document.body.style.overflow = prev;
-      window.removeEventListener("keydown", onKey);
+      pageSurfaces.forEach((surface, index) => { surface.inert = previouslyInert[index] ?? false; });
+      window.removeEventListener("keydown", onKey, true);
+      menuButtonRef.current?.focus({ preventScroll: true });
     };
   }, [open]);
 
   return (
     <>
       <header
+        ref={headerRef}
         className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${
           scrolled && !open && !onGraphicDesignGallery
             ? immersiveDark
@@ -79,6 +115,7 @@ export function SiteNav() {
           aria-label="Primary"
         >
           <button
+            ref={menuButtonRef}
             type="button"
             className="pill"
             aria-expanded={open}
@@ -108,6 +145,7 @@ export function SiteNav() {
       {/* Overlay menu. Rendered always so its links are in the DOM for crawlers;
           visibility is driven by opacity + pointer-events, not display:none. */}
       <div
+        ref={menuRef}
         id="site-menu"
         className={`fixed inset-0 z-40 overflow-y-auto bg-ink/95 backdrop-blur-2xl transition-opacity duration-500 ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
@@ -123,6 +161,7 @@ export function SiteNav() {
                     {pathway.index}
                   </span>
                   <Link
+                    data-site-menu-initial-focus={pathway === pathways[0] ? "true" : undefined}
                     href={`/solutions/${pathway.id}`}
                     className="font-display text-4xl text-bright"
                     tabIndex={open ? 0 : -1}
