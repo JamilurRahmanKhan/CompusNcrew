@@ -1,0 +1,342 @@
+{
+  "generatedAt": "2026-08-13T08:03:40.308Z",
+  "help": {
+    "390x844-touch": {
+      "visible": {
+        "viewport": {
+          "width": 390,
+          "height": 844,
+          "dpr": 1,
+          "pointerCoarse": true,
+          "pointerFine": false
+        },
+        "overflowX": 0,
+        "button": {
+          "label": "Hide gallery controls",
+          "controls": "gallery-controls-guide",
+          "expanded": "true",
+          "rect": {
+            "left": 330,
+            "right": 374,
+            "top": 84,
+            "bottom": 128,
+            "width": 44,
+            "height": 44
+          }
+        },
+        "guide": {
+          "hidden": false,
+          "visible": true,
+          "text": "DRAG THE JOYSTICK TO MOVE TAP VIEW WORK WHEN A PROJECT IS NEAR",
+          "fontSize": "14px",
+          "lineHeight": "19.6px",
+          "rect": {
+            "left": 86,
+            "right": 374,
+            "top": 136,
+            "bottom": 226.375,
+            "width": 288,
+            "height": 90.375
+          },
+          "keyboardDisplay": "none",
+          "touchDisplay": "flex"
+        },
+        "joystickRect": {
+          "left": 16,
+          "right": 128,
+          "top": 716,
+          "bottom": 828,
+          "width": 112,
+          "height": 112
+        },
+        "actionRect": {
+          "left": 210.46875,
+          "right": 374,
+          "top": 769.609375,
+          "bottom": 821.609375,
+          "width": 163.53125,
+          "height": 52
+        }
+      },
+      "collapsed": {
+        "label": "Show gallery controls",
+        "expanded": "false",
+        "activeElementIsButton": true,
+        "guideHidden": true,
+        "guideVisible": false
+      },
+      "runtime": {
+        "pageErrors": [],
+        "consoleMessages": [
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+          }
+        ]
+      }
+    },
+    "768x1024-touch": {
+      "visible": {
+        "viewport": {
+          "width": 768,
+          "height": 1024,
+          "dpr": 1,
+          "pointerCoarse": true,
+          "pointerFine": false
+        },
+        "overflowX": 0,
+        "button": {
+          "label": "Hide gallery controls",
+          "controls": "gallery-controls-guide",
+          "expanded": "true",
+          "rect": {
+            "left": 708,
+            "right": 752,
+            "top": 84,
+            "bottom": 128,
+            "width": 44,
+            "height": 44
+          }
+        },
+        "guide": {
+          "hidden": false,
+          "visible": true,
+          "text": "DRAG THE JOYSTICK TO MOVE TAP VIEW WORK WHEN A PROJECT IS NEAR",
+          "fontSize": "14px",
+          "lineHeight": "19.6px",
+          "rect": {
+            "left": 464,
+            "right": 752,
+            "top": 136,
+            "bottom": 226.375,
+            "width": 288,
+            "height": 90.375
+          },
+          "keyboardDisplay": "none",
+          "touchDisplay": "flex"
+        },
+        "joystickRect": {
+          "left": 16,
+          "right": 128,
+          "top": 896,
+          "bottom": 1008,
+          "width": 112,
+          "height": 112
+        },
+        "actionRect": {
+          "left": 588.46875,
+          "right": 752,
+          "top": 949.609375,
+          "bottom": 1001.609375,
+          "width": 163.53125,
+          "height": 52
+        }
+      },
+      "collapsed": {
+        "label": "Show gallery controls",
+        "expanded": "false",
+        "activeElementIsButton": true,
+        "guideHidden": true,
+        "guideVisible": false
+      },
+      "runtime": {
+        "pageErrors": [],
+        "consoleMessages": []
+      }
+    },
+    "200-percent-equivalent-720x450": {
+      "visible": {
+        "viewport": {
+          "width": 720,
+          "height": 450,
+          "dpr": 2,
+          "pointerCoarse": false,
+          "pointerFine": true
+        },
+        "overflowX": 0,
+        "button": {
+          "label": "Hide gallery controls",
+          "controls": "gallery-controls-guide",
+          "expanded": "true",
+          "rect": {
+            "left": 660,
+            "right": 704,
+            "top": 84,
+            "bottom": 128,
+            "width": 44,
+            "height": 44
+          }
+        },
+        "guide": {
+          "hidden": false,
+          "visible": true,
+          "text": "WASD OR ARROW KEYS TO MOVE ENTER TO VIEW WORK",
+          "fontSize": "14px",
+          "lineHeight": "19.6px",
+          "rect": {
+            "left": 416,
+            "right": 704,
+            "top": 136,
+            "bottom": 234.75,
+            "width": 288,
+            "height": 98.75
+          },
+          "keyboardDisplay": "flex",
+          "touchDisplay": "none"
+        },
+        "joystickRect": {
+          "left": 16,
+          "right": 116,
+          "top": 334,
+          "bottom": 434,
+          "width": 100,
+          "height": 100
+        },
+        "actionRect": {
+          "left": 548.46875,
+          "right": 704,
+          "top": 376.609375,
+          "bottom": 427.609375,
+          "width": 155.53125,
+          "height": 51
+        }
+      },
+      "collapsed": {
+        "label": "Show gallery controls",
+        "expanded": "false",
+        "activeElementIsButton": true,
+        "guideHidden": true,
+        "guideVisible": false
+      },
+      "runtime": {
+        "pageErrors": [],
+        "consoleMessages": []
+      }
+    }
+  },
+  "textureLifecycle": {
+    "delayedSuccess": {
+      "textureRequests": 4,
+      "pending": {
+        "loadingDataHidden": "false",
+        "loadingVisibility": "visible",
+        "helpButtonCount": 0,
+        "canvasCount": 1
+      },
+      "ready": {
+        "loadingDataHidden": "true",
+        "guideVisible": true,
+        "canvasCount": 1
+      },
+      "runtime": {
+        "pageErrors": [],
+        "consoleMessages": []
+      }
+    },
+    "rejectedTexture": {
+      "fallback": {
+        "fallbackCount": 1,
+        "canvasCount": 0,
+        "activeProjectCount": 4
+      },
+      "runtime": {
+        "pageErrors": [],
+        "consoleMessages": [
+          {
+            "type": "error",
+            "text": "Failed to load resource: net::ERR_FAILED"
+          }
+        ]
+      }
+    }
+  },
+  "runtimeFailure": {
+    "contextLoss": {
+      "extensionAvailable": true,
+      "fallback": {
+        "fallbackCount": 1,
+        "canvasCount": 0,
+        "projectCount": 4
+      },
+      "runtime": {
+        "pageErrors": [],
+        "consoleMessages": []
+      }
+    }
+  },
+  "skipLink": {
+    "trace": [
+      {
+        "tag": "A",
+        "text": "Skip to content",
+        "href": "#main",
+        "focusVisible": true,
+        "rect": {
+          "x": 16,
+          "y": 16,
+          "width": 139.46875,
+          "height": 49
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Menu",
+        "href": null,
+        "focusVisible": true,
+        "rect": {
+          "x": 104,
+          "y": 10.5,
+          "width": 74.03125,
+          "height": 43
+        }
+      },
+      {
+        "tag": "A",
+        "text": "CompassNCrew",
+        "href": "/",
+        "focusVisible": true,
+        "rect": {
+          "x": 661.375,
+          "y": 21,
+          "width": 117.25,
+          "height": 22
+        }
+      },
+      {
+        "tag": "A",
+        "text": "Start",
+        "href": "/contact",
+        "focusVisible": true,
+        "rect": {
+          "x": 1268.171875,
+          "y": 10.5,
+          "width": 67.828125,
+          "height": 43
+        }
+      },
+      {
+        "tag": "A",
+        "text": "Skip the 3D gallery",
+        "href": "#gallery-fallback",
+        "focusVisible": true,
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 164.96875,
+          "height": 49
+        }
+      }
+    ],
+    "activation": {
+      "activeElementId": "gallery-fallback",
+      "activeElementTag": "SECTION",
+      "fallbackTabIndex": "-1",
+      "canvasCount": 0,
+      "projectCount": 4
+    },
+    "runtime": {
+      "pageErrors": [],
+      "consoleMessages": []
+    }
+  }
+}
