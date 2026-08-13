@@ -56,8 +56,8 @@ const WALL_HEIGHT = 5.8;
 const WALL_PADDING = 1.35;
 const ENTRANCE_DEPTH = 5.2;
 const FRONT_WALL_PADDING = 2.1;
-const FRAME_DEPTH = 0.12;
-const FRAME_BORDER = 0.12;
+const FRAME_DEPTH = 0.17;
+const FRAME_BORDER = 0.22;
 const CHARACTER_BASE_Y = 0;
 const CAMERA_FOLLOW_RESPONSE: Record<QualityTier["tier"], number> = {
   mobile: 10,
@@ -78,14 +78,15 @@ export function getFreeCameraPose(
   const isPhonePortrait = aspect < 0.62;
   const isPortrait = aspect < 0.95;
   const lateralFollow = isPhonePortrait ? 0.16 : isPortrait ? 0.27 : tier === "mobile" ? 0.34 : 0.42;
-  const followDistance = isPhonePortrait ? 8.15 : isPortrait ? 6.9 : tier === "mobile" ? 6.1 : 5.55;
+  const followDistance = isPhonePortrait ? 7.0 : isPortrait ? 6.1 : tier === "mobile" ? 5.6 : 5.2;
+  const lookTargetY = isPhonePortrait ? 4.4 : isPortrait ? 3.6 : 2.6;
   return {
     position: new THREE.Vector3(
       position.x * lateralFollow,
       isPhonePortrait ? 2.58 : isPortrait ? 2.82 : tier === "mobile" ? 2.75 : 3.08,
       position.y + followDistance,
     ),
-    lookTarget: new THREE.Vector3(position.x * (isPortrait ? 0.72 : 1), 1.32, position.y - 3.25),
+    lookTarget: new THREE.Vector3(position.x * (isPortrait ? 0.72 : 1), lookTargetY, position.y - 3.25),
   };
 }
 
@@ -127,8 +128,8 @@ function buildGalleryScene(
   const roomDepth = roomMaxZ - roomMinZ;
   const roomCenterZ = (roomMinZ + roomMaxZ) / 2;
   const { scene } = construction;
-  scene.background = new THREE.Color(0xf3f1eb);
-  scene.fog = new THREE.Fog(0xf3f1eb, quality.tier === "mobile" ? 16 : 22, quality.tier === "mobile" ? 34 : 46);
+  scene.background = new THREE.Color(0xd9c7a3);
+  scene.fog = new THREE.Fog(0xd9c7a3, quality.tier === "mobile" ? 16 : 22, quality.tier === "mobile" ? 34 : 46);
 
   let viewportAspect = safeAspect(options.width, options.height);
   const camera = new THREE.PerspectiveCamera(getResponsiveCameraFov(options.width, options.height, quality.tier), viewportAspect, 0.1, quality.tier === "mobile" ? 42 : 58);
@@ -139,13 +140,14 @@ function buildGalleryScene(
   architecture.name = "Gallery architecture";
   scene.add(architecture);
 
-  const plasterMaterial = new THREE.MeshStandardMaterial({ color: 0xf5f3ed, roughness: 0.92, metalness: 0 });
-  const floorMaterial = new THREE.MeshStandardMaterial({ color: 0xe8e5dd, roughness: 0.96, metalness: 0 });
-  const blackMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.78, metalness: 0.03 });
+  const plasterMaterial = new THREE.MeshStandardMaterial({ color: 0xa1755a, roughness: 0.92, metalness: 0 });
+  const floorMaterial = new THREE.MeshStandardMaterial({ color: 0xcdb992, roughness: 0.8, metalness: 0 });
+  const blackMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.45, metalness: 0.25 });
   const floorGeometry = new THREE.PlaneGeometry(roomHalfWidth * 2, roomDepth);
   const wallGeometry = new THREE.BoxGeometry(0.18, WALL_HEIGHT, roomDepth);
   const frontWallGeometry = new THREE.BoxGeometry(roomHalfWidth * 2 + 0.18, WALL_HEIGHT, 0.18);
-  const unitBoxGeometry = new THREE.BoxGeometry(1, 1, 1);
+  const railGeometry = new THREE.CylinderGeometry(0.06, 0.06, roomDepth - 0.6, 16);
+  const postGeometry = new THREE.CylinderGeometry(0.03, 0.03, 0.92, 8);
 
   const floor = new THREE.Mesh(floorGeometry, floorMaterial);
   floor.name = "Gallery floor";
@@ -161,22 +163,23 @@ function buildGalleryScene(
     wall.receiveShadow = quality.tier !== "mobile";
     architecture.add(wall);
 
-    const rail = new THREE.Mesh(unitBoxGeometry, blackMaterial);
+    const rail = new THREE.Mesh(railGeometry, blackMaterial);
     rail.name = `${wall.name} rail`;
-    rail.scale.set(0.08, 0.08, roomDepth - 0.6);
-    rail.position.set(side * (roomHalfWidth - 0.14), 1.02, roomCenterZ);
+    rail.rotation.x = Math.PI / 2;
+    rail.position.set(side * (roomHalfWidth - 0.55), 1.02, roomCenterZ);
+    rail.castShadow = quality.tier !== "mobile";
     architecture.add(rail);
 
-    const postCount = Math.max(6, Math.floor(roomDepth / 2.25));
+    const postCount = Math.max(10, Math.floor(roomDepth / 1.3));
     for (let index = 0; index <= postCount; index += 1) {
-      const post = new THREE.Mesh(unitBoxGeometry, blackMaterial);
+      const post = new THREE.Mesh(postGeometry, blackMaterial);
       post.name = `${wall.name} rail post ${index + 1}`;
-      post.scale.set(0.07, 0.92, 0.07);
       post.position.set(
-        side * (roomHalfWidth - 0.14),
+        side * (roomHalfWidth - 0.55),
         0.56,
         THREE.MathUtils.lerp(roomMinZ + 0.45, roomMaxZ - 0.45, index / postCount),
       );
+      post.castShadow = quality.tier !== "mobile";
       architecture.add(post);
     }
   }
@@ -188,6 +191,7 @@ function buildGalleryScene(
   architecture.add(frontWall);
 
   addPitchedRoof(architecture, roomHalfWidth, roomDepth, roomCenterZ, blackMaterial);
+  addCeilingLights(scene, architecture, roomMinZ, roomMaxZ, quality.tier === "mobile");
 
   const ambientLight = new THREE.AmbientLight(0xffffff, 1.85);
   ambientLight.name = "Gallery ambient light";
@@ -200,13 +204,14 @@ function buildGalleryScene(
   directionalLight.target.position.set(0, 1, roomCenterZ);
   directionalLight.castShadow = quality.tier === "desktop";
   if (directionalLight.castShadow) {
-    directionalLight.shadow.mapSize.set(1024, 1024);
+    directionalLight.shadow.mapSize.set(2048, 2048);
     directionalLight.shadow.camera.near = 1;
-    directionalLight.shadow.camera.far = 40;
-    directionalLight.shadow.camera.left = -9;
-    directionalLight.shadow.camera.right = 9;
-    directionalLight.shadow.camera.top = 14;
-    directionalLight.shadow.camera.bottom = -4;
+    directionalLight.shadow.camera.far = 60;
+    directionalLight.shadow.camera.left = -(roomHalfWidth + 4);
+    directionalLight.shadow.camera.right = roomHalfWidth + 4;
+    directionalLight.shadow.camera.top = roomDepth * 0.75;
+    directionalLight.shadow.camera.bottom = -(roomDepth * 0.35);
+    directionalLight.shadow.bias = -0.0015;
   }
   scene.add(directionalLight, directionalLight.target);
 
@@ -372,7 +377,7 @@ function addPitchedRoof(
     roughness: 0.42,
     metalness: 0,
   });
-  const ceilingMaterial = new THREE.MeshBasicMaterial({ color: 0xf5f3ed });
+  const ceilingMaterial = new THREE.MeshBasicMaterial({ color: 0xe3c68e });
   for (const side of [-1, 1] as const) {
     const panel = new THREE.Mesh(
       new THREE.BoxGeometry(panelWidth, 0.1, roomDepth),
@@ -415,6 +420,46 @@ function addPitchedRoof(
   ridge.name = "Ceiling ridge rail";
   ridge.position.set(0, ridgeY + 0.025, roomCenterZ);
   architecture.add(ridge);
+}
+
+function addCeilingLights(
+  scene: THREE.Scene,
+  architecture: THREE.Group,
+  roomMinZ: number,
+  roomMaxZ: number,
+  isMobile: boolean,
+): void {
+  const fixtureY = WALL_HEIGHT + 1.55;
+  const shadeGeometry = new THREE.CylinderGeometry(0.22, 0.16, 0.28, 16, 1, true);
+  const shadeMaterial = new THREE.MeshStandardMaterial({ color: 0x161616, roughness: 0.4, metalness: 0.4, side: THREE.DoubleSide });
+  const bulbGeometry = new THREE.SphereGeometry(0.09, 12, 12);
+  const bulbMaterial = new THREE.MeshStandardMaterial({ color: 0xffe2ab, emissive: 0xffb457, emissiveIntensity: 1.6, roughness: 0.3 });
+
+  const count = 4;
+  for (let index = 0; index < count; index += 1) {
+    const z = THREE.MathUtils.lerp(roomMinZ + 1.5, roomMaxZ - 1.5, index / (count - 1));
+    const fixture = new THREE.Group();
+    fixture.name = `Ceiling pendant light ${index + 1}`;
+    fixture.position.set(0, fixtureY, z);
+    architecture.add(fixture);
+
+    const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.5, 6), shadeMaterial);
+    cord.position.y = 0.25;
+    fixture.add(cord);
+
+    const shade = new THREE.Mesh(shadeGeometry, shadeMaterial);
+    fixture.add(shade);
+
+    const bulb = new THREE.Mesh(bulbGeometry, bulbMaterial);
+    bulb.position.y = -0.12;
+    fixture.add(bulb);
+
+    if (!isMobile) {
+      const glow = new THREE.PointLight(0xffc27a, 6, 6.5, 2);
+      glow.position.set(0, fixtureY - 0.15, z);
+      scene.add(glow);
+    }
+  }
 }
 
 function createArtworkFrame(
@@ -594,8 +639,9 @@ function createTextPanel(
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.minFilter = THREE.LinearFilter;
-  texture.generateMipmaps = false;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.generateMipmaps = true;
+  texture.anisotropy = 4;
   texture.userData.generatedCanvas = canvas;
   const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false });
   return new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
