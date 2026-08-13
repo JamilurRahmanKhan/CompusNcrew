@@ -14,6 +14,7 @@ import {
   SITE_MENU_STATE_EVENT,
 } from "./design-gallery-state";
 import { designServices, portfolioWorks, type GalleryArtwork } from "./gallery-data";
+import { GalleryHelp } from "./gallery-help";
 import { ProjectDetailPanel } from "./project-detail-panel";
 import { VirtualJoystick } from "./virtual-joystick";
 
@@ -149,22 +150,17 @@ export function DesignGallery() {
 
         {state.status === "ready" ? (
           <div className={styles.interfaceLayer}>
-            {state.helpVisible ? (
-              <div className={styles.desktopLegend} role="note" aria-label="Gallery controls">
-                <span><kbd>WASD</kbd> or arrow keys to move</span>
-                <span><kbd>Enter</kbd> view work</span>
-              </div>
-            ) : null}
-
-            <button
-              className={styles.helpButton}
-              type="button"
-              aria-label={state.helpVisible ? "Hide gallery controls" : "Show gallery controls"}
-              aria-pressed={state.helpVisible}
-              onClick={() => dispatch({ type: "toggle-help" })}
-            >
-              ?
-            </button>
+            <GalleryHelp
+              visible={state.helpVisible}
+              classNames={{
+                guide: styles.controlGuide,
+                group: styles.controlGuideGroup,
+                keyboard: styles.keyboardHelp,
+                touch: styles.touchHelp,
+                button: styles.helpButton,
+              }}
+              onToggle={() => dispatch({ type: "toggle-help" })}
+            />
 
             {nearbyProject ? (
               <button

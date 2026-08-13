@@ -38,7 +38,9 @@ export function ProjectDetailPanel({
   const titleId = useId();
   const descriptionId = useId();
 
-  onCloseRef.current = onClose;
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     const previouslyFocused = document.activeElement instanceof HTMLElement

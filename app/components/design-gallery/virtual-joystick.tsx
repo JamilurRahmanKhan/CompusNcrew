@@ -11,13 +11,22 @@ export interface VirtualJoystickProps {
   onChange: (vector: Vector2) => void;
 }
 
+function getPointerGeometry(event: React.PointerEvent<HTMLDivElement>) {
+  const bounds = event.currentTarget.getBoundingClientRect();
+  return {
+    origin: {
+      x: bounds.left + bounds.width / 2,
+      y: bounds.top + bounds.height / 2,
+    },
+    pointer: { x: event.clientX, y: event.clientY },
+  };
+}
+
 export function VirtualJoystick({ disabled, onChange }: VirtualJoystickProps) {
   const baseRef = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
   const [knobOffset, setKnobOffset] = useState<Vector2>({ x: 0, y: 0 });
   const controllerRef = useRef<GalleryJoystickPointerController | null>(null);
-
-  onChangeRef.current = onChange;
 
   if (controllerRef.current === null) {
     controllerRef.current = new GalleryJoystickPointerController(
@@ -27,19 +36,12 @@ export function VirtualJoystick({ disabled, onChange }: VirtualJoystickProps) {
   }
 
   useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
     if (disabled) controllerRef.current?.reset();
   }, [disabled]);
-
-  const getPointerGeometry = (event: React.PointerEvent<HTMLDivElement>) => {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    return {
-      origin: {
-        x: bounds.left + bounds.width / 2,
-        y: bounds.top + bounds.height / 2,
-      },
-      pointer: { x: event.clientX, y: event.clientY },
-    };
-  };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (disabled || !event.isPrimary || event.button !== 0) return;

@@ -15,6 +15,7 @@ export interface GallerySceneHandle {
   camera: THREE.PerspectiveCamera;
   character: THREE.Group;
   artworkFrames: ReadonlyMap<string, THREE.Group>;
+  ready: Promise<void>;
   updateCharacter(state: CharacterState, time: number, reducedMotion: boolean): void;
   setFocusedArtwork(id: string | null): void;
   resize(width: number, height: number): void;
@@ -33,6 +34,11 @@ interface ArtworkFrameState {
   group: THREE.Group;
   frameMaterial: THREE.MeshStandardMaterial;
   artworkMaterial: THREE.MeshStandardMaterial;
+}
+
+interface ArtworkFrameResult {
+  frame: ArtworkFrameState;
+  ready: Promise<void>;
 }
 
 interface GallerySceneConstruction {
@@ -170,9 +176,10 @@ function buildGalleryScene(
   const artworkBackingGeometry = new THREE.BoxGeometry(1, 1, FRAME_DEPTH * 0.55);
   const artworkPlaneGeometry = new THREE.PlaneGeometry(1, 1);
   const textureLoader = new THREE.TextureLoader();
+  const artworkTextureReadiness: Promise<void>[] = [];
 
   for (const artwork of portfolioWorks) {
-    const frameState = createArtworkFrame(
+    const frameResult = createArtworkFrame(
       scene,
       artwork,
       roomHalfWidth,
@@ -182,9 +189,12 @@ function buildGalleryScene(
       textureLoader,
       () => construction.disposed,
     );
+    const frameState = frameResult.frame;
     frameStates.set(artwork.id, frameState);
     artworkFrames.set(artwork.id, frameState.group);
+    artworkTextureReadiness.push(frameResult.ready);
   }
+  const ready = Promise.all(artworkTextureReadiness).then(() => undefined);
 
   const rig = createCharacterRig(scene);
 
@@ -196,7 +206,7 @@ function buildGalleryScene(
   function updateCharacter(state: CharacterState, time: number, reducedMotion: boolean): void {
     const depth = state.position.y;
     rig.group.position.set(state.position.x, CHARACTER_BASE_Y + state.bobOffset, depth);
-    rig.group.scale.x = state.facing === "left" ? -1 : 1;
+    rig.group.rotation.y = state.facingAngle;
 
     const speed = Math.hypot(state.velocity.x, state.velocity.y);
     const walkStrength = reducedMotion ? 0 : THREE.MathUtils.clamp(speed / 4, 0, 1);
@@ -250,6 +260,7 @@ function buildGalleryScene(
     camera,
     character: rig.group,
     artworkFrames,
+    ready,
     updateCharacter,
     setFocusedArtwork,
     resize,
@@ -266,7 +277,7 @@ function createArtworkFrame(
   artworkPlaneGeometry: THREE.PlaneGeometry,
   textureLoader: THREE.TextureLoader,
   isDisposed: () => boolean,
-): ArtworkFrameState {
+): ArtworkFrameResult {
   const { width, height } = artwork.dimensions;
   const group = new THREE.Group();
   group.name = `Artwork: ${artwork.title}`;
@@ -319,26 +330,49 @@ function createArtworkFrame(
   image.position.z = FRAME_DEPTH * 0.56;
   group.add(image);
 
-  const texture = textureLoader.load(
-    artwork.imageSrc,
-    (loadedTexture) => {
-      if (isDisposed()) {
-        loadedTexture.dispose();
-        return;
-      }
-      loadedTexture.colorSpace = THREE.SRGBColorSpace;
-      loadedTexture.anisotropy = 4;
-      artworkMaterial.map = loadedTexture;
-      artworkMaterial.emissiveMap = loadedTexture;
-      artworkMaterial.needsUpdate = true;
-    },
+  const textureLoadError = (cause: unknown) => (
+    new Error(`Artwork ${artwork.id} texture failed to load`, { cause })
   );
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 4;
-  artworkMaterial.map = texture;
-  artworkMaterial.emissiveMap = texture;
+  let texture: THREE.Texture | undefined;
+  const ready = new Promise<void>((resolve, reject) => {
+    try {
+      texture = textureLoader.load(
+        artwork.imageSrc,
+        (loadedTexture) => {
+          if (isDisposed()) {
+            loadedTexture.dispose();
+            resolve();
+            return;
+          }
+          loadedTexture.colorSpace = THREE.SRGBColorSpace;
+          loadedTexture.anisotropy = 4;
+          artworkMaterial.map = loadedTexture;
+          artworkMaterial.emissiveMap = loadedTexture;
+          artworkMaterial.needsUpdate = true;
+          resolve();
+        },
+        undefined,
+        (cause) => {
+          reject(textureLoadError(cause));
+        }
+      );
+    } catch (cause) {
+      reject(textureLoadError(cause));
+    }
+  });
+  // TextureLoader returns the same placeholder that it fills asynchronously.
+  // Applying it now lets Three upload the completed image on the first ready render.
+  if (texture) {
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = 4;
+    artworkMaterial.map = texture;
+    artworkMaterial.emissiveMap = texture;
+  }
 
-  return { group, frameMaterial, artworkMaterial };
+  return {
+    frame: { group, frameMaterial, artworkMaterial },
+    ready,
+  };
 }
 
 function addServiceWall(scene: THREE.Scene, frontWallZ: number): void {

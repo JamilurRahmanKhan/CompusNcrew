@@ -6,7 +6,7 @@ export interface Vector2 {
 export interface CharacterState {
   position: Vector2;
   velocity: Vector2;
-  facing: "left" | "right";
+  facingAngle: number;
   bobOffset: number;
   bobPhase: number;
 }
@@ -21,6 +21,7 @@ export interface GalleryBounds {
 export interface Artwork {
   id: string;
   position: Vector2;
+  interactionRadius: number;
 }
 
 export interface QualityTier {
@@ -33,8 +34,6 @@ const ACCELERATION_RESPONSE = 12;
 const DAMPING_RESPONSE = 8;
 const BOB_FREQUENCY = 6;
 const BOB_AMPLITUDE = 0.06;
-const INTERACTION_DISTANCE = 2;
-
 export function stepCharacter(
   state: CharacterState,
   input: Vector2,
@@ -44,8 +43,12 @@ export function stepCharacter(
 ): CharacterState {
   const inputLength = Math.hypot(input.x, input.y);
   const isMoving = inputLength > 0;
+  const inputStrength = Math.min(inputLength, 1);
   const targetVelocity = isMoving
-    ? { x: (input.x / inputLength) * MAX_SPEED, y: (input.y / inputLength) * MAX_SPEED }
+    ? {
+        x: (input.x / inputLength) * MAX_SPEED * inputStrength,
+        y: (input.y / inputLength) * MAX_SPEED * inputStrength,
+      }
     : { x: 0, y: 0 };
   const response = isMoving ? ACCELERATION_RESPONSE : DAMPING_RESPONSE;
   const blend = 1 - Math.exp(-response * delta);
@@ -62,7 +65,7 @@ export function stepCharacter(
   return {
     position,
     velocity,
-    facing: input.x < 0 ? "left" : input.x > 0 ? "right" : state.facing,
+    facingAngle: isMoving ? Math.atan2(-input.x, -input.y) : state.facingAngle,
     bobPhase,
     bobOffset: reducedMotion ? 0 : Math.sin(bobPhase) * BOB_AMPLITUDE,
   };
@@ -70,11 +73,11 @@ export function stepCharacter(
 
 export function findNearbyArtwork(position: Vector2, artworks: readonly Artwork[]): Artwork | null {
   let nearestArtwork: Artwork | null = null;
-  let nearestDistance = INTERACTION_DISTANCE;
+  let nearestDistance = Number.POSITIVE_INFINITY;
 
   for (const artwork of artworks) {
     const distance = Math.hypot(artwork.position.x - position.x, artwork.position.y - position.y);
-    if (distance <= nearestDistance) {
+    if (distance <= artwork.interactionRadius && distance <= nearestDistance) {
       nearestArtwork = artwork;
       nearestDistance = distance;
     }

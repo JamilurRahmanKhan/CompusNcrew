@@ -74,7 +74,7 @@
   pointer-events: none;
 }
 
-.desktopLegend,
+.controlGuide,
 .proximityLabel,
 .helpButton,
 .actionButton,
@@ -87,7 +87,7 @@
   -webkit-backdrop-filter: blur(18px) saturate(135%);
 }
 
-.desktopLegend {
+.controlGuide {
   position: absolute;
   left: 50%;
   bottom: max(1.25rem, env(safe-area-inset-bottom));
@@ -104,14 +104,22 @@
   transform: translateX(-50%);
 }
 
-.desktopLegend span {
+.controlGuide[hidden] { display: none; }
+
+.controlGuideGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.controlGuide span {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   white-space: nowrap;
 }
 
-.desktopLegend kbd {
+.controlGuide kbd {
   min-width: 1.8rem;
   border: 1px solid var(--gallery-line);
   border-radius: 0.3rem;
@@ -121,6 +129,8 @@
   font: inherit;
   text-align: center;
 }
+
+.touchHelp { display: none; }
 
 .helpButton {
   position: absolute;
@@ -397,7 +407,31 @@
 }
 
 @media (pointer: coarse), (max-width: 48rem) {
-  .desktopLegend { display: none; }
+  .controlGuide {
+    left: auto;
+    top: max(8.5rem, calc(env(safe-area-inset-top) + 7.5rem));
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: auto;
+    width: min(18rem, calc(100vw - 2rem));
+    max-height: calc(100svh - 10rem);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.55rem;
+    overflow-y: auto;
+    border-radius: 0.65rem;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    transform: none;
+  }
+
+  .controlGuideGroup {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .controlGuide span { white-space: normal; }
 
   .mobileControls {
     position: absolute;
@@ -421,6 +455,11 @@
   .proximityLabel {
     bottom: max(9rem, calc(env(safe-area-inset-bottom) + 9rem));
   }
+}
+
+@media (pointer: coarse) {
+  .keyboardHelp { display: none; }
+  .touchHelp { display: flex; }
 }
 
 @media (max-width: 47.99rem) {
@@ -478,7 +517,7 @@
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .desktopLegend,
+  .controlGuide,
   .proximityLabel,
   .helpButton,
   .actionButton,
@@ -488,7 +527,7 @@
     -webkit-backdrop-filter: none;
   }
 
-  .desktopLegend,
+  .controlGuide,
   .proximityLabel,
   .helpButton,
   .actionButton,
@@ -498,7 +537,7 @@
 }
 
 @media (prefers-contrast: more) {
-  .desktopLegend,
+  .controlGuide,
   .proximityLabel,
   .helpButton,
   .actionButton,

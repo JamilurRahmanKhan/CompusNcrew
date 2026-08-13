@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import * as galleryUiUtils from "./gallery-ui-utils";
 import {
   calculateJoystickPosition,
   GalleryJoystickPointerController,
@@ -8,6 +9,34 @@ import {
   getFocusWrapIndex,
   handleDialogKeyboardEvent,
 } from "./gallery-ui-utils";
+
+test("the Help disclosure binds its expanded state to a stable guide", () => {
+  const getGalleryHelpDisclosure = (
+    galleryUiUtils as unknown as {
+      getGalleryHelpDisclosure?: (visible: boolean) => {
+        guideId: string;
+        buttonLabel: string;
+        expanded: boolean;
+        guideHidden: boolean;
+      };
+    }
+  ).getGalleryHelpDisclosure;
+  assert.equal(typeof getGalleryHelpDisclosure, "function");
+  if (!getGalleryHelpDisclosure) return;
+
+  assert.deepEqual(getGalleryHelpDisclosure(true), {
+    guideId: "gallery-controls-guide",
+    buttonLabel: "Hide gallery controls",
+    expanded: true,
+    guideHidden: false,
+  });
+  assert.deepEqual(getGalleryHelpDisclosure(false), {
+    guideId: "gallery-controls-guide",
+    buttonLabel: "Show gallery controls",
+    expanded: false,
+    guideHidden: true,
+  });
+});
 
 test("joystick position preserves analog strength inside the 44px radius", () => {
   const position = calculateJoystickPosition(

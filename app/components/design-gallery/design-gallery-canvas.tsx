@@ -35,7 +35,7 @@ const GALLERY_BOUNDS: GalleryBounds = {
 const INITIAL_CHARACTER_STATE: CharacterState = {
   position: { x: 0, y: 6.25 },
   velocity: { x: 0, y: 0 },
-  facing: "right",
+  facingAngle: 0,
   bobOffset: 0,
   bobPhase: 0,
 };
@@ -52,6 +52,63 @@ export function createGalleryActionHandler(
     onAction(artwork);
     return true;
   };
+}
+
+export interface GalleryRuntimeBoundary {
+  run(operation: () => void): void;
+  fail(error: unknown): void;
+  shutdown(): void;
+}
+
+export function createGalleryRuntimeBoundary(
+  cleanup: () => void,
+  onFatalError: (error: Error) => void,
+): GalleryRuntimeBoundary {
+  let stopped = false;
+
+  const stop = () => {
+    if (stopped) return false;
+    stopped = true;
+    try {
+      cleanup();
+    } catch {
+      // Cleanup is best-effort; the original fatal error remains the useful signal.
+    }
+    return true;
+  };
+  const fail = (error: unknown) => {
+    if (stop()) onFatalError(toError(error));
+  };
+
+  return {
+    run(operation) {
+      if (stopped) return;
+      try {
+        operation();
+      } catch (error) {
+        fail(error);
+      }
+    },
+    fail,
+    shutdown() {
+      stop();
+    },
+  };
+}
+
+export function observeGalleryReadiness(
+  ready: Promise<void>,
+  runtime: Pick<GalleryRuntimeBoundary, "run" | "fail">,
+  renderReadyFrame: () => void,
+  onReady: () => void,
+): void {
+  void ready.then(
+    () => runtime.run(() => {
+      renderReadyFrame();
+      onReady();
+    }),
+    (error) => runtime.fail(error),
+  );
 }
 
 export function DesignGalleryCanvas({
@@ -73,13 +130,15 @@ export function DesignGalleryCanvas({
   const onActionRef = useRef(onAction);
   const onFatalErrorRef = useRef(onFatalError);
 
-  pausedRef.current = paused;
-  reducedMotionRef.current = reducedMotion;
-  joystickRef.current = joystickVector;
-  onReadyRef.current = onReady;
-  onNearbyArtworkChangeRef.current = onNearbyArtworkChange;
-  onActionRef.current = onAction;
-  onFatalErrorRef.current = onFatalError;
+  useEffect(() => {
+    pausedRef.current = paused;
+    reducedMotionRef.current = reducedMotion;
+    joystickRef.current = joystickVector;
+    onReadyRef.current = onReady;
+    onNearbyArtworkChangeRef.current = onNearbyArtworkChange;
+    onActionRef.current = onAction;
+    onFatalErrorRef.current = onFatalError;
+  });
 
   useEffect(() => {
     controlsRef.current?.setEnabled(!paused && !document.hidden);
@@ -94,6 +153,7 @@ export function DesignGalleryCanvas({
     let sceneHandle: GallerySceneHandle | null = null;
     let controls: GalleryInputController | null = null;
     let resizeObserver: ResizeObserver | null = null;
+    let contextLossTarget: HTMLCanvasElement | null = null;
     let characterState: CharacterState = INITIAL_CHARACTER_STATE;
     let previousFrameTime: number | null = null;
     let simulationTime = 0;
@@ -108,59 +168,78 @@ export function DesignGalleryCanvas({
     });
 
     const scheduleFrame = () => {
-      if (!disposed && !document.hidden && animationFrame === 0) {
-        animationFrame = window.requestAnimationFrame(renderFrame);
-      }
+      runtime.run(() => {
+        if (!disposed && !document.hidden && animationFrame === 0) {
+          animationFrame = window.requestAnimationFrame(renderFrame);
+        }
+      });
     };
 
     const renderFrame = (frameTime: number) => {
-      animationFrame = 0;
-      if (disposed || document.hidden || !renderer || !sceneHandle || !controls) return;
+      runtime.run(() => {
+        animationFrame = 0;
+        if (disposed || document.hidden || !renderer || !sceneHandle || !controls) return;
 
-      const delta = previousFrameTime === null
-        ? 0
-        : Math.min(Math.max((frameTime - previousFrameTime) / 1000, 0), MAX_FRAME_DELTA_SECONDS);
-      previousFrameTime = frameTime;
-      const isPaused = pausedRef.current;
-      controls.setEnabled(!isPaused);
-      controls.setJoystick(joystickRef.current.x, joystickRef.current.y);
+        const delta = previousFrameTime === null
+          ? 0
+          : Math.min(Math.max((frameTime - previousFrameTime) / 1000, 0), MAX_FRAME_DELTA_SECONDS);
+        previousFrameTime = frameTime;
+        const isPaused = pausedRef.current;
+        controls.setEnabled(!isPaused);
+        controls.setJoystick(joystickRef.current.x, joystickRef.current.y);
 
-      if (!isPaused) {
-        simulationTime += delta;
-        characterState = stepCharacter(
-          characterState,
-          controls.getVector(),
-          delta,
-          GALLERY_BOUNDS,
-          reducedMotionRef.current,
-        );
-        sceneHandle.updateCharacter(characterState, simulationTime, reducedMotionRef.current);
+        if (!isPaused) {
+          simulationTime += delta;
+          characterState = stepCharacter(
+            characterState,
+            controls.getVector(),
+            delta,
+            GALLERY_BOUNDS,
+            reducedMotionRef.current,
+          );
+          sceneHandle.updateCharacter(characterState, simulationTime, reducedMotionRef.current);
 
-        const nearbyCandidate = findNearbyArtwork(characterState.position, portfolioWorks);
-        nearbyArtwork = nearbyCandidate
-          ? portfolioWorks.find((artwork) => artwork.id === nearbyCandidate.id) ?? null
-          : null;
-        const nextArtworkId = nearbyArtwork?.id ?? null;
-        sceneHandle.setFocusedArtwork(nextArtworkId);
-        if (nearbyArtworkId !== nextArtworkId) {
-          nearbyArtworkId = nextArtworkId;
-          onNearbyArtworkChangeRef.current(nearbyArtwork);
+          const nearbyCandidate = findNearbyArtwork(characterState.position, portfolioWorks);
+          nearbyArtwork = nearbyCandidate
+            ? portfolioWorks.find((artwork) => artwork.id === nearbyCandidate.id) ?? null
+            : null;
+          const nextArtworkId = nearbyArtwork?.id ?? null;
+          sceneHandle.setFocusedArtwork(nextArtworkId);
+          if (nearbyArtworkId !== nextArtworkId) {
+            nearbyArtworkId = nextArtworkId;
+            onNearbyArtworkChangeRef.current(nearbyArtwork);
+          }
         }
-      }
 
-      renderer.render(sceneHandle.scene, sceneHandle.camera);
-      scheduleFrame();
+        renderer.render(sceneHandle.scene, sceneHandle.camera);
+        scheduleFrame();
+      });
     };
 
     const handleVisibilityChange = () => {
-      previousFrameTime = null;
-      controls?.setEnabled(!document.hidden && !pausedRef.current);
+      runtime.run(() => {
+        previousFrameTime = null;
+        controls?.setEnabled(!document.hidden && !pausedRef.current);
 
-      if (document.hidden) {
-        if (animationFrame !== 0) window.cancelAnimationFrame(animationFrame);
-        animationFrame = 0;
-      } else {
-        scheduleFrame();
+        if (document.hidden) {
+          if (animationFrame !== 0) window.cancelAnimationFrame(animationFrame);
+          animationFrame = 0;
+        } else {
+          scheduleFrame();
+        }
+      });
+    };
+
+    const handleContextLost = (event: Event) => {
+      event.preventDefault();
+      runtime.fail(new Error("The gallery WebGL context was lost"));
+    };
+
+    const safely = (operation: () => void) => {
+      try {
+        operation();
+      } catch {
+        // Continue releasing the remaining independently owned resources.
       }
     };
 
@@ -168,17 +247,28 @@ export function DesignGalleryCanvas({
       if (cleanedUp) return;
       cleanedUp = true;
       disposed = true;
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      resizeObserver?.disconnect();
-      if (animationFrame !== 0) window.cancelAnimationFrame(animationFrame);
-      controls?.dispose();
+      safely(() => document.removeEventListener("visibilitychange", handleVisibilityChange));
+      safely(() => contextLossTarget?.removeEventListener("webglcontextlost", handleContextLost));
+      safely(() => resizeObserver?.disconnect());
+      safely(() => {
+        if (animationFrame !== 0) window.cancelAnimationFrame(animationFrame);
+      });
+      animationFrame = 0;
+      safely(() => controls?.dispose());
       if (controlsRef.current === controls) controlsRef.current = null;
-      sceneHandle?.dispose();
-      renderer?.dispose();
-      if (renderer?.domElement.parentNode === container) {
-        container.removeChild(renderer.domElement);
-      }
+      safely(() => sceneHandle?.dispose());
+      safely(() => renderer?.dispose());
+      safely(() => {
+        if (renderer?.domElement.parentNode === container) {
+          container.removeChild(renderer.domElement);
+        }
+      });
     };
+
+    const runtime = createGalleryRuntimeBoundary(
+      cleanup,
+      (error) => onFatalErrorRef.current(error),
+    );
 
     try {
       const dimensions = getDimensions();
@@ -195,6 +285,8 @@ export function DesignGalleryCanvas({
       renderer.domElement.style.width = "100%";
       renderer.domElement.style.height = "100%";
       container.appendChild(renderer.domElement);
+      contextLossTarget = renderer.domElement;
+      contextLossTarget.addEventListener("webglcontextlost", handleContextLost);
 
       sceneHandle = createGalleryScene({
         ...dimensions,
@@ -216,21 +308,39 @@ export function DesignGalleryCanvas({
       renderer.render(sceneHandle.scene, sceneHandle.camera);
 
       resizeObserver = new ResizeObserver(() => {
-        if (!renderer || !sceneHandle) return;
-        const nextDimensions = getDimensions();
-        renderer.setSize(nextDimensions.width, nextDimensions.height, false);
-        sceneHandle.resize(nextDimensions.width, nextDimensions.height);
+        runtime.run(() => {
+          if (!renderer || !sceneHandle) return;
+          const nextDimensions = getDimensions();
+          renderer.setSize(nextDimensions.width, nextDimensions.height, false);
+          sceneHandle.resize(nextDimensions.width, nextDimensions.height);
+        });
       });
       resizeObserver.observe(container);
       document.addEventListener("visibilitychange", handleVisibilityChange);
-      onReadyRef.current();
+      observeGalleryReadiness(
+        sceneHandle.ready,
+        runtime,
+        () => {
+          if (!renderer || !sceneHandle) return;
+          renderer.render(sceneHandle.scene, sceneHandle.camera);
+        },
+        () => onReadyRef.current(),
+      );
       scheduleFrame();
     } catch (error) {
-      cleanup();
-      onFatalErrorRef.current(toError(error));
+      runtime.fail(error);
     }
 
-    return cleanup;
+    return () => {
+      try {
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        contextLossTarget?.removeEventListener("webglcontextlost", handleContextLost);
+        resizeObserver?.disconnect();
+        if (animationFrame !== 0) window.cancelAnimationFrame(animationFrame);
+      } finally {
+        runtime.shutdown();
+      }
+    };
   }, []);
 
   return (

@@ -1,6 +1,23 @@
 import type { Vector2 } from "./gallery-controller";
 
 export const JOYSTICK_RADIUS = 44;
+export const GALLERY_CONTROLS_GUIDE_ID = "gallery-controls-guide";
+
+export interface GalleryHelpDisclosure {
+  guideId: typeof GALLERY_CONTROLS_GUIDE_ID;
+  buttonLabel: string;
+  expanded: boolean;
+  guideHidden: boolean;
+}
+
+export function getGalleryHelpDisclosure(visible: boolean): GalleryHelpDisclosure {
+  return {
+    guideId: GALLERY_CONTROLS_GUIDE_ID,
+    buttonLabel: visible ? "Hide gallery controls" : "Show gallery controls",
+    expanded: visible,
+    guideHidden: !visible,
+  };
+}
 
 export interface Point {
   x: number;
