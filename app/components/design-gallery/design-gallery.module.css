@@ -396,7 +396,7 @@
   outline-offset: 3px;
 }
 
-@media (pointer: coarse), (max-width: 47.99rem) {
+@media (pointer: coarse), (max-width: 48rem) {
   .desktopLegend { display: none; }
 
   .mobileControls {
