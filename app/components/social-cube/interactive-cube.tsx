@@ -233,7 +233,7 @@ function RotatingCube({
     >
       <RoundedBox args={[2.42, 2.42, 2.42]} radius={0.48} smoothness={48}>
         <meshPhysicalMaterial
-          color="#020302"
+          color="#0a0a0a"
           roughness={0.02}
           transmission={0.95}
           thickness={3}
@@ -254,7 +254,7 @@ function RotatingCube({
   );
 }
 
-export function InteractiveCube() {
+export function InteractiveCube({ onFaceChange }: { onFaceChange?: (face: number) => void } = {}) {
   const textures = useFaceTextures();
   const hitZoneRef = useRef<HTMLDivElement>(null);
   const rotation = useRef({ x: 0, y: 0 });
@@ -273,6 +273,11 @@ export function InteractiveCube() {
   // scroll to fully stop the way a silence-based gesture detector can.
   const settleUntil = useRef(0);
   const [mode, setMode] = useState<"drag" | "scroll">("scroll");
+  // Reports the settled face upward, but only once a snap animation has
+  // fully completed — never mid-rotation — so the background layer
+  // switches exactly when the cube settles, whichever gesture (wheel or
+  // drag-release) got it there.
+  const announcedFace = useRef(0);
 
   useEffect(() => {
     const hitZone = hitZoneRef.current;
@@ -301,8 +306,6 @@ export function InteractiveCube() {
       targetRotation.current = { x: toX, y: toY };
       velocity.current = { x: 0, y: 0 };
       faceIndex.current += direction;
-      (window as unknown as { __debugStepCount?: number }).__debugStepCount =
-        ((window as unknown as { __debugStepCount?: number }).__debugStepCount ?? 0) + 1;
       setMode("scroll");
     };
 
@@ -319,15 +322,15 @@ export function InteractiveCube() {
         if (progress >= 1) {
           scroll.locked = false;
           settleUntil.current = performance.now() + SETTLE_MS;
+          const settledFace = ((faceIndex.current % FACE_COUNT) + FACE_COUNT) % FACE_COUNT;
+          if (settledFace !== announcedFace.current) {
+            announcedFace.current = settledFace;
+            onFaceChange?.(settledFace);
+          }
         }
       } else if (!drag.current.active) {
         rotation.current.x = THREE.MathUtils.damp(rotation.current.x, targetRotation.current.x, 8, 1 / 60);
         rotation.current.y += velocity.current.y;
-        (window as unknown as Record<string, unknown>).__debugState = {
-          locked: scroll.locked,
-          settleUntil: settleUntil.current,
-          now: performance.now(),
-        };
         velocity.current.y *= 0.9;
       }
       frame = requestAnimationFrame(onFrame);
@@ -376,19 +379,16 @@ export function InteractiveCube() {
   return (
     <div className={styles.wrap}>
       <div className={styles.legend} aria-hidden="true">
-        <span className={mode === "drag" ? styles.active : undefined}>drag 拖动</span>
+        <span className={mode === "drag" ? styles.active : undefined}>drag</span>
         <b>|</b>
-        <span className={mode === "scroll" ? styles.active : undefined}>scroll 滚动</span>
+        <span className={mode === "scroll" ? styles.active : undefined}>scroll</span>
       </div>
       <div ref={hitZoneRef} className={styles.hitZone}>
         <div className={styles.stage}>
           <Canvas
             camera={{ position: [0, 0, 5.6], fov: 35 }}
             dpr={[1, 2]}
-            gl={{ antialias: true, alpha: false }}
-            onCreated={({ scene }) => {
-              scene.background = new THREE.Color("#ffffff");
-            }}
+            gl={{ antialias: true, alpha: true }}
           >
             <ambientLight intensity={0.65} />
             <directionalLight position={[4, 5, 6]} intensity={2.2} />

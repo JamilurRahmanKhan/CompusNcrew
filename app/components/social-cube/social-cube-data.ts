@@ -10,9 +10,9 @@ export interface Platform {
 export const PLATFORMS: readonly Platform[] = [
   { id: "instagram", short: "IG", name: "Instagram", color: "#f15bb5", line: "Build a brand people choose to follow.", services: ["Content strategy", "Reels creation", "Brand growth", "Community management"] },
   { id: "facebook", short: "f", name: "Facebook", color: "#4d8dff", line: "Build communities. Generate customers.", services: ["Campaign planning", "Community growth", "Lead generation", "Audience care"] },
-  { id: "tiktok", short: "♪", name: "TikTok", color: "#25f4ee", line: "Turn creativity into reach.", services: ["Trend research", "Short-form concepts", "Creator direction", "Performance learning"] },
-  { id: "youtube", short: "▶", name: "YouTube", color: "#ff4d55", line: "Create content people remember.", services: ["Channel strategy", "Video packaging", "Shorts system", "Audience growth"] },
   { id: "linkedin", short: "in", name: "LinkedIn", color: "#63a8ff", line: "Build authority in your industry.", services: ["Executive voice", "Thought leadership", "Business networking", "Demand content"] },
+  { id: "pinterest", short: "P", name: "Pinterest", color: "#e60023", line: "Turn inspiration into intent.", services: ["Idea boards", "Shoppable pins", "Visual search SEO", "Trend discovery"] },
+  { id: "twitter", short: "X", name: "X / Twitter", color: "#8a8f98", line: "Join the conversation in real time.", services: ["Real-time engagement", "Community building", "Trend-jacking", "Brand voice"] },
 ] as const;
 
 export const METHOD_STEPS: readonly (readonly [string, string])[] = [

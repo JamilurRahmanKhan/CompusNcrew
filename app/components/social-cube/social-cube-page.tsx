@@ -1,26 +1,34 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { METHOD_STEPS } from "./social-cube-data";
 import { InteractiveCube } from "./interactive-cube";
+import { CubeBackground } from "./social-cube-background";
 import styles from "./social-cube-page.module.css";
 
 export function SocialCubePage() {
+  const [activeFace, setActiveFace] = useState(0);
   return (
     <div className={styles.page}>
       <section className={styles.hero} aria-labelledby="social-cube-heading">
-        <div className={styles.heroText}>
-          <p className={styles.eyebrow}>Social growth system</p>
-          <h1 id="social-cube-heading">
-            Five platforms.
-            <br />
-            One rotating story.
-          </h1>
-          <p className={styles.lead}>
-            Drag or scroll — every face is a platform built the way its audience actually behaves, not a copied-and-pasted post.
-          </p>
-        </div>
-        <div className={styles.heroCube}>
-          <InteractiveCube />
+        <CubeBackground activeFace={activeFace} />
+        <div className={styles.heroInner}>
+          <div className={styles.heroText}>
+            <p className={styles.eyebrow}>Social growth system</p>
+            <h1 id="social-cube-heading">
+              Five platforms.
+              <br />
+              One rotating story.
+            </h1>
+            <p className={styles.lead}>
+              Drag or scroll — every face is a platform built the way its audience actually behaves, not a copied-and-pasted post.
+            </p>
+          </div>
+          <div className={styles.heroCube}>
+            <InteractiveCube onFaceChange={setActiveFace} />
+          </div>
         </div>
       </section>
 
