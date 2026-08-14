@@ -9,6 +9,23 @@ import styles from "./interactive-cube.module.css";
 
 const FACES = getCubeFaces();
 
+const ICON_MAP: Record<string, string> = {
+  instagram: "/media/social/instagram-icon.png",
+  facebook: "/media/social/facebook-icon.png",
+  linkedin: "/media/social/linkedin-icon.png",
+  pinterest: "/media/social/pinterest-icon.png",
+  twitter: "/media/social/x-twitter-icon.png",
+};
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
 function wrapLines(context: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   const words = text.split(" ");
   const lines: string[] = [];
@@ -34,7 +51,7 @@ function drawTrackedLabel(context: CanvasRenderingContext2D, text: string, x: nu
   }
 }
 
-function createFaceTexture(face: CubeFaceContent): THREE.CanvasTexture {
+function createFaceTexture(face: CubeFaceContent, icon: HTMLImageElement | null): THREE.CanvasTexture {
   const size = 1200;
   const canvas = document.createElement("canvas");
   canvas.width = size;
@@ -53,9 +70,15 @@ function createFaceTexture(face: CubeFaceContent): THREE.CanvasTexture {
     context.font = `600 ${size * 0.02}px Arial, sans-serif`;
     drawTrackedLabel(context, "PLATFORM / " + face.short.toUpperCase(), pad, pad + size * 0.012, size * 0.006);
 
+    // A soft white glow behind the name makes it read clearly through the
+    // dark, tinted transmissive glass instead of looking washed out.
+    context.save();
+    context.shadowColor = "rgba(255,255,255,.9)";
+    context.shadowBlur = size * 0.03;
     context.fillStyle = "#ffffff";
-    context.font = `700 ${size * 0.096}px Arial, sans-serif`;
+    context.font = `800 ${size * 0.096}px Arial, sans-serif`;
     context.fillText(face.name, pad, pad + size * 0.14);
+    context.restore();
 
     context.fillStyle = "rgba(255,255,255,.52)";
     context.font = `400 ${size * 0.026}px Arial, sans-serif`;
@@ -64,19 +87,31 @@ function createFaceTexture(face: CubeFaceContent): THREE.CanvasTexture {
     });
 
     const centerY = size * 0.56;
-    const ringRadius = size * 0.13;
-    context.strokeStyle = "rgba(255,255,255,.3)";
-    context.lineWidth = size * 0.0018;
-    context.beginPath();
-    context.arc(size / 2, centerY, ringRadius, 0, Math.PI * 2);
-    context.stroke();
-    context.fillStyle = "rgba(255,255,255,.85)";
-    context.font = `600 ${size * 0.048}px Arial, sans-serif`;
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.fillText(face.short, size / 2, centerY + size * 0.004);
-    context.textAlign = "left";
-    context.textBaseline = "alphabetic";
+    const iconRadius = size * 0.15;
+    if (icon) {
+      context.save();
+      context.beginPath();
+      context.arc(size / 2, centerY, iconRadius, 0, Math.PI * 2);
+      context.clip();
+      const scale = Math.max((iconRadius * 2) / icon.width, (iconRadius * 2) / icon.height);
+      const drawWidth = icon.width * scale;
+      const drawHeight = icon.height * scale;
+      context.drawImage(icon, size / 2 - drawWidth / 2, centerY - drawHeight / 2, drawWidth, drawHeight);
+      context.restore();
+    } else {
+      context.strokeStyle = "rgba(255,255,255,.3)";
+      context.lineWidth = size * 0.0018;
+      context.beginPath();
+      context.arc(size / 2, centerY, iconRadius, 0, Math.PI * 2);
+      context.stroke();
+      context.fillStyle = "rgba(255,255,255,.85)";
+      context.font = `600 ${size * 0.048}px Arial, sans-serif`;
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText(face.short, size / 2, centerY + size * 0.004);
+      context.textAlign = "left";
+      context.textBaseline = "alphabetic";
+    }
 
     context.fillStyle = "rgba(255,255,255,.3)";
     context.font = `400 ${size * 0.019}px Arial, sans-serif`;
@@ -115,7 +150,19 @@ function createFaceTexture(face: CubeFaceContent): THREE.CanvasTexture {
 function useFaceTextures(): THREE.CanvasTexture[] {
   const [textures, setTextures] = useState<THREE.CanvasTexture[]>([]);
   useEffect(() => {
-    setTextures(FACES.map(createFaceTexture));
+    let cancelled = false;
+    Promise.all(
+      FACES.map((face) => {
+        const src = face.kind === "platform" ? ICON_MAP[face.id] : undefined;
+        return src ? loadImage(src).catch(() => null) : Promise.resolve(null);
+      }),
+    ).then((icons) => {
+      if (cancelled) return;
+      setTextures(FACES.map((face, index) => createFaceTexture(face, icons[index])));
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
   return textures;
 }
@@ -235,12 +282,12 @@ function RotatingCube({
         <meshPhysicalMaterial
           color="#0a0a0a"
           roughness={0.02}
-          transmission={0.95}
+          transmission={0.55}
           thickness={3}
           ior={1.5}
           clearcoat={1}
           transparent
-          opacity={0.62}
+          opacity={0.88}
           depthWrite={false}
         />
       </RoundedBox>
