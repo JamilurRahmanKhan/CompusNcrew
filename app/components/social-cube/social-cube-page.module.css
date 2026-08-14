@@ -76,12 +76,21 @@
 }
 
 @media (max-width: 900px) {
-  .heroInner {
-    flex-direction: column;
-  }
-
   .hero {
     text-align: center;
+    padding-top: 4.5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .heroInner {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* Cube first, text after — on a phone the cube was landing below the
+     fold since text always came first in source order. */
+  .heroCube {
+    order: -1;
   }
 
   .heroText {

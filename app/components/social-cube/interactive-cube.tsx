@@ -406,9 +406,13 @@ export function InteractiveCube({ onFaceChange }: { onFaceChange?: (face: number
     const dy = event.clientY - drag.current.y;
     drag.current.x = event.clientX;
     drag.current.y = event.clientY;
-    rotation.current.y += dx * 0.008;
-    rotation.current.x += dy * 0.006;
-    velocity.current = { x: dy * 0.0005, y: dx * 0.0007 };
+    // Touch drags covered noticeably less rotation per finger-inch than
+    // mouse drags did at the same multiplier, reading as sluggish. Boost
+    // only touch input — mouse/trackpad feel is untouched.
+    const sensitivity = event.pointerType === "touch" ? 1.4 : 1;
+    rotation.current.y += dx * 0.008 * sensitivity;
+    rotation.current.x += dy * 0.006 * sensitivity;
+    velocity.current = { x: dy * 0.0005 * sensitivity, y: dx * 0.0007 * sensitivity };
   };
   const up: PointerHandlers["up"] = (event) => {
     if (!drag.current.active) return;

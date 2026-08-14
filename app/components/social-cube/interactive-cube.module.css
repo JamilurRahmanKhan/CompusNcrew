@@ -18,6 +18,9 @@
   width: min(94vw, 40rem);
   height: min(80vw, 32rem);
   touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
   cursor: grab;
 }
 
@@ -53,7 +56,12 @@
 
 @media (max-width: 640px) {
   .stage {
-    width: min(92vw, 26rem);
-    height: min(92vw, 26rem);
+    width: min(95vw, 28rem);
+    height: min(95vw, 28rem);
+  }
+
+  .hitZone {
+    margin: -1.25rem;
+    padding: 1.25rem;
   }
 }
