@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ComponentPropsWithoutRef, type ElementType, type ReactNode } from "react";
+import { createElement, useEffect, useRef, type ComponentPropsWithoutRef, type ElementType, type ReactNode } from "react";
 
 /**
  * Scroll-triggered fade-up. Apple uses this on every section boundary; it is
@@ -46,15 +46,15 @@ export function Reveal({
     return () => io.disconnect();
   }, []);
 
-  return (
-    <Tag
-      ref={ref}
-      className={`reveal ${className}`}
-      data-shown="false"
-      style={delay ? { transitionDelay: `${delay}ms` } : undefined}
-      {...rest}
-    >
-      {children}
-    </Tag>
+  return createElement(
+    Tag,
+    {
+      ref,
+      className: `reveal ${className}`,
+      "data-shown": "false",
+      style: delay ? { transitionDelay: `${delay}ms` } : undefined,
+      ...rest,
+    },
+    children,
   );
 }

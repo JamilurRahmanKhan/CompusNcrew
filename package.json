@@ -20,6 +20,8 @@
     "test:gallery": "tsx --test app/components/design-gallery/*.test.ts"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.7.0",
     "lucide-react": "^1.30.0",
     "next": "16.3.0",
     "react": "19.2.0",

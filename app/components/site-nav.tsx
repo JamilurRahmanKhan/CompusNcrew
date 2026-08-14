@@ -31,9 +31,7 @@ export function SiteNav() {
   // the hero (or the overlay is open), the header gets its own light pill
   // background from `scrolled` below and reads fine in the normal palette,
   // so the swap only needs to cover the unscrolled state on "/".
-  const immersiveDark =
-    pathname === "/services/social-media-marketing" ||
-    pathname === "/services/email-sms";
+  const immersiveDark = pathname === "/services/email-sms";
   const onDarkHero = (pathname === "/" && !scrolled && !open) || (immersiveDark && !open);
 
   useEffect(() => {
