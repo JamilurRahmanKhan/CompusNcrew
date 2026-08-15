@@ -65,3 +65,15 @@
     padding: 1.25rem;
   }
 }
+
+
+@media (max-width:640px) {
+  .stage {
+    width:92vw;
+    height:92vw;
+    max-height:34rem;
+  }
+  .legend {
+    display:none;
+  }
+}

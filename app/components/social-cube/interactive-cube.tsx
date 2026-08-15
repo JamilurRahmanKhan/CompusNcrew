@@ -51,6 +51,27 @@ function drawTrackedLabel(context: CanvasRenderingContext2D, text: string, x: nu
   }
 }
 
+function hexToRgba(hex: string, alpha: number): string {
+  const value = hex.replace("#", "");
+  const r = parseInt(value.substring(0, 2), 16);
+  const g = parseInt(value.substring(2, 4), 16);
+  const b = parseInt(value.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// Per-platform "studio lighting" for the face texture: an ambient tint, a
+// glow gradient behind the icon (inner -> outer), and a rim/accent color
+// used for the ring stroke and the name text's shadow-glow. This is purely
+// a canvas color treatment — it never touches the icon images themselves
+// or the cube's own geometry/material.
+const PLATFORM_THEME: Record<string, { atmosphere: [string, string]; glow: [string, string, string]; rim: string }> = {
+  instagram: { atmosphere: ["#833AB4", "#1A0A22"], glow: ["#FCAF45", "#E1306C", "#833AB4"], rim: "#FF2D95" },
+  facebook: { atmosphere: ["#0d47a1", "#071a3a"], glow: ["#00d4ff", "#42a5f5", "#1877f2"], rim: "#42a5f5" },
+  linkedin: { atmosphere: ["#0a3d66", "#0a0f1a"], glow: ["#70b5ff", "#2684ff", "#0a66c2"], rim: "#2684ff" },
+  pinterest: { atmosphere: ["#4a0010", "#1a0000"], glow: ["#ff9aa2", "#ff4b5c", "#e60023"], rim: "#ff1f36" },
+  twitter: { atmosphere: ["#1c1c1c", "#0a0a0a"], glow: ["#f5fbff", "#b7c9e6", "#6d8dff"], rim: "#cfd8e3" },
+};
+
 function createFaceTexture(face: CubeFaceContent, icon: HTMLImageElement | null): THREE.CanvasTexture {
   const size = 1200;
   const canvas = document.createElement("canvas");
@@ -58,53 +79,111 @@ function createFaceTexture(face: CubeFaceContent, icon: HTMLImageElement | null)
   canvas.height = size;
   const context = canvas.getContext("2d")!;
 
-  context.fillStyle = "#0a0b10";
-  context.fillRect(0, 0, size, size);
-
   const pad = size * 0.1;
   context.textAlign = "left";
   context.textBaseline = "alphabetic";
 
   if (face.kind === "platform") {
-    context.fillStyle = "rgba(255,255,255,.4)";
+    const theme = PLATFORM_THEME[face.id] ?? PLATFORM_THEME.twitter;
+
+    // Match CTA face: deep glossy black glass surface on every platform.
+    // Brand colors are used only for controlled neon reflections and icon glow.
+    context.fillStyle = "#010101";
+    context.fillRect(0, 0, size, size);
+
+    const glass = context.createLinearGradient(0, 0, 0, size);
+    glass.addColorStop(0, "rgba(255,255,255,0.10)");
+    glass.addColorStop(0.25, "rgba(255,255,255,0.015)");
+    glass.addColorStop(0.7, "rgba(0,0,0,0.05)");
+    glass.addColorStop(1, "rgba(0,0,0,0.50)");
+    context.fillStyle = glass;
+    context.fillRect(0, 0, size, size);
+
+    // A faint diagonal reflection streak — the glass-panel cue.
+    context.save();
+    context.globalAlpha = 0.05;
+    const streak = context.createLinearGradient(0, size * 0.02, size, size * 0.55);
+    streak.addColorStop(0, "#ffffff");
+    streak.addColorStop(0.45, "rgba(255,255,255,0)");
+    streak.addColorStop(1, "rgba(255,255,255,0)");
+    context.fillStyle = streak;
+    context.fillRect(0, 0, size, size);
+    context.restore();
+
+    // Vignette: subtle edge darkening for depth, so it reads as a lit
+    // panel rather than a flat color swatch.
+    context.save();
+    const vignette = context.createRadialGradient(size / 2, size / 2, size * 0.34, size / 2, size / 2, size * 0.74);
+    vignette.addColorStop(0, "rgba(0,0,0,0)");
+    vignette.addColorStop(1, "rgba(0,0,0,0.22)");
+    context.fillStyle = vignette;
+    context.fillRect(0, 0, size, size);
+    context.restore();
+
+    context.fillStyle = "#ffffff";
     context.font = `600 ${size * 0.02}px Arial, sans-serif`;
     drawTrackedLabel(context, "PLATFORM / " + face.short.toUpperCase(), pad, pad + size * 0.012, size * 0.006);
 
-    // A soft white glow behind the name makes it read clearly through the
-    // dark, tinted transmissive glass instead of looking washed out.
+    // Bright white name with a brand-tinted glow behind it — matches the
+    // CTA face's contrast while still reading as this platform's color.
     context.save();
-    context.shadowColor = "rgba(255,255,255,.9)";
-    context.shadowBlur = size * 0.03;
+    context.shadowColor = "rgba(255,255,255,0.45)";
+    context.shadowBlur = 10;
     context.fillStyle = "#ffffff";
-    context.font = `800 ${size * 0.096}px Arial, sans-serif`;
+    context.font = `800 ${size * 0.098}px Arial, sans-serif`;
     context.fillText(face.name, pad, pad + size * 0.14);
     context.restore();
 
-    context.fillStyle = "rgba(255,255,255,.52)";
+    context.fillStyle = "rgba(255,255,255,1)";
     context.font = `400 ${size * 0.026}px Arial, sans-serif`;
     wrapLines(context, face.line, size - pad * 2).forEach((line, index) => {
       context.fillText(line, pad, pad + size * 0.19 + index * size * 0.036);
     });
 
     const centerY = size * 0.56;
-    const iconRadius = size * 0.15;
+    const iconRadius = size * 0.19;
+
+    // Glow halo behind the icon, blended additively for a neon feel.
+    context.save();
+    context.globalCompositeOperation = "lighter";
+    const glowRadius = iconRadius * 2.2;
+    const glow = context.createRadialGradient(size / 2, centerY, 0, size / 2, centerY, glowRadius);
+    glow.addColorStop(0, hexToRgba(theme.glow[0], 0.5));
+    glow.addColorStop(0.55, hexToRgba(theme.glow[1], 0.28));
+    glow.addColorStop(1, hexToRgba(theme.glow[2], 0));
+    context.fillStyle = glow;
+    context.beginPath();
+    context.arc(size / 2, centerY, glowRadius, 0, Math.PI * 2);
+    context.fill();
+    context.restore();
+
     if (icon) {
+      context.save();
+      context.strokeStyle = hexToRgba(theme.rim, 0.55);
+      context.lineWidth = size * 0.0025;
+      context.beginPath();
+      context.arc(size / 2, centerY, iconRadius * 1.05, 0, Math.PI * 2);
+      context.stroke();
+      context.restore();
+
       context.save();
       context.beginPath();
       context.arc(size / 2, centerY, iconRadius, 0, Math.PI * 2);
       context.clip();
+      context.filter = "brightness(2.2) contrast(1.45) saturate(1.35)";
       const scale = Math.max((iconRadius * 2) / icon.width, (iconRadius * 2) / icon.height);
       const drawWidth = icon.width * scale;
       const drawHeight = icon.height * scale;
       context.drawImage(icon, size / 2 - drawWidth / 2, centerY - drawHeight / 2, drawWidth, drawHeight);
+      context.filter = "none";
       context.restore();
     } else {
-      context.strokeStyle = "rgba(255,255,255,.3)";
+      context.strokeStyle = hexToRgba(theme.rim, 0.5);
       context.lineWidth = size * 0.0018;
       context.beginPath();
       context.arc(size / 2, centerY, iconRadius, 0, Math.PI * 2);
       context.stroke();
-      context.fillStyle = "rgba(255,255,255,.85)";
+      context.fillStyle = "rgba(255,255,255,1)";
       context.font = `600 ${size * 0.048}px Arial, sans-serif`;
       context.textAlign = "center";
       context.textBaseline = "middle";
@@ -113,12 +192,15 @@ function createFaceTexture(face: CubeFaceContent, icon: HTMLImageElement | null)
       context.textBaseline = "alphabetic";
     }
 
-    context.fillStyle = "rgba(255,255,255,.3)";
+    context.fillStyle = "rgba(255,255,255,1)";
     context.font = `400 ${size * 0.019}px Arial, sans-serif`;
     wrapLines(context, face.services.join("   ·   "), size - pad * 2).slice(0, 2).forEach((line, index) => {
       context.fillText(line, pad, size - pad - (1 - index) * size * 0.03);
     });
   } else {
+    context.fillStyle = "#0a0b10";
+    context.fillRect(0, 0, size, size);
+
     context.fillStyle = "rgba(255,255,255,.4)";
     context.font = `600 ${size * 0.02}px Arial, sans-serif`;
     drawTrackedLabel(context, face.eyebrow.toUpperCase(), pad, pad + size * 0.012, size * 0.006);
@@ -129,7 +211,7 @@ function createFaceTexture(face: CubeFaceContent, icon: HTMLImageElement | null)
       context.fillText(line, pad, pad + size * 0.15 + index * size * 0.086);
     });
 
-    context.fillStyle = "rgba(255,255,255,.85)";
+    context.fillStyle = "rgba(255,255,255,1)";
     context.font = `600 ${size * 0.028}px Arial, sans-serif`;
     context.fillText(`${face.ctaLabel} →`, pad, size - pad);
   }
@@ -256,9 +338,9 @@ function RotatingCube({
   const isMobile = size.width < 640;
 
   useEffect(() => {
-    camera.position.set(0, 0, isMobile ? 6.4 : 5.9);
+    camera.position.set(0, 0, isMobile ? 6.0 : 5.9);
     if ("fov" in camera) {
-      (camera as THREE.PerspectiveCamera).fov = isMobile ? 50 : 38;
+      (camera as THREE.PerspectiveCamera).fov = isMobile ? 44 : 38;
       camera.updateProjectionMatrix();
     }
   }, [camera, isMobile]);
@@ -272,7 +354,7 @@ function RotatingCube({
   return (
     <group
       ref={group}
-      scale={isMobile ? 0.88 : 1}
+      scale={isMobile ? 1.22 : 1}
       onPointerDown={pointerHandlers.down}
       onPointerMove={pointerHandlers.move}
       onPointerUp={pointerHandlers.up}

@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Menu, MousePointer2 } from "lucide-react";
 import { METHOD_STEPS } from "./social-cube-data";
 import { InteractiveCube } from "./interactive-cube";
+import { RotatingCards } from "./rotating-cards";
 import { CubeBackground } from "./social-cube-background";
 import styles from "./social-cube-page.module.css";
 
@@ -14,6 +15,7 @@ export function SocialCubePage() {
     <div className={styles.page}>
       <section className={styles.hero} aria-labelledby="social-cube-heading">
         <CubeBackground activeFace={activeFace} />
+        <button className={styles.menuButton} aria-label="Open menu"><Menu size={26} /></button>
         <div className={styles.heroInner}>
           <div className={styles.heroText}>
             <p className={styles.eyebrow}>Social growth system</p>
@@ -25,10 +27,12 @@ export function SocialCubePage() {
             <p className={styles.lead}>
               Drag or scroll — every face is a platform built the way its audience actually behaves, not a copied-and-pasted post.
             </p>
+            <button className={styles.dragButton}><MousePointer2 size={16}/> DRAG OR SCROLL</button>
           </div>
           <div className={styles.heroCube}>
             <InteractiveCube onFaceChange={setActiveFace} />
           </div>
+          <RotatingCards activeFace={activeFace} />
         </div>
       </section>
 

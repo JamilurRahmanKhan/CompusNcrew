@@ -42,6 +42,8 @@
 }
 
 .heroCube {
+  position: relative;
+  z-index: 4;
   display: flex;
   flex: 1 1 26rem;
   justify-content: center;
@@ -73,34 +75,6 @@
   color: var(--muted);
   font-size: clamp(1rem, 1.3vw, 1.15rem);
   line-height: 1.65;
-}
-
-@media (max-width: 900px) {
-  .hero {
-    text-align: center;
-    padding-top: 4.5rem;
-    padding-bottom: 2.5rem;
-  }
-
-  .heroInner {
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-
-  /* Cube first, text after — on a phone the cube was landing below the
-     fold since text always came first in source order. */
-  .heroCube {
-    order: -1;
-  }
-
-  .heroText {
-    align-items: center;
-    max-width: none;
-  }
-
-  .lead {
-    max-width: 32rem;
-  }
 }
 
 .method {
@@ -210,8 +184,168 @@
   }
 }
 
+/* Desktop hero composition: keep cube fixed above the circular card carousel */
+@media (min-width: 901px) {
+  .heroInner {
+    position: relative;
+    min-height: 900px;
+  }
+
+  .heroCube {
+    position: absolute;
+    right: 10%;
+    top: -70px;
+    width: 420px;
+    height: 420px;
+  }
+
+  .heroText {
+    position: absolute;
+    left: 4%;
+    top: 130px;
+    z-index: 3;
+  }
+
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cta a {
     transition: none;
+  }
+}
+
+
+.menuButton,
+.dragButton {
+  display:none;
+}
+
+/* Single source of truth for the mobile hero layout — this used to be
+   spread across three separate, later-overriding media query blocks
+   (plus a dead `.rotatingCards` rule that never matched anything, since
+   RotatingCards renders its own module's `wrap` class, not this one).
+   That's what made the cube's position unpredictable: the block that
+   actually won the cascade was re-centering the whole column instead of
+   pinning content to the top. */
+@media (max-width: 900px) {
+  .hero {
+    min-height: 100svh;
+    padding: 4rem 1.25rem 2rem;
+    background:
+      radial-gradient(circle at 50% 35%, rgba(80, 40, 255, .16), transparent 35%),
+      #020205;
+  }
+
+  .menuButton {
+    display: flex;
+    position: absolute;
+    right: 1.5rem;
+    top: 1.5rem;
+    z-index: 5;
+    width: 48px;
+    height: 48px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, .2);
+    background: rgba(255, 255, 255, .06);
+    color: white;
+    backdrop-filter: blur(14px);
+  }
+
+  /* Stack from the top instead of vertically centering — centering was
+     the actual reason the cube read as "too low": it centers the whole
+     column (text + cube + cards), and that total is taller than one
+     screen, so the midpoint lands well past the cube. */
+  .heroInner {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    /* This was missing — .heroInner otherwise keeps the desktop rule's
+       align-items: center, which in a column layout centers each child
+       horizontally based on its own shrink-to-fit width. The 3-line lead
+       paragraph used to be the widest thing in .heroText, so its box was
+       nearly full-width and the centering was invisible; anything that
+       makes .heroText narrower than that (e.g. shortening the lead)
+       exposes it as the whole block drifting to the middle. */
+    align-items: flex-start;
+    gap: 0.5rem;
+    min-height: auto;
+  }
+
+  .heroText {
+    flex: 0 0 auto;
+    order: -1;
+    align-items: flex-start;
+    gap: 1rem;
+    max-width: none;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.2rem, 9vw, 3.2rem);
+    max-width: 11ch;
+    line-height: .98;
+  }
+
+  .lead {
+    display: none;
+  }
+
+  .dragButton {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    border-radius: 999px;
+    padding: .85rem 1.3rem;
+    color: #fff;
+    background: rgba(255, 255, 255, .03);
+    border: 1px solid rgba(255, 255, 255, .22);
+    font-weight: 700;
+    letter-spacing: .12em;
+    font-size: .75rem;
+    backdrop-filter: blur(12px);
+    margin-top: .5rem;
+  }
+
+  .heroCube {
+    flex: 0 0 auto;
+    order: 0;
+    width: 100%;
+    margin-top: -.5rem;
+    /* The ring carousel should read as sitting in front of the cube on
+       mobile, not behind it. */
+    z-index: 1;
+  }
+
+  /* RotatingCards below the cube. */
+  .heroInner > :last-child {
+    order: 2;
+    width: 100%;
+    margin-top: .5rem;
+  }
+}
+
+/* Final mobile vertical alignment fix: keep the heading and cube above the orbit.
+   The orbit remains centered and only its cards animate. */
+@media (max-width: 900px) {
+  .hero {
+    padding-top: 1.75rem;
+  }
+
+  .heroInner {
+    gap: 0;
+    transform: translateY(-95px);
+  }
+
+  .heroText {
+    gap: .75rem;
+  }
+
+  .heroCube {
+    margin-top: 0;
+  }
+
+  .heroInner > :last-child {
+    margin-top: 0;
   }
 }
