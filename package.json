@@ -7,8 +7,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "next dev --webpack",
-    "dev:turbo": "next dev --turbopack",
+    "dev": "next dev --turbopack",
+    "dev:webpack": "next dev --webpack",
     "build": "npm run journey:build && npm run automation:build && next build",
     "journey:build": "vite build --config portfolio-journey/vite.config.js",
     "journey:check": "node portfolio-journey/scripts/check.mjs",

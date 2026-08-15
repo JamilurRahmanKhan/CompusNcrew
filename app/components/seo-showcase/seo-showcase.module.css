@@ -3,13 +3,13 @@
   --seo-ink: #12243d;
   --seo-stone: #56627b;
   --seo-cyan: #e7f2f0;
-  --seo-orange: #f4772e;
-  --seo-orange2: #ff8c43;
-  --seo-green: #23936a;
+  --seo-orange: #18a77a;
+  --seo-orange2: #35c59b;
+  --seo-green: #168a68;
   --seo-blue: #315f83;
-  --seo-canvas: #f4f8f7;
+  --seo-canvas: #f7fbfa;
   --seo-surface: #fbfcfa;
-  --seo-surface-muted: #eaf2f0;
+  --seo-surface-muted: #e4f2ed;
   --seo-line: rgba(13, 23, 51, 0.12);
   --seo-line-strong: rgba(13, 23, 51, 0.18);
   --seo-shadow-sm: 0 10px 24px rgba(20, 45, 61, 0.06), 0 2px 6px rgba(20, 45, 61, 0.04);
@@ -108,7 +108,7 @@
   text-wrap: balance;
 }
 
-.geoIntroCopy h2 span { color: var(--seo-orange); }
+.geoIntroCopy h2 span { color: var(--seo-green); }
 
 .geoIntroCopy > p {
   max-width: 31rem;
@@ -141,7 +141,7 @@
   width: 1.05rem;
   height: 1.05rem;
   border-radius: 50%;
-  background: var(--seo-orange);
+  background: var(--seo-green);
   padding: 0.19rem;
   color: white;
 }
@@ -295,7 +295,7 @@
 }
 
 .heroTitle span {
-  color: var(--seo-orange);
+  color: var(--seo-green);
 }
 
 .heroLead {
@@ -381,7 +381,7 @@
 }
 
 .trustRow small {
-  color: var(--seo-orange);
+  color: var(--seo-green);
   font-size: 0.55rem;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.12em;
@@ -482,7 +482,7 @@
   height: 2.1rem;
   border-radius: 50%;
   background: #fff1e5;
-  color: var(--seo-orange);
+  color: var(--seo-green);
   font-size: 1rem;
 }
 
@@ -639,7 +639,7 @@
   border-radius: 0.55rem;
   background: #fff0e6;
   padding: 0.58rem;
-  color: var(--seo-orange);
+  color: var(--seo-green);
 }
 
 .consoleIntro small,
@@ -698,7 +698,7 @@
 
 .consoleProgress .progressActive {
   width: 3.4rem;
-  background: var(--seo-orange);
+  background: var(--seo-green);
 }
 
 .frameCorner {
@@ -793,7 +793,7 @@
 
 .methodRail span {
   grid-row: 1 / 3;
-  color: var(--seo-orange);
+  color: var(--seo-green);
   font-family: var(--seo-font-display), Georgia, serif;
   font-size: 1.45rem;
   line-height: 1;
@@ -837,9 +837,9 @@
   height: 3.3rem;
   place-items: center;
   border-radius: 0.65rem;
-  background: rgba(255, 140, 33, 0.14);
-  color: #ffad5b;
-  box-shadow: inset 0 0 0 1px rgba(255, 173, 91, 0.19);
+  background: rgba(22, 138, 104, 0.14);
+  color: var(--seo-green);
+  box-shadow: inset 0 0 0 1px rgba(22, 138, 104, 0.19);
 }
 
 .serviceLabel {
@@ -882,7 +882,7 @@
   gap: 0.65rem;
   margin-top: auto;
   border-radius: 0.65rem;
-  background: var(--seo-orange);
+  background: var(--seo-green);
   padding: 0.72rem 1rem;
   color: #18263a;
   font-size: 0.8rem;
@@ -990,7 +990,7 @@
 }
 
 .workKicker {
-  color: #ffad78;
+  color: var(--seo-green);
   font-size: 0.7rem;
   font-weight: 760;
   letter-spacing: 0.13em;
@@ -1066,7 +1066,7 @@
   color: var(--seo-navy);
 }
 
-.projectTheme2 { --project-accent: #f4772e; --project-wash: #f7e7d9; }
+.projectTheme2 { --project-accent: #18a77a; --project-wash: #f7e7d9; }
 .projectTheme3 { --project-accent: #315f83; --project-wash: #e3ebef; }
 
 .projectVisual {
@@ -1214,7 +1214,7 @@
   max-width: 13ch;
 }
 
-.geoCopy h2 span { color: var(--seo-orange); }
+.geoCopy h2 span { color: var(--seo-green); }
 
 .geoCopy > p {
   max-width: 34rem;
@@ -1239,7 +1239,7 @@
 .geoCopy li svg {
   flex: none;
   border-radius: 50%;
-  background: var(--seo-orange);
+  background: var(--seo-green);
   padding: 0.2rem;
   color: white;
 }
@@ -1418,7 +1418,7 @@
 
 .statsBand span {
   display: block;
-  color: var(--seo-orange);
+  color: var(--seo-green);
   font-size: 0.6rem;
   font-weight: 750;
 }
@@ -1465,7 +1465,7 @@
   font-size: clamp(2.2rem, 4.6vw, 4rem);
 }
 
-.ctaSection h2 span { color: var(--seo-orange); }
+.ctaSection h2 span { color: var(--seo-green); }
 
 .ctaSection > p {
   position: relative;
@@ -1478,7 +1478,7 @@
 .ctaSection .primaryButton {
   position: relative;
   z-index: 1;
-  background: var(--seo-orange);
+  background: var(--seo-green);
   color: white;
   box-shadow: 0 14px 28px rgba(255, 122, 0, 0.28), inset 0 1px rgba(255, 255, 255, 0.3);
 }
@@ -1755,4 +1755,166 @@
   .projectVisual,
   .projectArtifact,
   .projectDetail { animation: none; }
+}
+
+/* Mobile redesign overrides - aligned with provided mobile references */
+@media (max-width: 600px) {
+  .page {
+    background: #f8fbfa;
+  }
+
+  .hero {
+    min-height: auto;
+    padding: calc(64px + 1.2rem) 1rem 2.5rem;
+    background: linear-gradient(180deg,#f7fbfa,#ffffff);
+  }
+
+  .heroInner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.8rem;
+    min-height: 0;
+  }
+
+  .heroCopy {
+    padding-block: 0;
+  }
+
+  .heroTitle {
+    font-size: clamp(2.7rem, 13vw, 3.8rem);
+    line-height: .98;
+    letter-spacing: -.045em;
+    max-width: 100%;
+  }
+
+  .heroLead {
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .heroActions {
+    gap: .75rem;
+  }
+
+  .trustRow {
+    margin-top: 1.5rem;
+    grid-template-columns: repeat(3,1fr);
+    gap: .35rem;
+  }
+
+  .trustRow span,
+  .trustRow span:last-child {
+    padding: .65rem .35rem;
+    border: 0;
+    font-size: .7rem;
+  }
+
+  .machineStage {
+    order: 2;
+    width: 100%;
+  }
+
+  .mediaFrame {
+    width: 100%;
+    border-radius: 1.25rem;
+  }
+
+  .geoIntroInner {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .geoIntroCopy h2 {
+    font-size: clamp(2.5rem,12vw,3.4rem);
+  }
+
+  .geoIntroVisual {
+    min-height: 20rem;
+    order: 2;
+  }
+
+  .geoIntroImage {
+    width: 115%;
+    max-width: none;
+  }
+
+  .geoSignalCard {
+    transform: scale(.88);
+  }
+
+  .servicesSection,
+  .geoSection,
+  .aiSection,
+  .workSection {
+    width: auto;
+    margin-inline: 1rem;
+  }
+
+  .sectionHeading h2,
+  .workHeading h2,
+  .aiHeading h2,
+  .geoCopy h2 {
+    font-size: clamp(2.3rem,11vw,3rem);
+  }
+
+  .methodRail {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .methodRail > div {
+    padding: 1rem 0;
+    border-left: 0;
+    border-bottom: 1px solid var(--seo-line);
+  }
+
+  .serviceBoard {
+    grid-template-columns: 1fr;
+  }
+
+  .featuredService {
+    min-height: 18rem;
+  }
+
+  .serviceRow {
+    min-height: auto;
+  }
+
+  .projectPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .projectVisual {
+    min-height: 22rem;
+  }
+
+  .projectDetail h3 {
+    margin-top: 1rem;
+    font-size: 2.2rem;
+  }
+
+  .aiGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statsBand {
+    grid-template-columns: 1fr;
+  }
+
+  .statsBand > div {
+    border-right: 0;
+    border-bottom: 1px solid var(--seo-line);
+  }
+
+  .ctaSection {
+    width: auto;
+    margin: 1rem;
+    padding: 2rem 1.1rem;
+    text-align: center;
+  }
+
+  .ctaSection h2 {
+    font-size: clamp(2rem,9vw,2.8rem);
+  }
 }
