@@ -1,9 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Check, ChevronDown, Clapperboard, Layers, Lightbulb, Play, ScanSearch, Send, SlidersHorizontal, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Clapperboard, Layers, Lightbulb, Play, ScanSearch, Send, SlidersHorizontal, Sparkles, Target, Tag, Users, Zap } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import styles from "./video-editing.module.css";
+
+const audience = [
+  [Users, "purple", "01", "Teams with a good product", "The offer already works. The missing piece is video that communicates its value as clearly as the team does."],
+  [Tag, "green", "02", "Brands producing consistently", "You need an editing system that can create variants and formats without reinventing the visual language every week."],
+  [Target, "green", "03", "Campaigns with a real outcome", "The video has a job beyond “engagement”: a click, a qualified view, a purchase or a stronger sales conversation."],
+] as const;
 
 const capabilities = [
   [Clapperboard, "Product video", "Shape features and benefits into a concise story people can understand without a sales call."],
@@ -186,9 +192,14 @@ export function VideoEditingStudio() {
       <section className={styles.audience} data-reveal aria-labelledby="audience-title">
         <h2 id="audience-title">Who this service works best for.</h2>
         <div className={styles.audienceGrid}>
-          <article><span>01</span><h3>Teams with a good product</h3><p>The offer already works. The missing piece is video that communicates its value as clearly as the team does.</p></article>
-          <article><span>02</span><h3>Brands producing consistently</h3><p>You need an editing system that can create variants and formats without reinventing the visual language every week.</p></article>
-          <article><span>03</span><h3>Campaigns with a real outcome</h3><p>The video has a job beyond “engagement”: a click, a qualified view, a purchase or a stronger sales conversation.</p></article>
+          {audience.map(([Icon, accent, index, title, copy]) => (
+            <article key={title} className={`${styles.audienceCard} ${styles[`audience${accent === "purple" ? "Purple" : "Green"}`]}`}>
+              <div className={styles.audienceIndexRow}><span>{index}</span><i aria-hidden="true" /></div>
+              <div className={styles.audienceIconBadge}><Icon size={22} aria-hidden="true" /></div>
+              <h3>{title}</h3>
+              <p>{copy}</p>
+            </article>
+          ))}
         </div>
       </section>
 
