@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Menu as MenuIcon, X as CloseIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { brand } from "../brand";
@@ -8,7 +9,6 @@ import { pathways, servicesByPathway } from "../content";
 import { LocalTime } from "./local-time";
 import { SITE_MENU_STATE_EVENT } from "./design-gallery/design-gallery-state";
 import { getFocusWrapIndex } from "./design-gallery/gallery-ui-utils";
-import { SITE_MENU_OPEN_REQUEST_EVENT } from "./site-menu-events";
 
 /**
  * MetaLab's navigation is a "Menu" pill, a wordmark and a local clock — that's
@@ -43,17 +43,6 @@ export function SiteNav() {
   // the drawer is open, but must NOT flip on desktop where the backdrop
   // stays light, hence the isMobile check only applying to the open case.
   const onDarkHero = (pathname === "/" && !scrolled && !open) || (immersiveDark && !open) || onSocialHero || (open && isMobile);
-
-  // That page has its own hamburger trigger in the hero (so the full header
-  // row doesn't collide with the hero content on small screens) which opens
-  // this same overlay via a DOM event — the overlay and its links are still
-  // entirely owned by this component, so nav changes still apply there too.
-  useEffect(() => {
-    if (!socialPage) return;
-    const onOpenRequest = () => setOpen(true);
-    window.addEventListener(SITE_MENU_OPEN_REQUEST_EVENT, onOpenRequest);
-    return () => window.removeEventListener(SITE_MENU_OPEN_REQUEST_EVENT, onOpenRequest);
-  }, [socialPage]);
 
   useEffect(() => {
     const query = window.matchMedia("(max-width: 767px)");
@@ -144,9 +133,7 @@ export function SiteNav() {
               ? "bg-black/65 backdrop-blur-xl"
               : "bg-ink/70 backdrop-blur-xl"
             : ""
-        } ${onDarkHero ? "on-dark" : ""} ${onGraphicDesignGallery ? "pointer-events-none" : ""} ${
-          socialPage && !open ? "max-[900px]:hidden" : ""
-        }`}
+        } ${onDarkHero ? "on-dark" : ""} ${onGraphicDesignGallery ? "pointer-events-none" : ""}`}
       >
         <nav
           className={`mx-auto flex h-16 max-w-[80rem] items-center justify-between px-6 ${
@@ -154,31 +141,42 @@ export function SiteNav() {
           }`}
           aria-label="Primary"
         >
+          {/* Below md, the wordmark and Start pill only appear once the menu
+              is open — closed state on small screens shows just the trigger,
+              so it never competes with a page's own hero content. `invisible`
+              (not `hidden`) keeps this in the flex flow so the trigger stays
+              pinned to the right via justify-between either way. */}
+          <div className={`flex items-center gap-2 sm:gap-4 ${!open ? "max-md:invisible" : ""}`}>
+            <span className="hidden sm:inline-flex"><LocalTime /></span>
+            <Link href="/contact" className="pill">
+              Start
+            </Link>
+          </div>
+
+          <Link
+            href="/"
+            className={`absolute left-1/2 -translate-x-1/2 font-display text-[1.375rem] leading-none text-bright ${
+              !open ? "max-md:hidden" : ""
+            }`}
+            aria-label={`${brand.name} — home`}
+          >
+            {brand.name}
+          </Link>
+
           <button
             ref={menuButtonRef}
             type="button"
             className="pill"
             aria-expanded={open}
             aria-controls="site-menu"
+            aria-label={open ? "Close menu" : "Open menu"}
             onClick={() => setOpen((v) => !v)}
           >
-            {open ? "Close" : "Menu"}
+            <span className="md:hidden" aria-hidden="true">
+              {open ? <CloseIcon size={18} /> : <MenuIcon size={18} />}
+            </span>
+            <span className="hidden md:inline">{open ? "Close" : "Menu"}</span>
           </button>
-
-          <Link
-            href="/"
-            className="absolute left-1/2 -translate-x-1/2 font-display text-[1.375rem] leading-none text-bright"
-            aria-label={`${brand.name} — home`}
-          >
-            {brand.name}
-          </Link>
-
-          <div className="flex items-center gap-2 sm:gap-4">
-            <span className="hidden sm:inline-flex"><LocalTime /></span>
-            <Link href="/contact" className="pill">
-              Start
-            </Link>
-          </div>
         </nav>
       </header>
 

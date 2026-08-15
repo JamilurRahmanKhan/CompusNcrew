@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Menu, MousePointer2, Info } from "lucide-react";
+import { ArrowRight, MousePointer2, Info } from "lucide-react";
 import { PLATFORMS } from "./social-cube-data";
 import { InteractiveCube } from "./interactive-cube";
 import { RotatingCards } from "./rotating-cards";
 import { CubeBackground } from "./social-cube-background";
 import { PlatformDetailsModal } from "./platform-details-modal";
-import { requestSiteMenuOpen } from "../site-menu-events";
 import styles from "./social-cube-page.module.css";
 
 export function SocialCubePage() {
@@ -18,9 +17,6 @@ export function SocialCubePage() {
     <div className={styles.page}>
       <section className={styles.hero} aria-labelledby="social-cube-heading">
         <CubeBackground activeFace={activeFace} />
-        <button className={styles.menuButton} aria-label="Open menu" onClick={requestSiteMenuOpen}>
-          <Menu size={26} />
-        </button>
         <div className={styles.heroInner}>
           <div className={styles.heroText}>
             <p className={styles.eyebrow}>Social growth system</p>

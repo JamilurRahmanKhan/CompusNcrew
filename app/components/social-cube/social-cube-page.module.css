@@ -101,7 +101,6 @@
 
 }
 
-.menuButton,
 .dragButton,
 .detailsButton {
   display:none;
@@ -171,23 +170,6 @@
     background:
       radial-gradient(circle at 50% 35%, rgba(80, 40, 255, .16), transparent 35%),
       #020205;
-  }
-
-  .menuButton {
-    display: flex;
-    position: absolute;
-    right: 1.5rem;
-    top: 1.5rem;
-    z-index: 5;
-    width: 48px;
-    height: 48px;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, .2);
-    background: rgba(255, 255, 255, .06);
-    color: white;
-    backdrop-filter: blur(14px);
   }
 
   /* Stack from the top instead of vertically centering — centering was
