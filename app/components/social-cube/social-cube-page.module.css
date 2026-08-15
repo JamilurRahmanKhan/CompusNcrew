@@ -263,15 +263,43 @@
 }
 
 /* Final mobile vertical alignment fix: keep the heading and cube above the orbit.
-   The orbit remains centered and only its cards animate. */
+   The orbit remains centered and only its cards animate.
+
+   This used to center .heroInner in .hero (via .hero's own align-items:
+   center) and then transform: translateY(-95px) it upward as a fixed pixel
+   shift. That only worked because on the 375x812 test viewport the centered
+   slack above .heroInner happened to be ~103px — an 8px margin the -95px
+   shift ate almost all of. On real devices with a shorter effective
+   viewport (address bar chrome eating into 100svh, or just a shorter
+   aspect ratio), that slack is smaller than 95px, so the shift pushed
+   content above .hero's own top edge and .hero's overflow:hidden clipped
+   it — the heading was cut off at the top on real phones.
+   Anchoring from the top with align-items/padding instead of centering-
+   then-shifting means the starting position is never negative, so it
+   can't clip regardless of device height. */
 @media (max-width: 900px) {
   .hero {
-    padding-top: 1.75rem;
+    align-items: flex-start;
+    padding-top: 2.25rem;
+    /* The ring is position:absolute, so it never counts toward .hero's
+       auto-height — only the heading/cube's normal-flow height does. On
+       short viewports that flow-height is shorter than the ring's actual
+       reach, .hero's overflow:hidden (needed on desktop to clip the
+       980px-wide ring's horizontal bleed off both edges) was cutting the
+       ring's bottom off here too. overflow:visible stops the clipping, but
+       on its own it would let the ring's bottom render past .hero's own
+       dark background onto .page's white background beneath it — so the
+       min-height floor below is sized generously enough that .hero's own
+       box (and its background) always reaches past the ring's actual
+       lowest point, regardless of viewport height. Mobile's ring is
+       already width:100% (no horizontal bleed to clip), so letting it
+       overflow vertically here has no downside. */
+    overflow: visible;
+    min-height: max(100svh, 56rem);
   }
 
   .heroInner {
     gap: 0;
-    transform: translateY(-95px);
   }
 
   .heroText {

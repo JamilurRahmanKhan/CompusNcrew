@@ -1,19 +1,9 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { brand } from "../brand";
 import { pathways, servicesByPathway } from "../content";
 
-// Commented out (not deleted) for /services/social-media-marketing per
-// request — remove this block to bring the footer back on that page.
-const HIDDEN_ON = ["/services/social-media-marketing"];
-
 export function SiteFooter() {
-  const pathname = usePathname();
   const year = new Date().getFullYear();
-
-  if (HIDDEN_ON.includes(pathname)) return null;
 
   return (
     <footer className="border-t border-hairline bg-ink">
