@@ -1,21 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ArrowRight, Menu, MousePointer2 } from "lucide-react";
-import { METHOD_STEPS } from "./social-cube-data";
+import { ArrowRight, Menu, MousePointer2, Info } from "lucide-react";
+import { PLATFORMS } from "./social-cube-data";
 import { InteractiveCube } from "./interactive-cube";
 import { RotatingCards } from "./rotating-cards";
 import { CubeBackground } from "./social-cube-background";
+import { PlatformDetailsModal } from "./platform-details-modal";
+import { requestSiteMenuOpen } from "../site-menu-events";
 import styles from "./social-cube-page.module.css";
 
 export function SocialCubePage() {
   const [activeFace, setActiveFace] = useState(0);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const activePlatform = activeFace < PLATFORMS.length ? PLATFORMS[activeFace] : null;
   return (
     <div className={styles.page}>
       <section className={styles.hero} aria-labelledby="social-cube-heading">
         <CubeBackground activeFace={activeFace} />
-        <button className={styles.menuButton} aria-label="Open menu"><Menu size={26} /></button>
+        <button className={styles.menuButton} aria-label="Open menu" onClick={requestSiteMenuOpen}>
+          <Menu size={26} />
+        </button>
         <div className={styles.heroInner}>
           <div className={styles.heroText}>
             <p className={styles.eyebrow}>Social growth system</p>
@@ -28,6 +33,9 @@ export function SocialCubePage() {
               Drag or scroll — every face is a platform built the way its audience actually behaves, not a copied-and-pasted post.
             </p>
             <button className={styles.dragButton}><MousePointer2 size={16}/> DRAG OR SCROLL</button>
+            <button className={styles.detailsButton} onClick={() => setDetailsOpen(true)}>
+              <Info size={16} /> See details <ArrowRight size={14} aria-hidden="true" />
+            </button>
           </div>
           <div className={styles.heroCube}>
             <InteractiveCube onFaceChange={setActiveFace} />
@@ -36,27 +44,11 @@ export function SocialCubePage() {
         </div>
       </section>
 
-      <section className={styles.method} aria-label="How the ecosystem grows">
-        <p className={styles.eyebrow}>How the ecosystem grows</p>
-        <div className={styles.methodGrid}>
-          {METHOD_STEPS.map(([number, label]) => (
-            <span key={number}>
-              <b>{number}</b>
-              {label}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.cta} aria-labelledby="social-cube-cta-heading">
-        <div>
-          <p className={styles.eyebrow}>Ready to grow your brand?</p>
-          <h2 id="social-cube-cta-heading">Let’s create your digital success story.</h2>
-        </div>
-        <Link href="/contact">
-          Start the story <ArrowRight size={18} aria-hidden="true" />
-        </Link>
-      </section>
+      <PlatformDetailsModal
+        platform={activePlatform}
+        open={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+      />
     </div>
   );
 }

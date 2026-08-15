@@ -8,6 +8,7 @@ import { pathways, servicesByPathway } from "../content";
 import { LocalTime } from "./local-time";
 import { SITE_MENU_STATE_EVENT } from "./design-gallery/design-gallery-state";
 import { getFocusWrapIndex } from "./design-gallery/gallery-ui-utils";
+import { SITE_MENU_OPEN_REQUEST_EVENT } from "./site-menu-events";
 
 /**
  * MetaLab's navigation is a "Menu" pill, a wordmark and a local clock — that's
@@ -19,30 +20,55 @@ export function SiteNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const onGraphicDesignGallery = pathname === "/services/graphic-design";
-  const socialVideoPage = pathname === "/services/social-media-marketing";
-  const [socialHeroVisible, setSocialHeroVisible] = useState(socialVideoPage);
 
   // The homepage hero is a dark, full-bleed video — the light-theme nav
   // text (dark ink) is invisible sitting directly on it. Once scrolled past
   // the hero (or the overlay is open), the header gets its own light pill
   // background from `scrolled` below and reads fine in the normal palette,
   // so the swap only needs to cover the unscrolled state on "/".
+  // email-sms stays dark past the hero too, so it also drives the scrolled
+  // pill background below (immersiveDark) — social-media-marketing's hero
+  // is dark but the rest of that page is the normal light theme, so it only
+  // needs the unscrolled dark-hero treatment, not the scrolled one.
   const immersiveDark = pathname === "/services/email-sms";
-  const onDarkHero = (pathname === "/" && !scrolled && !open) || (immersiveDark && !open);
+  const socialPage = pathname === "/services/social-media-marketing";
+  const onSocialHero = socialPage && !scrolled && !open;
+  // The mobile nav is a dark drawer (below md), the desktop one is a
+  // full-bleed light mega-menu — the header pills need light-on-dark while
+  // the drawer is open, but must NOT flip on desktop where the backdrop
+  // stays light, hence the isMobile check only applying to the open case.
+  const onDarkHero = (pathname === "/" && !scrolled && !open) || (immersiveDark && !open) || onSocialHero || (open && isMobile);
+
+  // That page has its own hamburger trigger in the hero (so the full header
+  // row doesn't collide with the hero content on small screens) which opens
+  // this same overlay via a DOM event — the overlay and its links are still
+  // entirely owned by this component, so nav changes still apply there too.
+  useEffect(() => {
+    if (!socialPage) return;
+    const onOpenRequest = () => setOpen(true);
+    window.addEventListener(SITE_MENU_OPEN_REQUEST_EVENT, onOpenRequest);
+    return () => window.removeEventListener(SITE_MENU_OPEN_REQUEST_EVENT, onOpenRequest);
+  }, [socialPage]);
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 767px)");
+    setIsMobile(query.matches);
+    const onChange = (event: MediaQueryListEvent) => setIsMobile(event.matches);
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     if (onGraphicDesignGallery) {
       setScrolled(false);
       return;
     }
-    const onScroll = () => {
-      setScrolled(window.scrollY > 24);
-      setSocialHeroVisible(socialVideoPage && window.scrollY < window.innerHeight - 1);
-    };
+    const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
@@ -50,7 +76,7 @@ export function SiteNav() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, [onGraphicDesignGallery, socialVideoPage]);
+  }, [onGraphicDesignGallery]);
 
   useEffect(() => {
     document.body.dataset.siteMenuOpen = String(open);
@@ -64,8 +90,9 @@ export function SiteNav() {
     const pageSurfaces = Array.from(document.querySelectorAll<HTMLElement>("main, body > footer"));
     const previouslyInert = pageSurfaces.map((surface) => surface.inert);
     const focusFrame = window.requestAnimationFrame(() => {
-      menuRef.current?.querySelector<HTMLElement>("[data-site-menu-initial-focus]")
-        ?.focus({ preventScroll: true });
+      const candidates = menuRef.current?.querySelectorAll<HTMLElement>("[data-site-menu-initial-focus]");
+      const visible = candidates && Array.from(candidates).find((el) => el.offsetParent !== null);
+      visible?.focus({ preventScroll: true });
     });
     document.body.style.overflow = "hidden";
     pageSurfaces.forEach((surface) => { surface.inert = true; });
@@ -83,7 +110,11 @@ export function SiteNav() {
             "a[href], button:not([disabled]), [tabindex]:not([tabindex='-1'])",
           ))
           : [])
-        .filter((element) => element.tabIndex >= 0);
+        // The mobile drawer and desktop mega-menu are both always in the DOM
+        // (only one is display:none'd at a time via the md: breakpoint) —
+        // offsetParent is null for display:none elements, so this keeps the
+        // wrap math scoped to whichever variant is actually on screen.
+        .filter((element) => element.tabIndex >= 0 && element.offsetParent !== null);
       const activeIndex = document.activeElement instanceof HTMLElement
         ? focusableElements.indexOf(document.activeElement)
         : -1;
@@ -107,17 +138,15 @@ export function SiteNav() {
     <>
       <header
         ref={headerRef}
-        aria-hidden={socialHeroVisible && !open}
-        inert={socialHeroVisible && !open ? true : undefined}
-        className={`fixed inset-x-0 top-0 z-50 transition-[color,background-color,border-color,opacity,transform] duration-500 ${
+        className={`fixed inset-x-0 top-0 z-50 transition-[color,background-color,border-color,opacity,transform] duration-500 translate-y-0 opacity-100 ${
           scrolled && !open && !onGraphicDesignGallery
             ? immersiveDark
               ? "bg-black/65 backdrop-blur-xl"
               : "bg-ink/70 backdrop-blur-xl"
             : ""
-        } ${onDarkHero ? "on-dark" : ""} ${
-          socialHeroVisible && !open ? "pointer-events-none -translate-y-full opacity-0" : "translate-y-0 opacity-100"
-        } ${onGraphicDesignGallery ? "pointer-events-none" : ""}`}
+        } ${onDarkHero ? "on-dark" : ""} ${onGraphicDesignGallery ? "pointer-events-none" : ""} ${
+          socialPage && !open ? "max-[900px]:hidden" : ""
+        }`}
       >
         <nav
           className={`mx-auto flex h-16 max-w-[80rem] items-center justify-between px-6 ${
@@ -154,36 +183,43 @@ export function SiteNav() {
       </header>
 
       {/* Overlay menu. Rendered always so its links are in the DOM for crawlers;
-          visibility is driven by opacity + pointer-events, not display:none. */}
-      <div
-        ref={menuRef}
-        id="site-menu"
-        className={`fixed inset-0 z-40 overflow-y-auto bg-ink/95 backdrop-blur-2xl transition-opacity duration-500 ${
-          open ? "opacity-100" : "pointer-events-none opacity-0"
-        }`}
-        aria-hidden={!open}
-      >
-        <div className="mx-auto max-w-[80rem] px-6 pb-24 pt-28">
-          <div className="grid gap-12 md:grid-cols-3">
+          open/closed visibility is driven by opacity/transform + pointer-events,
+          never display:none. Below md it's shown as a right-side drawer over a
+          dimmed backdrop instead of the full-bleed desktop mega-menu — same
+          `pathways`/`servicesByPathway` data feeds both, so a future content or
+          link change still applies to each automatically. */}
+      <div ref={menuRef} id="site-menu" aria-hidden={!open}>
+        {/* Mobile: dimmed backdrop behind the drawer. */}
+        <div
+          className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
+            open ? "opacity-100" : "pointer-events-none opacity-0"
+          }`}
+          onClick={() => setOpen(false)}
+        />
+
+        {/* Mobile: slide-in drawer. */}
+        <div
+          className={`on-dark fixed inset-y-0 right-0 z-40 w-[85%] max-w-[22rem] overflow-y-auto bg-[#0b0b0e]/98 shadow-2xl backdrop-blur-2xl transition-transform duration-[400ms] md:hidden ${
+            open ? "translate-x-0" : "pointer-events-none translate-x-full"
+          }`}
+        >
+          <div className="flex flex-col gap-10 px-6 pb-10 pt-24">
             {pathways.map((pathway) => (
               <div key={pathway.id}>
-                <div className="mb-5 flex items-baseline gap-3">
+                <div className="mb-3 flex items-baseline gap-3">
                   <span className="font-mono text-[0.75rem] text-accent">
                     {pathway.index}
                   </span>
                   <Link
                     data-site-menu-initial-focus={pathway === pathways[0] ? "true" : undefined}
                     href={`/solutions/${pathway.id}`}
-                    className="font-display text-4xl text-bright"
+                    className="font-display text-2xl text-bright"
                     tabIndex={open ? 0 : -1}
                     onClick={() => setOpen(false)}
                   >
                     {pathway.name}
                   </Link>
                 </div>
-                <p className="mb-5 max-w-[26ch] text-[0.9375rem] text-muted">
-                  {pathway.promise}
-                </p>
                 <ul className="space-y-2.5">
                   {servicesByPathway(pathway.id).map((service) => (
                     <li key={service.slug}>
@@ -200,28 +236,91 @@ export function SiteNav() {
                 </ul>
               </div>
             ))}
-          </div>
 
-          <div className="mt-16 flex flex-wrap gap-3 border-t border-hairline pt-8">
-            {[
-              { href: "/method", label: "Method" },
-              { href: "/work", label: "Work" },
-              { href: "/about", label: "About" },
-              { href: "/contact", label: "Start a project" },
-            ].map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="pill"
-                tabIndex={open ? 0 : -1}
-                onClick={() => setOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
+            <div className="flex flex-wrap gap-3 border-t border-hairline pt-8">
+              {BOTTOM_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="pill"
+                  tabIndex={open ? 0 : -1}
+                  onClick={() => setOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop: full-bleed mega-menu. */}
+        <div
+          className={`fixed inset-0 z-40 hidden overflow-y-auto bg-ink/95 backdrop-blur-2xl transition-opacity duration-500 md:block ${
+            open ? "opacity-100" : "pointer-events-none opacity-0"
+          }`}
+        >
+          <div className="mx-auto max-w-[80rem] px-6 pb-24 pt-28">
+            <div className="grid gap-12 md:grid-cols-3">
+              {pathways.map((pathway) => (
+                <div key={pathway.id}>
+                  <div className="mb-5 flex items-baseline gap-3">
+                    <span className="font-mono text-[0.75rem] text-accent">
+                      {pathway.index}
+                    </span>
+                    <Link
+                      data-site-menu-initial-focus={pathway === pathways[0] ? "true" : undefined}
+                      href={`/solutions/${pathway.id}`}
+                      className="font-display text-4xl text-bright"
+                      tabIndex={open ? 0 : -1}
+                      onClick={() => setOpen(false)}
+                    >
+                      {pathway.name}
+                    </Link>
+                  </div>
+                  <p className="mb-5 max-w-[26ch] text-[0.9375rem] text-muted">
+                    {pathway.promise}
+                  </p>
+                  <ul className="space-y-2.5">
+                    {servicesByPathway(pathway.id).map((service) => (
+                      <li key={service.slug}>
+                        <Link
+                          href={`/services/${service.slug}`}
+                          className="text-detail text-bright/80 transition-colors hover:text-accent"
+                          tabIndex={open ? 0 : -1}
+                          onClick={() => setOpen(false)}
+                        >
+                          {service.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-16 flex flex-wrap gap-3 border-t border-hairline pt-8">
+              {BOTTOM_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="pill"
+                  tabIndex={open ? 0 : -1}
+                  onClick={() => setOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>
     </>
   );
 }
+
+const BOTTOM_LINKS = [
+  { href: "/method", label: "Method" },
+  { href: "/work", label: "Work" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Start a project" },
+];

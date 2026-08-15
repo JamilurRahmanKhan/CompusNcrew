@@ -77,113 +77,6 @@
   line-height: 1.65;
 }
 
-.method {
-  max-width: 86rem;
-  margin: 0 auto;
-  padding: clamp(3rem, 7vw, 5rem) clamp(1.25rem, 5vw, 4rem);
-}
-
-.method .eyebrow {
-  margin-bottom: 1.5rem;
-  color: #9a5fc2;
-}
-
-.methodGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  overflow: hidden;
-  border-radius: 1rem;
-  background: rgba(20, 21, 26, 0.12);
-}
-
-.methodGrid span {
-  display: flex;
-  min-height: 9rem;
-  flex-direction: column;
-  justify-content: space-between;
-  background: #fafafa;
-  padding: 1.25rem;
-  font-family: var(--font-instrument-serif), Georgia, serif;
-  font-size: 1.4rem;
-  color: var(--ink);
-}
-
-.methodGrid b {
-  color: var(--orange);
-  font-family: var(--font-inter), Arial, sans-serif;
-  font-size: 0.68rem;
-  letter-spacing: 0.15em;
-}
-
-.cta {
-  display: flex;
-  max-width: 86rem;
-  margin: 0 auto clamp(5rem, 9vw, 7rem);
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 2rem;
-  border-radius: 2.2rem;
-  background: #171313;
-  padding: clamp(2rem, 5vw, 4.5rem);
-}
-
-.cta .eyebrow {
-  color: #ff8f55;
-}
-
-.cta h2 {
-  max-width: 12ch;
-  margin: 0;
-  font-family: var(--font-instrument-serif), Georgia, serif;
-  font-size: clamp(2.75rem, 5.6vw, 5.5rem);
-  font-weight: 400;
-  letter-spacing: -0.04em;
-  line-height: 0.9;
-}
-
-.cta a {
-  display: inline-flex;
-  min-height: 48px;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 0.75rem;
-  border-radius: 999px;
-  background: var(--orange);
-  padding: 0.9rem 1.25rem;
-  color: #21100a;
-  font-weight: 700;
-  transition: transform 180ms ease, background 180ms ease;
-}
-
-.cta a:hover {
-  transform: translateY(-2px);
-  background: #ff915a;
-}
-
-@media (max-width: 720px) {
-  .methodGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .methodGrid span {
-    min-height: 7rem;
-    font-size: 1.15rem;
-  }
-
-  .cta {
-    flex-direction: column;
-    align-items: flex-start;
-    border-radius: 1.5rem;
-    padding: 1.75rem;
-  }
-
-  .cta a {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
 /* Desktop hero composition: keep cube fixed above the circular card carousel */
 @media (min-width: 901px) {
   .heroInner {
@@ -208,16 +101,60 @@
 
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .cta a {
-    transition: none;
+.menuButton,
+.dragButton,
+.detailsButton {
+  display:none;
+}
+
+/* Desktop-only "See details" trigger for the platform modal. This must
+   come after the base hide rule above (same specificity, later wins) so
+   it's kept entirely separate from the existing desktop hero block and
+   can't interfere with the cube/text positioning there. */
+@media (min-width: 901px) {
+  .detailsButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.15rem;
+    border-radius: 999px;
+    border: 1px solid rgba(245, 245, 247, 0.28);
+    background: rgba(245, 245, 247, 0.06);
+    backdrop-filter: blur(10px);
+    color: var(--ink);
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+  }
+
+  .detailsButton:hover {
+    background: rgba(245, 245, 247, 0.14);
+    border-color: rgba(245, 245, 247, 0.45);
+    transform: translateY(-1px);
   }
 }
 
-
-.menuButton,
-.dragButton {
-  display:none;
+/* Mobile-only "See details" trigger, styled to match .dragButton. Its own
+   isolated block (after the base hide rule, same reason as the desktop
+   one above) — does not touch the locked mobile hero blocks below. */
+@media (max-width: 900px) {
+  .detailsButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+    padding: 0.75rem 1.1rem;
+    border-radius: 999px;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    font-size: 0.7rem;
+    backdrop-filter: blur(12px);
+  }
 }
 
 /* Single source of truth for the mobile hero layout — this used to be
