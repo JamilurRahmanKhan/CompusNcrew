@@ -33,6 +33,7 @@ const missing = assets.filter((asset) => {
 });
 
 const analyticsCardPath = resolve(projectRoot, "app", "paid-ads", "platform-performance-card.tsx");
+const liveAdPreviewsPath = resolve(projectRoot, "app", "paid-ads", "live-ad-previews.tsx");
 const paidAdsPageSources = [
   resolve(projectRoot, "app", "paid-ads", "page.tsx"),
   resolve(projectRoot, "app", "paid-ads", "paid-ads-studio.tsx"),
@@ -47,10 +48,17 @@ function readSource(sourcePath) {
 }
 
 const analyticsCardSource = readSource(analyticsCardPath);
+const liveAdPreviewsSource = readSource(liveAdPreviewsPath);
 const paidAdsPageSource = paidAdsPageSources.map(readSource).join("\n");
 const structuralFailures = [
   !/<svg\b/.test(analyticsCardSource) && "Platform analytics must render an inline SVG trend chart.",
   !/performance\.metrics\.map\s*\(/.test(analyticsCardSource) && "Platform analytics must map typed performance metrics.",
+  !/googleAdPreviews\.map\s*\(/.test(liveAdPreviewsSource) && "Live previews must render the Google preview group.",
+  !/metaAdPreviews\.map\s*\(/.test(liveAdPreviewsSource) && "Live previews must render the Meta preview group.",
+  !/visibilitychange/.test(liveAdPreviewsSource) && "Live previews must respond to document visibility changes.",
+  !/prefers-reduced-motion:\s*reduce/.test(liveAdPreviewsSource) && "Live previews must honor reduced-motion preferences.",
+  !/<video\b/.test(liveAdPreviewsSource) && "The paid ads engine must render as video.",
+  !/<source\b[^>]*ad-engine-alpha\.webm/.test(liveAdPreviewsSource) && "The paid ads engine must use ad-engine-alpha.webm.",
   /paid-ads-ui\.jpg/.test(paidAdsPageSource) && "Paid ads page source must not use paid-ads-ui.jpg.",
 ].filter(Boolean);
 
