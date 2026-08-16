@@ -57,8 +57,12 @@ const structuralFailures = [
   !/metaAdPreviews\.map\s*\(/.test(liveAdPreviewsSource) && "Live previews must render the Meta preview group.",
   !/visibilitychange/.test(liveAdPreviewsSource) && "Live previews must respond to document visibility changes.",
   !/prefers-reduced-motion:\s*reduce/.test(liveAdPreviewsSource) && "Live previews must honor reduced-motion preferences.",
+  !/addEventListener\(\s*["']change["']/.test(liveAdPreviewsSource) && "Reduced-motion handling must respond to live preference changes.",
+  !/reducedMotion\s*!==\s*false\s*\|\|\s*videoFailed/.test(liveAdPreviewsSource) && "Reduced-motion users must receive the static engine poster.",
   !/<video\b/.test(liveAdPreviewsSource) && "The paid ads engine must render as video.",
   !/<source\b[^>]*ad-engine-alpha\.webm/.test(liveAdPreviewsSource) && "The paid ads engine must use ad-engine-alpha.webm.",
+  !/<source\b[^>]*onError=/.test(liveAdPreviewsSource) && "The final video source must expose the poster fallback on error.",
+  /setMetaIndex\(0\)/.test(liveAdPreviewsSource) && "Reduced motion must not swap the initial Meta slide after hydration.",
   /paid-ads-ui\.jpg/.test(paidAdsPageSource) && "Paid ads page source must not use paid-ads-ui.jpg.",
 ].filter(Boolean);
 

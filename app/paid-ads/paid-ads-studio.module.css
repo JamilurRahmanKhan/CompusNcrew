@@ -502,17 +502,6 @@
   object-position: center;
 }
 
-.adEngineMedia video[data-hidden="true"],
-.adEngineFallback[data-visible="false"] {
-  visibility: hidden;
-  opacity: 0;
-}
-
-.adEngineFallback[data-visible="true"] {
-  visibility: visible;
-  opacity: 1;
-}
-
 @media (max-width: 420px) {
   .adPreviewCard { border-radius: 20px; }
   .adPreviewHeader { padding-inline: .75rem; }
@@ -520,5 +509,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .adPreviewSlide { transition: none; }
+  .adPreviewSlide {
+    pointer-events: none;
+    opacity: 0;
+    transform: none;
+    transition: none;
+  }
+
+  .adPreviewSlide:first-child {
+    z-index: 1;
+    opacity: 1;
+  }
 }

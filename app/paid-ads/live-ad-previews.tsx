@@ -24,6 +24,26 @@ const platformDetails: Record<
   meta: { label: "Meta Ads", logo: "/paid-ads/meta-logo.png" },
 };
 
+function useReducedMotion() {
+  const [reducedMotion, setReducedMotion] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);
+    const handleChange = (event: MediaQueryListEvent) => {
+      setReducedMotion(event.matches);
+    };
+
+    setReducedMotion(mediaQuery.matches);
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+    };
+  }, []);
+
+  return reducedMotion;
+}
+
 function AdPreviewSlide({
   preview,
   active,
@@ -91,9 +111,13 @@ function PreviewCard({
 export function LiveAdPreviews() {
   const [googleIndex, setGoogleIndex] = useState(0);
   const [metaIndex, setMetaIndex] = useState(1);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    const reducedMotion = window.matchMedia(REDUCED_MOTION_QUERY);
+    if (reducedMotion === null) {
+      return;
+    }
+
     const googleController = createAdRotationController({
       itemCount: googleAdPreviews.length,
       intervalMs: ROTATION_INTERVAL_MS,
@@ -136,10 +160,9 @@ export function LiveAdPreviews() {
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    if (reducedMotion.matches) {
+    if (!reducedMotion) {
       setGoogleIndex(0);
-      setMetaIndex(0);
-    } else {
+      setMetaIndex(1);
       if (document.hidden) {
         googleController.setPaused(true);
         metaController.setPaused(true);
@@ -154,20 +177,23 @@ export function LiveAdPreviews() {
       googleController.dispose();
       metaController.dispose();
     };
-  }, []);
+  }, [reducedMotion]);
+
+  const activeGoogleIndex = reducedMotion === true ? 0 : googleIndex;
+  const activeMetaIndex = reducedMotion === true ? 0 : metaIndex;
 
   const googleSlides = googleAdPreviews.map((preview, index) => (
     <AdPreviewSlide
       key={preview.id}
       preview={preview}
-      active={index === googleIndex}
+      active={index === activeGoogleIndex}
     />
   ));
   const metaSlides = metaAdPreviews.map((preview, index) => (
     <AdPreviewSlide
       key={preview.id}
       preview={preview}
-      active={index === metaIndex}
+      active={index === activeMetaIndex}
     />
   ));
 
@@ -181,31 +207,40 @@ export function LiveAdPreviews() {
 
 export function PaidAdsEngine() {
   const [videoFailed, setVideoFailed] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const showPoster = reducedMotion !== false || videoFailed;
 
   return (
-    <div className={styles.adEngineMedia} data-video-failed={videoFailed}>
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        poster="/paid-ads/ad-engine-poster.png"
-        aria-label="Animated paid advertising engine"
-        aria-hidden={videoFailed}
-        data-hidden={videoFailed}
-        onError={() => setVideoFailed(true)}
-      >
-        <source src="/paid-ads/ad-engine-alpha.webm" type="video/webm" />
-      </video>
-      <Image
-        className={styles.adEngineFallback}
-        src="/paid-ads/ad-engine-poster.png"
-        alt="Paid advertising engine illustration"
-        fill
-        sizes="(max-width: 700px) 100vw, 30vw"
-        aria-hidden={!videoFailed}
-        data-visible={videoFailed}
-      />
+    <div
+      className={styles.adEngineMedia}
+      data-video-failed={videoFailed}
+      data-reduced-motion={reducedMotion === true}
+    >
+      {showPoster ? (
+        <Image
+          className={styles.adEngineFallback}
+          src="/paid-ads/ad-engine-poster.png"
+          alt="Paid advertising engine illustration"
+          fill
+          sizes="(max-width: 700px) 100vw, 30vw"
+        />
+      ) : (
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster="/paid-ads/ad-engine-poster.png"
+          aria-label="Animated paid advertising engine"
+          onError={() => setVideoFailed(true)}
+        >
+          <source
+            src="/paid-ads/ad-engine-alpha.webm"
+            type="video/webm"
+            onError={() => setVideoFailed(true)}
+          />
+        </video>
+      )}
     </div>
   );
 }
