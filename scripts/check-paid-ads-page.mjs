@@ -1,4 +1,4 @@
-import { readFileSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -34,10 +34,21 @@ const missing = assets.filter((asset) => {
 
 const analyticsCardPath = resolve(projectRoot, "app", "paid-ads", "platform-performance-card.tsx");
 const liveAdPreviewsPath = resolve(projectRoot, "app", "paid-ads", "live-ad-previews.tsx");
-const paidAdsPageSources = [
-  resolve(projectRoot, "app", "paid-ads", "page.tsx"),
-  resolve(projectRoot, "app", "paid-ads", "paid-ads-studio.tsx"),
-];
+const paidAdsSourceDirectory = resolve(projectRoot, "app", "paid-ads");
+
+function collectPaidAdsSourcePaths(directory) {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const entryPath = resolve(directory, entry.name);
+
+    if (entry.isDirectory()) {
+      return collectPaidAdsSourcePaths(entryPath);
+    }
+
+    return /\.(?:css|tsx?)$/i.test(entry.name) ? [entryPath] : [];
+  });
+}
+
+const paidAdsPageSources = collectPaidAdsSourcePaths(paidAdsSourceDirectory);
 
 function readSource(sourcePath) {
   try {

@@ -62,6 +62,7 @@ function AdPreviewSlide({
           src={preview.image}
           alt={active ? preview.alt : ""}
           fill
+          loading={active ? "eager" : "lazy"}
           sizes="(max-width: 700px) 100vw, 28vw"
         />
       </div>
