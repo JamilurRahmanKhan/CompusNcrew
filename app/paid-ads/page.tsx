@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { PaidAdsStudio } from "./paid-ads-studio";
 
 export const metadata: Metadata = {
-  title: "Paid Ads — Google Ads & Meta Ads",
+  title: "Paid Ads Management & Campaign Creative",
   description:
-    "Google and Meta campaigns built around clear offers, conversion tracking and creative testing.",
+    "Paid advertising management and campaign creative services for Meta and Google, with focused testing, tracking and ongoing optimization.",
   alternates: { canonical: "/paid-ads" },
 };
 

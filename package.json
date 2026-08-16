@@ -17,7 +17,9 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test:gallery": "tsx --test app/components/design-gallery/*.test.ts"
+    "test:gallery": "tsx --test app/components/design-gallery/*.test.ts",
+    "paid-ads:assets": "node scripts/process-paid-ads-engine.mjs",
+    "test:paid-ads": "tsx --test app/paid-ads/*.test.ts && node scripts/check-paid-ads-page.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
