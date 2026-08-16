@@ -3,18 +3,23 @@
 import Image from "next/image";
 import { useEffect, useState, type ReactNode } from "react";
 
-import { createAdRotationController } from "./ad-rotation";
+import { createAdPreviewLifecycle, REDUCED_MOTION_QUERY } from "./ad-preview-lifecycle";
 import {
-  googleAdPreviews,
-  metaAdPreviews,
+  paidAdsRenderContract,
   type AdPreview,
   type PaidAdsPlatform,
 } from "./paid-ads-data";
+import {
+  getActivePreviewIndices,
+  getEngineMediaPresentation,
+  getPreviewArtworkPresentation,
+  type MotionPreference,
+} from "./paid-ads-presentation";
 import styles from "./paid-ads-studio.module.css";
 
-const ROTATION_INTERVAL_MS = 3_800;
-const META_START_DELAY_MS = 1_900;
-const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+const [googlePreviewDeck, metaPreviewDeck] = paidAdsRenderContract.previewDecks;
+const googleAdPreviews = googlePreviewDeck.previews;
+const metaAdPreviews = metaPreviewDeck.previews;
 
 const platformDetails: Record<
   PaidAdsPlatform,
@@ -24,16 +29,17 @@ const platformDetails: Record<
   meta: { label: "Meta Ads", logo: "/paid-ads/meta-logo.png" },
 };
 
-function useReducedMotion() {
-  const [reducedMotion, setReducedMotion] = useState<boolean | null>(null);
+function useMotionPreference() {
+  const [motionPreference, setMotionPreference] =
+    useState<MotionPreference>("unresolved");
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);
     const handleChange = (event: MediaQueryListEvent) => {
-      setReducedMotion(event.matches);
+      setMotionPreference(event.matches ? "reduce" : "no-preference");
     };
 
-    setReducedMotion(mediaQuery.matches);
+    setMotionPreference(mediaQuery.matches ? "reduce" : "no-preference");
     mediaQuery.addEventListener("change", handleChange);
 
     return () => {
@@ -41,7 +47,7 @@ function useReducedMotion() {
     };
   }, []);
 
-  return reducedMotion;
+  return motionPreference;
 }
 
 function AdPreviewSlide({
@@ -51,20 +57,43 @@ function AdPreviewSlide({
   preview: AdPreview;
   active: boolean;
 }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const artwork = getPreviewArtworkPresentation({
+    active,
+    imageFailed,
+    imageAlt: preview.alt,
+  });
+
   return (
     <div
       className={styles.adPreviewSlide}
       data-active={active}
       aria-hidden={!active}
     >
-      <div className={styles.adPreviewArtwork}>
-        <Image
-          src={preview.image}
-          alt={active ? preview.alt : ""}
-          fill
-          loading={active ? "eager" : "lazy"}
-          sizes="(max-width: 700px) 100vw, 28vw"
-        />
+      <div className={styles.adPreviewArtwork} data-image-failed={imageFailed}>
+        {artwork.showImage ? (
+          <Image
+            src={preview.image}
+            alt={artwork.renderedImageAlt}
+            fill
+            loading={active ? "eager" : "lazy"}
+            sizes="(max-width: 700px) 100vw, 28vw"
+            onError={() => setImageFailed(true)}
+          />
+        ) : null}
+        {artwork.showFallback ? (
+          <div
+            className={styles.adPreviewFallback}
+            role={active ? "img" : undefined}
+            aria-label={artwork.fallbackLabel || undefined}
+          >
+            <span className={styles.adPreviewFallbackMark} aria-hidden="true">
+              C
+            </span>
+            <strong>CompassNCrew</strong>
+            <span>Creative preview unavailable</span>
+          </div>
+        ) : null}
       </div>
 
       <div className={styles.adPreviewCopy}>
@@ -111,90 +140,76 @@ function PreviewCard({
 
 export function LiveAdPreviews() {
   const [googleIndex, setGoogleIndex] = useState(0);
-  const [metaIndex, setMetaIndex] = useState(1);
-  const reducedMotion = useReducedMotion();
+  const [metaIndex, setMetaIndex] = useState(0);
+  const [motionPreference, setMotionPreference] =
+    useState<MotionPreference>("unresolved");
 
   useEffect(() => {
-    if (reducedMotion === null) {
-      return;
-    }
+    const lifecycle = createAdPreviewLifecycle({
+      matchMedia(query) {
+        const mediaQuery = window.matchMedia(query);
 
-    const googleController = createAdRotationController({
-      itemCount: googleAdPreviews.length,
-      intervalMs: ROTATION_INTERVAL_MS,
-      onIndexChange: setGoogleIndex,
-    });
-    const metaController = createAdRotationController({
-      itemCount: metaAdPreviews.length,
-      intervalMs: ROTATION_INTERVAL_MS,
-      startDelayMs: META_START_DELAY_MS,
-      onIndexChange: (index) => {
-        setMetaIndex((index + 1) % metaAdPreviews.length);
+        return {
+          get matches() {
+            return mediaQuery.matches;
+          },
+          addEventListener(type, listener) {
+            mediaQuery.addEventListener(type, listener as (event: MediaQueryListEvent) => void);
+          },
+          removeEventListener(type, listener) {
+            mediaQuery.removeEventListener(type, listener as (event: MediaQueryListEvent) => void);
+          },
+        };
       },
+      visibility: {
+        get hidden() {
+          return document.hidden;
+        },
+        addEventListener(type, listener) {
+          document.addEventListener(type, listener);
+        },
+        removeEventListener(type, listener) {
+          document.removeEventListener(type, listener);
+        },
+      },
+      scheduler: {
+        setTimeout(callback, delay) {
+          return window.setTimeout(callback, delay) as unknown as ReturnType<typeof setTimeout>;
+        },
+        clearTimeout(handle) {
+          window.clearTimeout(handle as unknown as number);
+        },
+      },
+      googleItemCount: googleAdPreviews.length,
+      metaItemCount: metaAdPreviews.length,
+      onMotionPreferenceChange: setMotionPreference,
+      onGoogleIndexChange: setGoogleIndex,
+      onMetaIndexChange: setMetaIndex,
     });
-    let metaResumeTimer: number | undefined;
-
-    const clearMetaResumeTimer = () => {
-      if (metaResumeTimer !== undefined) {
-        window.clearTimeout(metaResumeTimer);
-        metaResumeTimer = undefined;
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      clearMetaResumeTimer();
-
-      if (document.hidden) {
-        googleController.setPaused(true);
-        metaController.setPaused(true);
-        return;
-      }
-
-      googleController.setPaused(false);
-      metaResumeTimer = window.setTimeout(() => {
-        metaResumeTimer = undefined;
-        if (!document.hidden) {
-          metaController.setPaused(false);
-        }
-      }, META_START_DELAY_MS);
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    if (!reducedMotion) {
-      setGoogleIndex(0);
-      setMetaIndex(1);
-      if (document.hidden) {
-        googleController.setPaused(true);
-        metaController.setPaused(true);
-      }
-      googleController.start();
-      metaController.start();
-    }
 
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      clearMetaResumeTimer();
-      googleController.dispose();
-      metaController.dispose();
+      lifecycle.dispose();
     };
-  }, [reducedMotion]);
+  }, []);
 
-  const activeGoogleIndex = reducedMotion === true ? 0 : googleIndex;
-  const activeMetaIndex = reducedMotion === true ? 0 : metaIndex;
+  const activeIndices = getActivePreviewIndices({
+    motionPreference,
+    googleIndex,
+    metaIndex,
+  });
 
   const googleSlides = googleAdPreviews.map((preview, index) => (
     <AdPreviewSlide
       key={preview.id}
       preview={preview}
-      active={index === activeGoogleIndex}
+      active={index === activeIndices.google}
     />
   ));
   const metaSlides = metaAdPreviews.map((preview, index) => (
     <AdPreviewSlide
       key={preview.id}
       preview={preview}
-      active={index === activeMetaIndex}
+      active={index === activeIndices.meta}
     />
   ));
 
@@ -208,20 +223,21 @@ export function LiveAdPreviews() {
 
 export function PaidAdsEngine() {
   const [videoFailed, setVideoFailed] = useState(false);
-  const reducedMotion = useReducedMotion();
-  const showPoster = reducedMotion !== false || videoFailed;
+  const motionPreference = useMotionPreference();
+  const presentation = getEngineMediaPresentation({ motionPreference, videoFailed });
 
   return (
     <div
       className={styles.adEngineMedia}
       data-video-failed={videoFailed}
-      data-reduced-motion={reducedMotion === true}
+      data-reduced-motion={motionPreference === "reduce"}
+      aria-hidden={presentation.decorative}
     >
-      {showPoster ? (
+      {presentation.showPoster ? (
         <Image
           className={styles.adEngineFallback}
           src="/paid-ads/ad-engine-poster.png"
-          alt="Paid advertising engine illustration"
+          alt=""
           fill
           sizes="(max-width: 700px) 100vw, 30vw"
         />
@@ -231,8 +247,8 @@ export function PaidAdsEngine() {
           muted
           loop
           playsInline
+          preload="metadata"
           poster="/paid-ads/ad-engine-poster.png"
-          aria-label="Animated paid advertising engine"
           onError={() => setVideoFailed(true)}
         >
           <source

@@ -116,3 +116,12 @@ export const paidAdsCapabilities: readonly Capability[] = [
   { title: "Conversion tracking", description: "Measurement that connects media activity with meaningful business signals." },
   { title: "Weekly optimization", description: "Practical iteration informed by performance patterns and audience response." },
 ];
+
+export const paidAdsRenderContract = {
+  previewDecks: [
+    { platform: "google", previews: googleAdPreviews },
+    { platform: "meta", previews: metaAdPreviews },
+  ],
+  performanceCards: platformPerformance,
+  capabilities: paidAdsCapabilities,
+} as const;

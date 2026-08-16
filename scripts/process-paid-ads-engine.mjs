@@ -33,11 +33,12 @@ function dimensions(path) {
     ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0", path],
     { encoding: "utf8" },
   );
-  const [width, height] = result.stdout.trim().split(",").map(Number);
 
   if (result.error?.code === "ENOENT") {
     throw new Error("FFprobe is required to verify paid ads media. Install ffmpeg and ensure ffprobe is available on PATH.");
   }
+
+  const [width, height] = (result.stdout ?? "").trim().split(",").map(Number);
 
   if (result.error || result.status !== 0 || !width || !height) {
     throw new Error(`Could not verify dimensions for ${path}.`);

@@ -4,7 +4,7 @@
   --paid-lilac: #f0f1ff;
   --paid-lilac-strong: #e4e7ff;
   --paid-ink: #121936;
-  --paid-muted: #66709b;
+  --paid-muted: #525d86;
   --paid-blue: #245ddd;
   --paid-cobalt: #1748cf;
   --paid-cyan: #14b8ec;
@@ -46,10 +46,10 @@
   display: grid;
   grid-template-areas:
     "hero"
-    "engine"
-    "previews"
     "analytics"
-    "capabilities";
+    "capabilities"
+    "previews"
+    "engine";
   gap: clamp(1.35rem, 4vw, 2.5rem);
   align-items: start;
 }
@@ -200,7 +200,7 @@
 .performanceEyebrow {
   margin: 0 0 .15rem;
   color: #6b75a0;
-  font-size: .61rem;
+  font-size: .75rem;
   font-weight: 760;
   letter-spacing: .085em;
   text-transform: uppercase;
@@ -256,8 +256,8 @@
 }
 
 .performanceMetric dt {
-  color: #707ba8;
-  font-size: .62rem;
+  color: #4d597f;
+  font-size: .75rem;
   line-height: 1.3;
 }
 
@@ -276,8 +276,8 @@
   padding-inline: .38rem;
   border-radius: 999px;
   background: #e2f8eb;
-  color: #168451;
-  font-size: .64rem;
+  color: #09683c;
+  font-size: .75rem;
   font-weight: 780;
 }
 
@@ -361,7 +361,7 @@
 .capabilityList p {
   margin: 0;
   color: #6b7399;
-  font-size: .66rem;
+  font-size: .75rem;
   line-height: 1.42;
 }
 
@@ -415,7 +415,7 @@
   flex: 0 0 auto;
   gap: .35rem;
   color: #52705d;
-  font-size: .64rem;
+  font-size: .75rem;
   font-weight: 760;
 }
 
@@ -464,6 +464,38 @@
   object-position: center;
 }
 
+.adPreviewArtwork[data-image-failed="true"] {
+  background: linear-gradient(145deg, #eef2ff, #f8fbff);
+}
+
+.adPreviewFallback {
+  display: grid;
+  height: 100%;
+  place-content: center;
+  gap: .35rem;
+  padding: 1rem;
+  color: #263567;
+  text-align: center;
+}
+
+.adPreviewFallbackMark {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  margin-inline: auto;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--paid-cyan), var(--paid-cobalt));
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 850;
+}
+
+.adPreviewFallback strong,
+.adPreviewFallback span:last-child {
+  font-size: .75rem;
+}
+
 .adPreviewCopy {
   display: flex;
   min-height: 0;
@@ -475,7 +507,7 @@
 
 .adPreviewCopy > span {
   color: #526ed8;
-  font-size: .56rem;
+  font-size: .75rem;
   font-weight: 780;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -494,8 +526,8 @@
   flex-shrink: 0;
   margin: 0;
   overflow: hidden;
-  color: #66709d;
-  font-size: clamp(.65rem, 1.15vw, .74rem);
+  color: #4f5a82;
+  font-size: .75rem;
   line-height: 1.4;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -518,8 +550,8 @@
 }
 
 .adPreviewMetrics dt {
-  color: #737da9;
-  font-size: .55rem;
+  color: #4d587e;
+  font-size: .75rem;
 }
 
 .adPreviewMetrics dd {
@@ -550,7 +582,7 @@
 .engineHeader p {
   margin: 0 0 .3rem;
   color: #5f69a1;
-  font-size: .61rem;
+  font-size: .75rem;
   font-weight: 800;
   letter-spacing: .09em;
   text-transform: uppercase;
@@ -608,8 +640,8 @@
 
 .engineCopy {
   margin: .45rem 0 .85rem;
-  color: #68729b;
-  font-size: .69rem;
+  color: #505a80;
+  font-size: .75rem;
   line-height: 1.45;
 }
 
@@ -632,7 +664,7 @@
   border-radius: 12px;
   background: rgba(247, 249, 255, .8);
   color: #263467;
-  font-size: .69rem;
+  font-size: .75rem;
   font-weight: 780;
 }
 
@@ -646,8 +678,8 @@
   display: inline-flex;
   align-items: center;
   gap: .32rem;
-  color: #238352;
-  font-size: .62rem;
+  color: #126b43;
+  font-size: .75rem;
   font-weight: 780;
 }
 
@@ -667,8 +699,8 @@
 
 .disclosure p {
   margin: 0;
-  color: #747b9b;
-  font-size: .68rem;
+  color: #535c7c;
+  font-size: .75rem;
   line-height: 1.45;
   text-align: center;
 }
@@ -689,10 +721,10 @@
   .cockpitGrid {
     grid-template-areas:
       "hero"
-      "engine"
-      "previews"
       "analytics"
-      "capabilities";
+      "capabilities"
+      "previews"
+      "engine";
   }
 
   .engine {
@@ -774,7 +806,21 @@
   }
 
   .adPreviewViewport {
-    aspect-ratio: 9 / 12;
+    aspect-ratio: 16 / 9;
+  }
+
+  .adPreviewSlide {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+    grid-template-rows: 1fr;
+  }
+
+  .adPreviewCopy {
+    border-top: 0;
+    border-left: 1px solid rgba(203, 210, 244, .82);
+  }
+
+  .adPreviewCopy p {
+    -webkit-line-clamp: 3;
   }
 
   .engineMediaWrap {
