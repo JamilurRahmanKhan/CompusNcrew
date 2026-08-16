@@ -27,7 +27,7 @@ export function PaidAdsStudio() {
             </p>
             <h1 id="paid-ads-title">
               <span>Run Smarter Ads.</span>{" "}
-              <span className={styles.headingAccent}>Get Better Results.</span>
+              <span className={styles.headingAccent}><span className={styles.headingDark}>Get</span> Better Results.</span>
             </h1>
             <p className={styles.heroBody}>
               Manage, test and optimize Meta and Google campaigns from one focused system.

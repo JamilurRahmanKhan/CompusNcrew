@@ -97,7 +97,7 @@
   max-width: 12ch;
   margin: 0;
   color: #10162f;
-  font-size: clamp(2.75rem, 9.5vw, 4.9rem);
+  font-size: clamp(2.25rem, 7vw, 3.7rem);
   font-weight: 760;
   letter-spacing: -.068em;
   line-height: .98;
@@ -106,6 +106,7 @@
 
 .hero h1 > span {
   display: block;
+  white-space: nowrap;
 }
 
 .headingAccent {
@@ -383,16 +384,17 @@
 
 .adPreviewHeader,
 .adPreviewPlatform,
-.adPreviewStatus {
+.adPreviewStatus,
+.adPreviewActions {
   display: flex;
   align-items: center;
 }
 
 .adPreviewHeader {
-  min-height: 3.75rem;
+  min-height: 3.25rem;
   justify-content: space-between;
   gap: .7rem;
-  padding: .65rem .9rem;
+  padding: .55rem .75rem;
   border-bottom: 1px solid rgba(200, 208, 247, .82);
   background: rgba(247, 249, 255, .9);
 }
@@ -405,8 +407,8 @@
 }
 
 .adPreviewPlatform img {
-  width: 2rem;
-  height: 2rem;
+  width: 1.7rem;
+  height: 1.7rem;
   flex: 0 0 auto;
   object-fit: contain;
 }
@@ -415,7 +417,10 @@
   flex: 0 0 auto;
   gap: .35rem;
   color: #52705d;
-  font-size: .75rem;
+  padding: .22rem .45rem;
+  border-radius: 999px;
+  background: #e5f8ee;
+  font-size: .66rem;
   font-weight: 760;
 }
 
@@ -427,9 +432,22 @@
   box-shadow: 0 0 0 3px rgba(51, 186, 114, .13);
 }
 
+.headingDark {
+  color: #10162f;
+  -webkit-text-fill-color: #10162f;
+}
+
+.adPreviewActions { gap: .48rem; }
+
+.adPreviewMore {
+  color: #344164;
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .adPreviewViewport {
   position: relative;
-  aspect-ratio: 9 / 12;
+  aspect-ratio: 1.18 / 1;
   overflow: hidden;
   background: #f4f6ff;
 }
@@ -437,12 +455,74 @@
 .adPreviewSlide {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-rows: minmax(0, 1.15fr) minmax(0, .95fr);
+  display: block;
   pointer-events: none;
   opacity: 0;
   transform: translateY(8px) scale(.985);
   transition: opacity 550ms ease, transform 550ms ease;
+}
+
+.adPreviewBody {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  gap: .55rem;
+  padding: .65rem .72rem .6rem;
+  background: linear-gradient(145deg, #fbfcff, #f2f5ff);
+}
+
+.adPreviewCreative {
+  min-height: 0;
+  flex: 0 0 auto;
+  padding: .55rem;
+  border: 1px solid rgba(212, 218, 242, .9);
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(53, 72, 140, .08);
+}
+
+.sponsoredLabel {
+  display: block;
+  color: #27314f;
+  font-size: .58rem;
+  font-weight: 700;
+}
+
+.advertiserRow {
+  display: flex;
+  align-items: center;
+  gap: .38rem;
+  margin-top: .36rem;
+}
+
+.advertiserRow > span:last-child { display: grid; }
+
+.advertiserRow strong,
+.advertiserRow small {
+  line-height: 1.15;
+}
+
+.advertiserRow strong { font-size: .62rem; }
+.advertiserRow small { color: #71809c; font-size: .5rem; }
+
+.advertiserMark {
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #e9efff;
+  color: #4968d8;
+  font-size: .62rem;
+  font-weight: 850;
+}
+
+.adCreativeContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(5.25rem, .82fr);
+  gap: .45rem;
+  min-height: 7.2rem;
+  margin-top: .42rem;
 }
 
 .adPreviewSlide[data-active="true"] {
@@ -456,11 +536,12 @@
   position: relative;
   min-height: 0;
   overflow: hidden;
-  background: #fff;
+  border-radius: 9px;
+  background: #f6f8ff;
 }
 
 .adPreviewArtwork img {
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
 }
 
@@ -473,7 +554,7 @@
   height: 100%;
   place-content: center;
   gap: .35rem;
-  padding: 1rem;
+  padding: .5rem;
   color: #263567;
   text-align: center;
 }
@@ -491,33 +572,19 @@
   font-weight: 850;
 }
 
-.adPreviewFallback strong,
-.adPreviewFallback span:last-child {
+.adPreviewFallback strong {
   font-size: .75rem;
 }
 
 .adPreviewCopy {
-  display: flex;
-  min-height: 0;
-  flex-direction: column;
-  padding: clamp(.78rem, 2vw, 1rem);
-  border-top: 1px solid rgba(203, 210, 244, .82);
-  background: linear-gradient(145deg, #fff, #f2f5ff);
-}
-
-.adPreviewCopy > span {
-  color: #526ed8;
-  font-size: .75rem;
-  font-weight: 780;
-  letter-spacing: .08em;
-  text-transform: uppercase;
+  align-self: center;
 }
 
 .adPreviewCopy h3 {
-  margin: .32rem 0 .28rem;
-  color: #17214d;
-  font-size: clamp(.96rem, 2vw, 1.2rem);
-  line-height: 1.06;
+  margin: 0 0 .32rem;
+  color: #2455c8;
+  font-size: clamp(.82rem, 1.4vw, 1rem);
+  line-height: 1.12;
   letter-spacing: -.035em;
 }
 
@@ -527,39 +594,48 @@
   margin: 0;
   overflow: hidden;
   color: #4f5a82;
-  font-size: .75rem;
-  line-height: 1.4;
+  font-size: .61rem;
+  line-height: 1.35;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
 .adPreviewMetrics {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: .42rem;
-  margin: auto 0 0;
-  padding-top: .6rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: .15rem .18rem 0;
 }
 
 .adPreviewMetrics > div {
   min-width: 0;
-  padding: .42rem .52rem;
-  border: 1px solid #dbe1ff;
-  border-radius: 10px;
-  background: rgba(237, 241, 255, .8);
+  padding: .12rem .35rem;
+  border-right: 1px solid #e3e7f7;
 }
+
+.adPreviewMetrics > div:last-child { border-right: 0; }
 
 .adPreviewMetrics dt {
   color: #4d587e;
-  font-size: .75rem;
+  font-size: .58rem;
 }
 
 .adPreviewMetrics dd {
   margin: .12rem 0 0;
   color: #1c2b65;
-  font-size: .78rem;
+  font-size: .7rem;
   font-weight: 800;
 }
+
+.viewDetails {
+  align-self: flex-end;
+  color: #2d67d6;
+  font-size: .62rem;
+  font-weight: 700;
+}
+
+.viewDetails span { margin-left: .28rem; }
 
 .engine {
   display: grid;
@@ -745,7 +821,7 @@
   }
 
   .adPreviewViewport {
-    aspect-ratio: 9 / 12.5;
+    aspect-ratio: 1 / 1.05;
   }
 }
 
@@ -766,7 +842,7 @@
 
   .hero h1 {
     max-width: none;
-    font-size: clamp(3rem, 5.2vw, 3.7rem);
+    font-size: clamp(2.6rem, 4.2vw, 3.2rem);
   }
 
   .performanceCards {
@@ -774,7 +850,7 @@
   }
 
   .adPreviewViewport {
-    aspect-ratio: .97 / 1;
+    aspect-ratio: 1.5 / 1;
   }
 
   .adPreviewCopy {
@@ -798,29 +874,102 @@
       "hero previews engine"
       "analytics previews engine"
       "capabilities previews engine";
-    gap: clamp(1.15rem, 1.9vw, 2rem);
+    column-gap: clamp(1.15rem, 1.9vw, 2rem);
+    row-gap: .85rem;
+  }
+
+  .hero {
+    padding-block: 0;
+  }
+
+  .eyebrow {
+    min-height: 2rem;
+    margin-bottom: .85rem;
+    padding: .42rem .75rem;
   }
 
   .hero h1 {
-    font-size: clamp(3rem, 4.25vw, 4.9rem);
+    max-width: none;
+    font-size: clamp(2.7rem, 3vw, 3.35rem);
+    line-height: .96;
+  }
+
+  .heroBody {
+    margin-top: .85rem;
+    font-size: .98rem;
+    line-height: 1.42;
+  }
+
+  .sectionHeading {
+    margin-bottom: .6rem;
+  }
+
+  .performanceCards {
+    gap: .72rem;
+  }
+
+  .platformPerformanceCard {
+    gap: .65rem;
+    padding: .78rem .9rem;
+    border-radius: 18px;
+  }
+
+  .platformLogo {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .performanceEyebrow {
+    font-size: .65rem;
+  }
+
+  .miniTrendChart {
+    width: 5.5rem;
+    height: 2.6rem;
+  }
+
+  .performanceMetric {
+    padding: .48rem .55rem;
+    border-radius: 11px;
+  }
+
+  .performanceMetric dt,
+  .metricChange {
+    font-size: .66rem;
+  }
+
+  .performanceMetric dd {
+    margin: .12rem 0;
+    font-size: 1.05rem;
+  }
+
+  .campaignActionRail {
+    min-height: 2.15rem;
+  }
+
+  .capabilityList {
+    gap: .48rem;
+  }
+
+  .capabilityList li {
+    grid-template-columns: 1.8rem minmax(0, 1fr);
+    gap: .5rem;
+    padding: .55rem;
+    border-radius: 12px;
+  }
+
+  .capabilityIcon {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+
+  .capabilityList p {
+    font-size: .68rem;
+    line-height: 1.32;
   }
 
   .adPreviewViewport {
-    aspect-ratio: 16 / 9;
-  }
-
-  .adPreviewSlide {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
-    grid-template-rows: 1fr;
-  }
-
-  .adPreviewCopy {
-    border-top: 0;
-    border-left: 1px solid rgba(203, 210, 244, .82);
-  }
-
-  .adPreviewCopy p {
-    -webkit-line-clamp: 3;
+    aspect-ratio: 1.55 / 1;
   }
 
   .engineMediaWrap {
@@ -835,15 +984,146 @@
 }
 
 @media (max-width: 699px) {
+  .page {
+    padding: 5rem 1rem 1.5rem;
+  }
+
+  .cockpitGrid {
+    grid-template-areas:
+      "hero"
+      "engine"
+      "analytics"
+      "capabilities"
+      "previews";
+    gap: 1.6rem;
+  }
+
+  .hero {
+    padding-block: .25rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.15rem, 9.5vw, 2.9rem);
+    line-height: 1;
+  }
+
+  .heroBody {
+    margin-top: 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .sectionHeading {
+    margin-bottom: .7rem;
+  }
+
+  .sectionHeading h2 {
+    font-size: .9rem;
+  }
+
+  .performanceCards,
+  .liveAdPreviews {
+    gap: .9rem;
+  }
+
+  .platformPerformanceCard {
+    gap: .75rem;
+    padding: .9rem;
+  }
+
+  .performanceMetricGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .4rem;
+  }
+
+  .performanceMetric {
+    display: block;
+    padding: .55rem .45rem;
+  }
+
+  .performanceMetric dt {
+    font-size: .68rem;
+  }
+
+  .performanceMetric dd {
+    margin: .2rem 0;
+    font-size: 1rem;
+  }
+
+  .metricChange {
+    min-height: 1.2rem;
+    font-size: .66rem;
+  }
+
+  .capabilityList {
+    gap: .65rem;
+  }
+
+  .capabilityList li {
+    padding: .8rem;
+  }
+
+  .capabilityList h3 {
+    font-size: .82rem;
+  }
+
+  .capabilityList p {
+    font-size: .78rem;
+    line-height: 1.4;
+  }
+
+  .adPreviewCard {
+    border-radius: 21px;
+  }
+
+  .adPreviewViewport {
+    aspect-ratio: 1.14 / 1;
+  }
+
+  .adPreviewCopy h3 {
+    font-size: .92rem;
+  }
+
+  .adPreviewCopy p,
+  .adPreviewMetrics dd {
+    font-size: .72rem;
+  }
+
+  .adPreviewMetrics dt,
+  .viewDetails {
+    font-size: .66rem;
+  }
+
+  .engine {
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .engineHeader h2 {
+    font-size: 1.45rem;
+  }
+
   .engineMediaWrap,
   .adEngineMedia {
-    max-width: 22.5rem;
+    max-width: 18rem;
+  }
+
+  .enginePanel {
+    padding: 1rem;
+  }
+
+  .engineSummary {
+    font-size: .9rem;
+  }
+
+  .engineCopy {
+    font-size: .82rem;
   }
 }
 
 @media (max-width: 419px) {
   .page {
-    padding: 5rem .65rem 1rem;
+    padding: 4.75rem .8rem 1rem;
   }
 
   .cockpitGrid {
@@ -851,7 +1131,7 @@
   }
 
   .hero h1 {
-    font-size: clamp(2.45rem, 12.5vw, 3.25rem);
+    font-size: clamp(1.9rem, 9.2vw, 2.35rem);
     letter-spacing: -.06em;
   }
 
@@ -882,23 +1162,7 @@
   }
 
   .performanceMetricGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .performanceMetric {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    column-gap: .5rem;
-    align-items: center;
-  }
-
-  .performanceMetric dd {
-    margin-block: .18rem 0;
-  }
-
-  .metricChange {
-    grid-row: 1 / span 2;
-    grid-column: 2;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .capabilityList {
@@ -911,7 +1175,7 @@
   }
 
   .adPreviewViewport {
-    aspect-ratio: 9 / 12.5;
+    aspect-ratio: 1.05 / 1;
   }
 
   .enginePanel {

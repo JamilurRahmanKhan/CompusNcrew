@@ -8,8 +8,8 @@ const assetsDirectory = resolve(projectRoot, "public", "paid-ads");
 const source = resolve(assetsDirectory, "ad-engine.gif");
 const video = resolve(assetsDirectory, "ad-engine-alpha.webm");
 const poster = resolve(assetsDirectory, "ad-engine-poster.png");
-const videoFilter = "format=rgba,scale=720:-2:flags=lanczos,format=yuva420p";
-const posterFilter = "format=rgba,scale=720:-2:flags=lanczos";
+const videoFilter = "[0:v]format=rgba,scale=720:-2:flags=lanczos,crop=680:1280:x='13+23*t/2.57':y=0,pad=720:1280:20:0:color=0x00000000,split[forward][reverseInput];[reverseInput]reverse[reverse];[forward][reverse]concat=n=2:v=1:a=0,format=yuva420p[video]";
+const posterFilter = "format=rgba,scale=720:-2:flags=lanczos,crop=680:1280:13:0,pad=720:1280:20:0:color=0x00000000";
 
 function runFfmpeg(args) {
   const result = spawnSync("ffmpeg", args, { encoding: "utf8" });
@@ -55,7 +55,8 @@ runFfmpeg(["-version"]);
 runFfmpeg([
   "-y",
   "-i", source,
-  "-vf", videoFilter,
+  "-filter_complex", videoFilter,
+  "-map", "[video]",
   "-c:v", "libvpx-vp9",
   "-pix_fmt", "yuva420p",
   "-auto-alt-ref", "0",

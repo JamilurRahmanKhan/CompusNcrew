@@ -70,36 +70,45 @@ function AdPreviewSlide({
       data-active={active}
       aria-hidden={!active}
     >
-      <div className={styles.adPreviewArtwork} data-image-failed={imageFailed}>
-        {artwork.showImage ? (
-          <Image
-            src={preview.image}
-            alt={artwork.renderedImageAlt}
-            fill
-            loading={active ? "eager" : "lazy"}
-            sizes="(max-width: 700px) 100vw, 28vw"
-            onError={() => setImageFailed(true)}
-          />
-        ) : null}
-        {artwork.showFallback ? (
-          <div
-            className={styles.adPreviewFallback}
-            role={active ? "img" : undefined}
-            aria-label={artwork.fallbackLabel || undefined}
-          >
-            <span className={styles.adPreviewFallbackMark} aria-hidden="true">
-              C
+      <div className={styles.adPreviewBody}>
+        <div className={styles.adPreviewCreative}>
+          <span className={styles.sponsoredLabel}>Sponsored</span>
+          <div className={styles.advertiserRow}>
+            <span className={styles.advertiserMark} aria-hidden="true">C</span>
+            <span>
+              <strong>{preview.platform === "google" ? "yourbusiness.com" : "Your Brand"}</strong>
+              <small>{preview.platform === "google" ? "www.yourbusiness.com" : "Sponsored"}</small>
             </span>
-            <strong>CompassNCrew</strong>
-            <span>Creative preview unavailable</span>
           </div>
-        ) : null}
-      </div>
-
-      <div className={styles.adPreviewCopy}>
-        <span>Demonstration creative</span>
-        <h3>{preview.headline}</h3>
-        <p>{preview.body}</p>
+          <div className={styles.adCreativeContent}>
+            <div className={styles.adPreviewCopy}>
+              <h3>{preview.headline}</h3>
+              <p>{preview.body}</p>
+            </div>
+            <div className={styles.adPreviewArtwork} data-image-failed={imageFailed}>
+              {artwork.showImage ? (
+                <Image
+                  src={preview.image}
+                  alt={artwork.renderedImageAlt}
+                  fill
+                  loading={active ? "eager" : "lazy"}
+                  sizes="(max-width: 700px) 38vw, 12vw"
+                  onError={() => setImageFailed(true)}
+                />
+              ) : null}
+              {artwork.showFallback ? (
+                <div
+                  className={styles.adPreviewFallback}
+                  role={active ? "img" : undefined}
+                  aria-label={artwork.fallbackLabel || undefined}
+                >
+                  <span className={styles.adPreviewFallbackMark} aria-hidden="true">C</span>
+                  <strong>CompassNCrew</strong>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
         <dl className={styles.adPreviewMetrics}>
           {preview.metrics.map((metric) => (
             <div key={metric.label}>
@@ -108,6 +117,7 @@ function AdPreviewSlide({
             </div>
           ))}
         </dl>
+        <span className={styles.viewDetails}>View Details <span aria-hidden="true">→</span></span>
       </div>
     </div>
   );
@@ -129,8 +139,9 @@ function PreviewCard({
           <Image src={details.logo} alt="" width={32} height={32} />
           <span>{details.label}</span>
         </span>
-        <span className={styles.adPreviewStatus}>
-          <span aria-hidden="true" /> Live preview
+        <span className={styles.adPreviewActions}>
+          <span className={styles.adPreviewStatus}><span aria-hidden="true" /> Active</span>
+          <span className={styles.adPreviewMore} aria-hidden="true">⋮</span>
         </span>
       </header>
       <div className={styles.adPreviewViewport}>{children}</div>
