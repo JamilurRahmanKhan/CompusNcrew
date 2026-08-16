@@ -106,6 +106,26 @@ test("resuming schedules exactly one pending rotation", () => {
   assert.equal(scheduler.timers[1].delay, 4_000);
 });
 
+test("ignores a stale cleared callback after resuming", () => {
+  const scheduler = createFakeScheduler();
+  const changes: number[] = [];
+  const controller = createAdRotationController({
+    itemCount: 3,
+    intervalMs: 4_000,
+    scheduler,
+    onIndexChange: (index) => changes.push(index),
+  });
+
+  controller.start();
+  const staleCallback = scheduler.timers[0].callback;
+  controller.setPaused(true);
+  controller.setPaused(false);
+  staleCallback();
+
+  assert.deepEqual(changes, []);
+  assert.equal(scheduler.timers.filter((timer) => !timer.cleared).length, 1);
+});
+
 test("disposing prevents a queued callback from changing the index", () => {
   const scheduler = createFakeScheduler();
   const changes: number[] = [];

@@ -22,18 +22,26 @@ export function createAdRotationController(options: {
   let started = false;
   let paused = false;
   let disposed = false;
+  let timerGeneration = 0;
 
   const clearPendingTimer = () => {
     if (timer !== undefined) {
       scheduler.clearTimeout(timer);
       timer = undefined;
+      timerGeneration += 1;
     }
   };
 
   const schedule = (delay: number) => {
     clearPendingTimer();
+    const scheduledGeneration = timerGeneration + 1;
+    timerGeneration = scheduledGeneration;
 
     timer = scheduler.setTimeout(() => {
+      if (scheduledGeneration !== timerGeneration) {
+        return;
+      }
+
       timer = undefined;
 
       if (disposed || paused) {
