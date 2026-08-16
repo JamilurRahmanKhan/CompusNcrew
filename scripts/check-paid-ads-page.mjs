@@ -50,6 +50,9 @@ function readSource(sourcePath) {
 const analyticsCardSource = readSource(analyticsCardPath);
 const liveAdPreviewsSource = readSource(liveAdPreviewsPath);
 const paidAdsPageSource = paidAdsPageSources.map(readSource).join("\n");
+const retiredSectionIdentifiers = ["strategy", "creative", "services", "process", "contact"].filter(
+  (identifier) => new RegExp(`id\\s*=\\s*["']${identifier}["']`).test(paidAdsPageSource),
+);
 const structuralFailures = [
   !/<svg\b/.test(analyticsCardSource) && "Platform analytics must render an inline SVG trend chart.",
   !/performance\.metrics\.map\s*\(/.test(analyticsCardSource) && "Platform analytics must map typed performance metrics.",
@@ -64,6 +67,13 @@ const structuralFailures = [
   !/<source\b[^>]*onError=/.test(liveAdPreviewsSource) && "The final video source must expose the poster fallback on error.",
   /setMetaIndex\(0\)/.test(liveAdPreviewsSource) && "Reduced motion must not swap the initial Meta slide after hydration.",
   /paid-ads-ui\.jpg/.test(paidAdsPageSource) && "Paid ads page source must not use paid-ads-ui.jpg.",
+  retiredSectionIdentifiers.length > 0 && `Paid ads page must remove retired dark-page sections: ${retiredSectionIdentifiers.join(", ")}.`,
+  !/\bid=["']paid-ads-cockpit["']/.test(paidAdsPageSource) && "Paid ads page must expose the cockpit region.",
+  !/<section\b[^>]*id=["']paid-ads-analytics["']/.test(paidAdsPageSource) && "Paid ads page must expose the analytics region.",
+  !/<section\b[^>]*id=["']live-ad-previews["']/.test(paidAdsPageSource) && "Paid ads page must expose the live-preview region.",
+  !/<section\b[^>]*id=["']paid-ads-engine["']/.test(paidAdsPageSource) && "Paid ads page must expose the engine region.",
+  !/<section\b[^>]*id=["']paid-ads-capabilities["']/.test(paidAdsPageSource) && "Paid ads page must expose the capability region.",
+  !/<section\b[^>]*id=["']paid-ads-disclosure["']/.test(paidAdsPageSource) && "Paid ads page must expose the disclosure region.",
 ].filter(Boolean);
 
 function hasTransparentCorner(asset) {
