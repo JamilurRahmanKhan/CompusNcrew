@@ -1,4 +1,4 @@
-import { statSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -32,6 +32,28 @@ const missing = assets.filter((asset) => {
   }
 });
 
+const analyticsCardPath = resolve(projectRoot, "app", "paid-ads", "platform-performance-card.tsx");
+const paidAdsPageSources = [
+  resolve(projectRoot, "app", "paid-ads", "page.tsx"),
+  resolve(projectRoot, "app", "paid-ads", "paid-ads-studio.tsx"),
+];
+
+function readSource(sourcePath) {
+  try {
+    return readFileSync(sourcePath, "utf8");
+  } catch {
+    return "";
+  }
+}
+
+const analyticsCardSource = readSource(analyticsCardPath);
+const paidAdsPageSource = paidAdsPageSources.map(readSource).join("\n");
+const structuralFailures = [
+  !/<svg\b/.test(analyticsCardSource) && "Platform analytics must render an inline SVG trend chart.",
+  !/performance\.metrics\.map\s*\(/.test(analyticsCardSource) && "Platform analytics must map typed performance metrics.",
+  /paid-ads-ui\.jpg/.test(paidAdsPageSource) && "Paid ads page source must not use paid-ads-ui.jpg.",
+].filter(Boolean);
+
 function hasTransparentCorner(asset) {
   const decoder = asset.endsWith(".webm") ? ["-c:v", "libvpx-vp9"] : [];
   const result = spawnSync(
@@ -45,6 +67,9 @@ function hasTransparentCorner(asset) {
 
 if (missing.length > 0) {
   console.error(`Missing or empty paid ads assets: ${missing.join(", ")}`);
+  process.exitCode = 1;
+} else if (structuralFailures.length > 0) {
+  console.error(`Paid ads page structural check failed: ${structuralFailures.join(" ")}`);
   process.exitCode = 1;
 } else if (!hasTransparentCorner("ad-engine-alpha.webm") || !hasTransparentCorner("ad-engine-poster.png")) {
   console.error("Paid ads engine outputs must retain a transparent top-left corner.");

@@ -272,3 +272,52 @@
 @media (prefers-reduced-motion: reduce) {
   .minute > a, .cta > a, .demoCard, .serviceCard { transition: none; }
 }
+
+.platformPerformanceCard {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border: 1px solid rgba(154, 163, 255, .3);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .96), rgba(244, 246, 255, .88));
+  box-shadow: 0 14px 32px rgba(58, 85, 176, .12);
+  color: #18214d;
+}
+
+.performanceCardHeader,
+.platformIdentity,
+.campaignActionRail {
+  display: flex;
+  align-items: center;
+}
+
+.performanceCardHeader { justify-content: space-between; gap: 1rem; }
+.platformIdentity { min-width: 0; gap: .7rem; }
+.platformLogo { width: 2.4rem; height: 2.4rem; flex: 0 0 auto; object-fit: contain; }
+.performanceEyebrow { margin: 0 0 .15rem; color: #66709d; font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.platformIdentity h3 { margin: 0; color: #18214d; font-size: 1rem; letter-spacing: -.02em; }
+
+.miniTrendChart { width: 7.5rem; height: 3.5rem; flex: 0 0 auto; overflow: visible; }
+.miniTrendBaseline { fill: none; stroke: #dce2ff; stroke-width: 1; }
+.miniTrendLine { fill: none; stroke: #3370f6; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2.5; }
+.miniTrendEndpoint { fill: #38bf76; stroke: #fff; stroke-width: 1.5; }
+
+.performanceMetricGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; margin: 0; }
+.performanceMetric { min-width: 0; padding: .7rem; border: 1px solid rgba(196, 205, 255, .75); border-radius: 14px; background: rgba(246, 248, 255, .78); }
+.performanceMetric dt { color: #707ba8; font-size: .66rem; line-height: 1.3; }
+.performanceMetric dd { margin: .34rem 0; color: #17214d; font-size: clamp(1rem, 2vw, 1.3rem); font-weight: 750; letter-spacing: -.04em; }
+.metricChange { display: inline-flex; align-items: center; min-height: 1.35rem; padding: 0 .4rem; border-radius: 999px; background: #e2f8eb; color: #168451; font-size: .67rem; font-weight: 750; }
+
+.campaignActionRail { justify-content: space-between; min-height: 2.75rem; padding: 0 .8rem; border: 1px solid #d6ddff; border-radius: 12px; background: #eef1ff; color: #2c58d6; font-size: .78rem; font-weight: 750; }
+.campaignActionRail span:last-child { display: grid; width: 1.5rem; height: 1.5rem; place-items: center; border-radius: 50%; background: #fff; color: #1c4dcc; }
+
+@media (max-width: 420px) {
+  .platformPerformanceCard { padding: .9rem; border-radius: 18px; }
+  .performanceCardHeader { align-items: flex-start; }
+  .miniTrendChart { width: 5.75rem; }
+  .performanceMetricGrid { grid-template-columns: 1fr; }
+  .performanceMetric { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: .5rem; }
+  .performanceMetric dd { margin: .2rem 0 0; }
+  .metricChange { grid-row: 1 / span 2; grid-column: 2; }
+}
