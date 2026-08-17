@@ -23,6 +23,25 @@
   font-family: var(--font-sans), Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+/* Faint repeating Google/Meta mark texture — muted to a flat dark tint (not
+   brand color) and kept very low-opacity, just a touch darker than the page
+   surface, so it reads as paper grain rather than decoration. */
+.page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    url("/paid-ads/pattern-google.png"),
+    url("/paid-ads/pattern-meta.png");
+  background-repeat: repeat, repeat;
+  background-size: 108px 108px, 108px 108px;
+  background-position: 0 0, 54px 54px;
+  filter: grayscale(1) brightness(0.35);
+  opacity: 0.05;
+}
+
 .ambientGlow {
   position: absolute;
   z-index: -1;
@@ -447,7 +466,7 @@
 
 .adPreviewViewport {
   position: relative;
-  aspect-ratio: 1.18 / 1;
+  aspect-ratio: 1.1 / 1;
   overflow: hidden;
   background: #f4f6ff;
 }
@@ -467,7 +486,7 @@
   height: 100%;
   flex-direction: column;
   gap: .55rem;
-  padding: .65rem .72rem .6rem;
+  padding: .65rem .72rem .75rem;
   background: linear-gradient(145deg, #fbfcff, #f2f5ff);
 }
 
@@ -603,18 +622,19 @@
 .adPreviewMetrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
+  gap: .4rem;
   margin: 0;
-  padding: .15rem .18rem 0;
+  padding: 0;
 }
 
 .adPreviewMetrics > div {
   min-width: 0;
-  padding: .12rem .35rem;
-  border-right: 1px solid #e3e7f7;
+  padding: .3rem .35rem;
+  border: 1px solid rgba(196, 205, 255, .75);
+  border-radius: 10px;
+  background: rgba(246, 248, 255, .8);
+  text-align: center;
 }
-
-.adPreviewMetrics > div:last-child { border-right: 0; }
 
 .adPreviewMetrics dt {
   color: #4d587e;
@@ -969,7 +989,8 @@
   }
 
   .adPreviewViewport {
-    aspect-ratio: 1.55 / 1;
+    aspect-ratio: auto;
+    height: 316px;
   }
 
   .engineMediaWrap {
