@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { createAdPreviewLifecycle, REDUCED_MOTION_QUERY } from "./ad-preview-lifecycle";
 import {
@@ -52,11 +52,12 @@ function useMotionPreference() {
 
 function AdPreviewSlide({
   preview,
-  active,
+  status,
 }: {
   preview: AdPreview;
-  active: boolean;
+  status: "active" | "exiting" | "waiting";
 }) {
+  const active = status === "active";
   const [imageFailed, setImageFailed] = useState(false);
   const artwork = getPreviewArtworkPresentation({
     active,
@@ -67,7 +68,7 @@ function AdPreviewSlide({
   return (
     <div
       className={styles.adPreviewSlide}
-      data-active={active}
+      data-status={status}
       aria-hidden={!active}
     >
       <div className={styles.adPreviewBody}>
@@ -149,9 +150,21 @@ function PreviewCard({
   );
 }
 
+function slideStatus(
+  index: number,
+  activeIndex: number,
+  prevIndexRef: { current: number },
+): "active" | "exiting" | "waiting" {
+  if (index === activeIndex) return "active";
+  if (index === prevIndexRef.current) return "exiting";
+  return "waiting";
+}
+
 export function LiveAdPreviews() {
   const [googleIndex, setGoogleIndex] = useState(0);
   const [metaIndex, setMetaIndex] = useState(0);
+  const prevGoogleIndex = useRef(0);
+  const prevMetaIndex = useRef(0);
   const [motionPreference, setMotionPreference] =
     useState<MotionPreference>("unresolved");
 
@@ -209,18 +222,25 @@ export function LiveAdPreviews() {
     metaIndex,
   });
 
+  useEffect(() => {
+    prevGoogleIndex.current = activeIndices.google;
+  }, [activeIndices.google]);
+  useEffect(() => {
+    prevMetaIndex.current = activeIndices.meta;
+  }, [activeIndices.meta]);
+
   const googleSlides = googleAdPreviews.map((preview, index) => (
     <AdPreviewSlide
       key={preview.id}
       preview={preview}
-      active={index === activeIndices.google}
+      status={slideStatus(index, activeIndices.google, prevGoogleIndex)}
     />
   ));
   const metaSlides = metaAdPreviews.map((preview, index) => (
     <AdPreviewSlide
       key={preview.id}
       preview={preview}
-      active={index === activeIndices.meta}
+      status={slideStatus(index, activeIndices.meta, prevMetaIndex)}
     />
   ));
 
