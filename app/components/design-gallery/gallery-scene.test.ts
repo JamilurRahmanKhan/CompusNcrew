@@ -41,6 +41,7 @@ function installSuccessfulSceneEnvironment(options: { throwOnUrl?: string } = {}
   const requests: PendingTextureLoad[] = [];
   const context = {
     clearRect() {},
+    fillRect() {},
     fillText() {},
     measureText: (text: string) => ({ width: text.length * 10 }),
     fillStyle: "",
@@ -290,7 +291,9 @@ test("pitched roof rises toward the ridge and uses discrete skylight frames", ()
     assert.equal(architecture.children.some((child) => child.name.startsWith("Roof beam")), false);
     assert.ok(architecture.getObjectByName("Left skylight frame 1"));
     assert.ok(architecture.getObjectByName("Right skylight frame 1"));
-    assert.equal((left as THREE.Mesh).material instanceof THREE.MeshBasicMaterial, true);
+    // A plank texture responds to scene lighting instead of the flat,
+    // unshaded MeshBasicMaterial the ceiling previously used.
+    assert.equal((left as THREE.Mesh).material instanceof THREE.MeshStandardMaterial, true);
   } finally {
     handle?.dispose();
     environment.restore();
@@ -429,6 +432,7 @@ test("createGalleryScene disposes constructed resources when initialization thro
         canvasCount += 1;
         const context = {
           clearRect() {},
+          fillRect() {},
           fillText() {},
           measureText: (text: string) => ({ width: text.length * 10 }),
           fillStyle: "",
@@ -436,18 +440,23 @@ test("createGalleryScene disposes constructed resources when initialization thro
           textAlign: "center",
           textBaseline: "middle",
         };
-        return { width: 0, height: 0, getContext: () => (canvasCount === 1 ? context : null) };
+        return { width: 0, height: 0, getContext: () => (canvasCount <= 2 ? context : null) };
       },
     },
   });
 
   try {
+    // The side walls' brick texture (colour + bump canvas) is the first
+    // canvas-backed resource built, so letting the first two canvases
+    // succeed lets it complete and land on the already-scene-attached wall
+    // meshes; the front wall's brick texture is what then fails, rather
+    // than a text panel canvas further downstream.
     assert.throws(
       () =>
         createGalleryScene({
           ...gallerySceneOptions,
         }),
-      /Unable to create gallery text texture/,
+      /Unable to create brick wall texture/,
     );
     assert.ok(geometryDisposals > 0, "constructed geometries should be disposed");
     assert.ok(materialDisposals > 0, "constructed materials should be disposed");

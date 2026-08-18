@@ -53,6 +53,13 @@ interface GallerySceneConstruction {
   disposed: boolean;
 }
 
+const BRICK_COLS = 8;
+const BRICK_ROWS = 10;
+const BRICK_PIXEL_WIDTH = 64;
+const BRICK_PIXEL_HEIGHT = 28;
+const BRICK_MORTAR_PIXELS = 4;
+const BRICK_TILE_WORLD_WIDTH = 1.9;
+const BRICK_TILE_WORLD_HEIGHT = 1.0;
 const WALL_HEIGHT = 5.8;
 const WALL_PADDING = 1.35;
 const ENTRANCE_DEPTH = 5.2;
@@ -102,6 +109,221 @@ export function getResponsiveCameraFov(
   return tier === "mobile" ? 56 : 50;
 }
 
+// A polished hardwood gallery floor: boards run the length of the room (the
+// PlaneGeometry's V axis maps to room depth once rotated flat), each board
+// a narrow column with its own tint, grain streaks, and staggered end-joint
+// seams so it doesn't repeat as one obvious tile. A companion bump map
+// gives the seams between boards real depth under the room lights.
+function createFloorPlankTextures(baseColorHex: number): { map: THREE.CanvasTexture; bumpMap: THREE.CanvasTexture } {
+  const width = FLOOR_PLANK_COLS * FLOOR_PLANK_COL_PIXELS;
+  const height = FLOOR_TEXTURE_HEIGHT;
+
+  const colorCanvas = document.createElement("canvas");
+  colorCanvas.width = width;
+  colorCanvas.height = height;
+  const colorCtx = colorCanvas.getContext("2d");
+
+  const bumpCanvas = document.createElement("canvas");
+  bumpCanvas.width = width;
+  bumpCanvas.height = height;
+  const bumpCtx = bumpCanvas.getContext("2d");
+
+  if (!colorCtx || !bumpCtx) throw new Error("Unable to create gallery floor texture");
+
+  const base = new THREE.Color(baseColorHex);
+  bumpCtx.fillStyle = "#787878";
+  bumpCtx.fillRect(0, 0, width, height);
+
+  let seed = 30211;
+  const random = () => {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  };
+
+  for (let col = 0; col < FLOOR_PLANK_COLS; col += 1) {
+    const x = col * FLOOR_PLANK_COL_PIXELS;
+    const boardWidth = FLOOR_PLANK_COL_PIXELS - 2;
+    const shade = 0.92 + random() * 0.22;
+    const board = base.clone().multiplyScalar(shade);
+    colorCtx.fillStyle = `rgb(${Math.round(board.r * 255)}, ${Math.round(board.g * 255)}, ${Math.round(board.b * 255)})`;
+    colorCtx.fillRect(x, 0, boardWidth, height);
+
+    for (let streak = 0; streak < 5; streak += 1) {
+      colorCtx.fillStyle = `rgba(0, 0, 0, ${0.03 + random() * 0.05})`;
+      const streakX = x + random() * (boardWidth - 3);
+      colorCtx.fillRect(streakX, 0, 1.4, height);
+    }
+
+    let cursor = random() * 80;
+    while (cursor < height) {
+      const boardLength = 90 + random() * 70;
+      colorCtx.fillStyle = "rgba(0, 0, 0, 0.16)";
+      colorCtx.fillRect(x, cursor, boardWidth, 2);
+      cursor += boardLength;
+    }
+
+    bumpCtx.fillStyle = "#dcdcdc";
+    bumpCtx.fillRect(x, 0, boardWidth, height);
+  }
+
+  const map = new THREE.CanvasTexture(colorCanvas);
+  map.colorSpace = THREE.SRGBColorSpace;
+  map.wrapS = THREE.RepeatWrapping;
+  map.wrapT = THREE.RepeatWrapping;
+
+  const bumpMap = new THREE.CanvasTexture(bumpCanvas);
+  bumpMap.wrapS = THREE.RepeatWrapping;
+  bumpMap.wrapT = THREE.RepeatWrapping;
+
+  return { map, bumpMap };
+}
+
+// A running-bond brick pattern rendered to canvas, in two aligned layers: a
+// colour map (per-brick tint variance around the gallery's base wall colour,
+// plus mortar joints) and a bump map (raised brick faces, recessed mortar)
+// so the wall reads as real masonry under the room's lighting instead of a
+// flat painted plane. Brick width/offset are chosen so the pattern tiles
+// seamlessly under THREE.RepeatWrapping (offset is exactly half a brick,
+// and both divide the canvas width evenly).
+function createBrickTextures(baseColorHex: number): { map: THREE.CanvasTexture; bumpMap: THREE.CanvasTexture } {
+  const width = BRICK_COLS * BRICK_PIXEL_WIDTH;
+  const height = BRICK_ROWS * BRICK_PIXEL_HEIGHT;
+
+  const colorCanvas = document.createElement("canvas");
+  colorCanvas.width = width;
+  colorCanvas.height = height;
+  const colorCtx = colorCanvas.getContext("2d");
+
+  const bumpCanvas = document.createElement("canvas");
+  bumpCanvas.width = width;
+  bumpCanvas.height = height;
+  const bumpCtx = bumpCanvas.getContext("2d");
+
+  if (!colorCtx || !bumpCtx) throw new Error("Unable to create brick wall texture");
+
+  const base = new THREE.Color(baseColorHex);
+  const mortarColor = "#a89178";
+
+  colorCtx.fillStyle = mortarColor;
+  colorCtx.fillRect(0, 0, width, height);
+  bumpCtx.fillStyle = "#3c3c3c";
+  bumpCtx.fillRect(0, 0, width, height);
+
+  let seed = 90121;
+  const random = () => {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  };
+
+  for (let row = 0; row < BRICK_ROWS; row += 1) {
+    const rowOffset = row % 2 === 0 ? 0 : BRICK_PIXEL_WIDTH / 2;
+    for (let col = -1; col <= BRICK_COLS; col += 1) {
+      const x = col * BRICK_PIXEL_WIDTH + rowOffset + BRICK_MORTAR_PIXELS / 2;
+      const y = row * BRICK_PIXEL_HEIGHT + BRICK_MORTAR_PIXELS / 2;
+      const w = BRICK_PIXEL_WIDTH - BRICK_MORTAR_PIXELS;
+      const h = BRICK_PIXEL_HEIGHT - BRICK_MORTAR_PIXELS;
+
+      const shade = 0.96 + random() * 0.3;
+      const brick = base.clone().multiplyScalar(shade);
+      colorCtx.fillStyle = `rgb(${Math.round(brick.r * 255)}, ${Math.round(brick.g * 255)}, ${Math.round(brick.b * 255)})`;
+      colorCtx.fillRect(x, y, w, h);
+
+      colorCtx.fillStyle = `rgba(0, 0, 0, ${0.025 + random() * 0.04})`;
+      colorCtx.fillRect(x, y + h * (0.4 + random() * 0.3), w, h * 0.22);
+
+      const bumpValue = Math.round(150 + random() * 55);
+      bumpCtx.fillStyle = `rgb(${bumpValue}, ${bumpValue}, ${bumpValue})`;
+      bumpCtx.fillRect(x, y, w, h);
+    }
+  }
+
+  const map = new THREE.CanvasTexture(colorCanvas);
+  map.colorSpace = THREE.SRGBColorSpace;
+  map.wrapS = THREE.RepeatWrapping;
+  map.wrapT = THREE.RepeatWrapping;
+
+  const bumpMap = new THREE.CanvasTexture(bumpCanvas);
+  bumpMap.wrapS = THREE.RepeatWrapping;
+  bumpMap.wrapT = THREE.RepeatWrapping;
+
+  return { map, bumpMap };
+}
+
+function createBrickWallMaterial(
+  baseColorHex: number,
+  worldWidth: number,
+  worldHeight: number,
+  maxAnisotropy: number,
+): THREE.MeshStandardMaterial {
+  const { map, bumpMap } = createBrickTextures(baseColorHex);
+  const repeatX = Math.max(2, worldWidth / BRICK_TILE_WORLD_WIDTH);
+  const repeatY = Math.max(2, worldHeight / BRICK_TILE_WORLD_HEIGHT);
+  map.repeat.set(repeatX, repeatY);
+  bumpMap.repeat.set(repeatX, repeatY);
+  map.anisotropy = maxAnisotropy;
+  bumpMap.anisotropy = maxAnisotropy;
+  return new THREE.MeshStandardMaterial({
+    map,
+    bumpMap,
+    bumpScale: 0.032,
+    roughness: 0.88,
+    metalness: 0,
+  });
+}
+
+const FLOOR_PLANK_COLS = 10;
+const FLOOR_PLANK_COL_PIXELS = 56;
+const FLOOR_TEXTURE_HEIGHT = 384;
+const FLOOR_TILE_WORLD_WIDTH = 2.2;
+const FLOOR_TILE_WORLD_LENGTH = 3.6;
+const CEILING_PLANK_COUNT = 9;
+const CEILING_PLANK_PIXELS = 64;
+const CEILING_TILE_WORLD_LENGTH = 2.6;
+
+// A painted plank ceiling, banded with subtle per-plank tone variance and a
+// seam line at each board edge — this is what actually sells the pitched
+// roof as a built structure once it's lit (see the MeshStandardMaterial
+// swap below); the previous MeshBasicMaterial ignored scene lighting
+// entirely and read as a flat, unshaded cutout regardless of texture.
+function createCeilingPlankTexture(baseColorHex: number): THREE.CanvasTexture {
+  const width = 512;
+  const height = CEILING_PLANK_COUNT * CEILING_PLANK_PIXELS;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Unable to create ceiling panel texture");
+
+  const base = new THREE.Color(baseColorHex);
+  let seed = 51173;
+  const random = () => {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  };
+
+  for (let row = 0; row < CEILING_PLANK_COUNT; row += 1) {
+    const y = row * CEILING_PLANK_PIXELS;
+    const shade = 0.95 + random() * 0.14;
+    const plank = base.clone().multiplyScalar(shade);
+    ctx.fillStyle = `rgb(${Math.round(plank.r * 255)}, ${Math.round(plank.g * 255)}, ${Math.round(plank.b * 255)})`;
+    ctx.fillRect(0, y, width, CEILING_PLANK_PIXELS - 3);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.16)";
+    ctx.fillRect(0, y + CEILING_PLANK_PIXELS - 3, width, 3);
+
+    for (let streak = 0; streak < 3; streak += 1) {
+      ctx.fillStyle = `rgba(0, 0, 0, ${0.02 + random() * 0.03})`;
+      const streakY = y + random() * (CEILING_PLANK_PIXELS - 6);
+      ctx.fillRect(0, streakY, width, 1.5);
+    }
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  return texture;
+}
+
 export function createGalleryScene(options: GallerySceneOptions): GallerySceneHandle {
   const construction: GallerySceneConstruction = {
     scene: new THREE.Scene(),
@@ -141,8 +363,20 @@ function buildGalleryScene(
   architecture.name = "Gallery architecture";
   scene.add(architecture);
 
-  const plasterMaterial = new THREE.MeshStandardMaterial({ color: 0xa1755a, roughness: 0.92, metalness: 0 });
-  const floorMaterial = new THREE.MeshStandardMaterial({ color: 0xcdb992, roughness: 0.8, metalness: 0 });
+  // Polished hardwood boards instead of one flat tan colour — same warm
+  // tone as before, now with real grain and board-seam depth.
+  const floorTextures = createFloorPlankTextures(0xcdb992);
+  floorTextures.map.repeat.set((roomHalfWidth * 2) / FLOOR_TILE_WORLD_WIDTH, roomDepth / FLOOR_TILE_WORLD_LENGTH);
+  floorTextures.bumpMap.repeat.copy(floorTextures.map.repeat);
+  floorTextures.map.anisotropy = maxAnisotropy;
+  floorTextures.bumpMap.anisotropy = maxAnisotropy;
+  const floorMaterial = new THREE.MeshStandardMaterial({
+    map: floorTextures.map,
+    bumpMap: floorTextures.bumpMap,
+    bumpScale: 0.014,
+    roughness: 0.52,
+    metalness: 0.04,
+  });
   const blackMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.45, metalness: 0.25 });
   const floorGeometry = new THREE.PlaneGeometry(roomHalfWidth * 2, roomDepth);
   const wallGeometry = new THREE.BoxGeometry(0.18, WALL_HEIGHT, roomDepth);
@@ -156,6 +390,13 @@ function buildGalleryScene(
   floor.position.z = roomCenterZ;
   floor.receiveShadow = quality.tier !== "mobile";
   architecture.add(floor);
+
+  // Same terracotta gallery colour as before, now rendered as brick — a
+  // per-brick tint texture plus a bump map for real recessed mortar lines,
+  // instead of one flat colour. Side and front walls get their own texture
+  // instance since their physical dimensions differ (repeat is tuned per
+  // wall so brick size reads consistently around the room).
+  const plasterMaterial = createBrickWallMaterial(0xc79a76, roomDepth, WALL_HEIGHT, maxAnisotropy);
 
   for (const side of [-1, 1] as const) {
     const wall = new THREE.Mesh(wallGeometry, plasterMaterial);
@@ -185,13 +426,14 @@ function buildGalleryScene(
     }
   }
 
-  const frontWall = new THREE.Mesh(frontWallGeometry, plasterMaterial);
+  const frontWallMaterial = createBrickWallMaterial(0xc79a76, roomHalfWidth * 2, WALL_HEIGHT, maxAnisotropy);
+  const frontWall = new THREE.Mesh(frontWallGeometry, frontWallMaterial);
   frontWall.name = "Services wall";
   frontWall.position.set(0, WALL_HEIGHT / 2, roomMinZ);
   frontWall.receiveShadow = quality.tier !== "mobile";
   architecture.add(frontWall);
 
-  addPitchedRoof(architecture, roomHalfWidth, roomDepth, roomCenterZ, blackMaterial);
+  addPitchedRoof(architecture, roomHalfWidth, roomDepth, roomCenterZ, blackMaterial, maxAnisotropy);
   addCeilingLights(scene, architecture, roomMinZ, roomMaxZ, quality.tier === "mobile");
 
   const ambientLight = new THREE.AmbientLight(0xffffff, 1.85);
@@ -369,6 +611,7 @@ function addPitchedRoof(
   roomDepth: number,
   roomCenterZ: number,
   blackMaterial: THREE.Material,
+  maxAnisotropy: number,
 ): void {
   const roofRise = 2.15;
   const pitch = Math.atan2(roofRise, roomHalfWidth);
@@ -379,7 +622,11 @@ function addPitchedRoof(
     roughness: 0.42,
     metalness: 0,
   });
-  const ceilingMaterial = new THREE.MeshBasicMaterial({ color: 0xe3c68e });
+  const ceilingTexture = createCeilingPlankTexture(0xe6c793);
+  ceilingTexture.repeat.set(Math.max(1, panelWidth / 1.4), Math.max(1, roomDepth / CEILING_TILE_WORLD_LENGTH));
+  ceilingTexture.anisotropy = maxAnisotropy;
+  const ceilingMaterial = new THREE.MeshStandardMaterial({ map: ceilingTexture, roughness: 0.82, metalness: 0 });
+  const beamCount = Math.max(3, Math.round(roomDepth / 3.2));
   for (const side of [-1, 1] as const) {
     const panel = new THREE.Mesh(
       new THREE.BoxGeometry(panelWidth, 0.1, roomDepth),
@@ -389,6 +636,21 @@ function addPitchedRoof(
     panel.position.set(side * roomHalfWidth * 0.5, WALL_HEIGHT + roofRise * 0.5, roomCenterZ);
     panel.rotation.z = -side * pitch;
     architecture.add(panel);
+
+    // Exposed rafters crossing the pitch — real structural definition
+    // instead of a bare plane, and it pairs naturally with the brick walls
+    // and black rail trim for a converted-industrial gallery look.
+    for (let index = 0; index <= beamCount; index += 1) {
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(panelWidth + 0.08, 0.12, 0.14), blackMaterial);
+      beam.name = `${side < 0 ? "Left" : "Right"} ceiling rafter ${index + 1}`;
+      beam.position.set(
+        side * roomHalfWidth * 0.5,
+        WALL_HEIGHT + roofRise * 0.5 - 0.07,
+        THREE.MathUtils.lerp(roomCenterZ - roomDepth / 2 + 0.6, roomCenterZ + roomDepth / 2 - 0.6, index / beamCount),
+      );
+      beam.rotation.z = -side * pitch;
+      architecture.add(beam);
+    }
 
     const skylightCount = 3;
     for (let index = 0; index < skylightCount; index += 1) {

@@ -517,7 +517,7 @@ function updateCamera(delta) {
   }
   scratch.forward.set(Math.sin(vehicle.heading), 0, Math.cos(vehicle.heading));
   if (vehicle.cameraMode === 0) {
-    scratch.desiredCamera.copy(car.position).addScaledVector(scratch.forward, -12.5).setY(car.position.y + 8.2);
+    scratch.desiredCamera.copy(car.position).addScaledVector(scratch.forward, -12.5).setY(car.position.y + 6.4);
     scratch.cameraLook.copy(car.position).addScaledVector(scratch.forward, 7).setY(1.2);
   } else {
     scratch.desiredCamera.copy(car.position).add(scratch.overhead);

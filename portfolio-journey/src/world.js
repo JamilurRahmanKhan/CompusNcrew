@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+import { Sky } from 'three/addons/objects/Sky.js';
 import { COLORS, DISTRICTS, PROJECTS, ROAD_POINTS, WORLD_BOUNDS } from './data.js';
 
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
@@ -224,12 +224,179 @@ function createRoad(scene) {
   return { curve, halfWidth, samples };
 }
 
-function seededRandom() {
-  let seed = 44191;
+function hexColor(num) {
+  return '#' + num.toString(16).padStart(6, '0');
+}
+
+function seededRandom(seed = 44191) {
+  let value = seed;
   return () => {
-    seed = (seed * 1664525 + 1013904223) % 4294967296;
-    return seed / 4294967296;
+    value = (value * 1664525 + 1013904223) % 4294967296;
+    return value / 4294967296;
   };
+}
+
+// A tileable diffuse texture for the ground plane: fine speckled blade
+// noise plus a few soft worn-dirt patches, all drawn with wrap-around
+// copies near the canvas edges so the repeat doesn't show a seam.
+function createGrassGroundTexture() {
+  const size = 512;
+  return createCanvasTexture((context, width, height) => {
+    context.fillStyle = hexColor(COLORS.groundDark);
+    context.fillRect(0, 0, width, height);
+    const random = seededRandom();
+    const shades = [COLORS.groundDark, COLORS.terrain, COLORS.ground, 0x333c2b, 0x232821].map(hexColor);
+    const drawSpeckle = (x, y, r, color) => {
+      context.fillStyle = color;
+      context.beginPath();
+      context.ellipse(x, y, r, r * (0.45 + random() * 0.6), random() * Math.PI, 0, Math.PI * 2);
+      context.fill();
+    };
+    const wrapDraw = (x, y, r, color) => {
+      for (let ox = -1; ox <= 1; ox += 1) {
+        for (let oy = -1; oy <= 1; oy += 1) {
+          const wx = x + ox * width;
+          const wy = y + oy * height;
+          if (wx > -r && wx < width + r && wy > -r && wy < height + r) drawSpeckle(wx, wy, r, color);
+        }
+      }
+    };
+    for (let index = 0; index < 2400; index += 1) {
+      const x = random() * width;
+      const y = random() * height;
+      const r = 2.5 + random() * 6.5;
+      wrapDraw(x, y, r, shades[Math.floor(random() * shades.length)]);
+    }
+    for (let index = 0; index < 12; index += 1) {
+      const x = random() * width;
+      const y = random() * height;
+      const r = 26 + random() * 58;
+      const gradient = context.createRadialGradient(x, y, 0, x, y, r);
+      gradient.addColorStop(0, 'rgba(78,66,46,.32)');
+      gradient.addColorStop(1, 'rgba(78,66,46,0)');
+      context.fillStyle = gradient;
+      context.beginPath();
+      context.arc(x, y, r, 0, Math.PI * 2);
+      context.fill();
+    }
+  }, size, size);
+}
+
+// Two crossed vertical planes (8 verts / 4 tris) — the classic cheap
+// billboard-blade shape for scattering thousands of grass tufts.
+function createGrassBladeGeometry(width, height) {
+  const hw = width / 2;
+  const positions = [
+    -hw, 0, 0, hw, 0, 0, hw, height, 0, -hw, height, 0,
+    0, 0, -hw, 0, 0, hw, 0, height, hw, 0, height, -hw,
+  ];
+  const uvs = [0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1];
+  const indices = [0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7];
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+// Blades carry their own base->tip colour gradient (dim mossy base, bright
+// sunlit tip) baked into the texture, instead of a flat white cutout — a
+// flat-white blade multiplied by this scene's dark instance tints was
+// reading as a near-black spike rather than a green blade of grass.
+function createGrassTuftTexture() {
+  return createCanvasTexture((context, width, height) => {
+    context.clearRect(0, 0, width, height);
+    const blades = [
+      [0.5, 1, 0.062, 0.94, -0.04],
+      [0.37, 1, 0.05, 0.78, -0.26],
+      [0.63, 1, 0.05, 0.8, 0.24],
+      [0.25, 1, 0.044, 0.6, -0.46],
+      [0.75, 1, 0.044, 0.62, 0.44],
+      [0.12, 1, 0.038, 0.4, -0.6],
+      [0.88, 1, 0.038, 0.42, 0.58],
+    ];
+    blades.forEach(([bx, by, w, h, lean]) => {
+      const x0 = bx * width;
+      const y0 = by * height;
+      const xTip = x0 + lean * width;
+      const yTip = y0 - h * height;
+      const gradient = context.createLinearGradient(x0, y0, xTip, yTip);
+      gradient.addColorStop(0, 'rgba(84,98,52,0.9)');
+      gradient.addColorStop(0.55, 'rgba(134,154,84,0.96)');
+      gradient.addColorStop(1, 'rgba(200,214,142,1)');
+      context.fillStyle = gradient;
+      context.beginPath();
+      context.moveTo(x0 - w * width * 0.5, y0);
+      context.quadraticCurveTo(x0 + lean * width * 0.4, y0 - h * height * 0.55, xTip, yTip);
+      context.quadraticCurveTo(x0 + lean * width * 0.6, y0 - h * height * 0.55, x0 + w * width * 0.5, y0);
+      context.closePath();
+      context.fill();
+    });
+  }, 160, 192);
+}
+
+// Sparse GPU-instanced grass tufts scattered in two bands around the road —
+// a denser roadside belt and a thinner open-field spread further out.
+// Cross-billboards are 4 tris each, so even ~1.5k of them cost a fraction
+// of a single detailed tree; no shadow casting, matching the perf pattern
+// already used for the heavier tree instances.
+function createGrassTufts(scene, road) {
+  const geometry = createGrassBladeGeometry(1, 0.85);
+  const tuftMaterial = new THREE.MeshStandardMaterial({
+    map: createGrassTuftTexture(),
+    alphaTest: 0.4,
+    side: THREE.DoubleSide,
+    roughness: 0.95,
+    vertexColors: true,
+    // A faint fixed glow keeps blades from reading as flat black silhouettes
+    // when they're facing away from the sun — real grass never goes fully
+    // dark, it picks up ambient sky/ground bounce.
+    emissive: new THREE.Color(0x1c2512),
+    emissiveIntensity: 0.4,
+  });
+  // min distance is a hard clearance from the road centerline — the road's
+  // paved+shoulder half-width tops out at 5.35, so anything below ~7.5 here
+  // risks a tuft landing on the asphalt.
+  const bands = [
+    { count: 1000, min: 7.6, max: 18 },
+    { count: 650, min: 18, max: 44 },
+  ];
+  const totalCount = bands.reduce((sum, band) => sum + band.count, 0);
+  const mesh = new THREE.InstancedMesh(geometry, tuftMaterial, totalCount);
+  mesh.receiveShadow = true;
+  const palette = [0x6b7d43, 0x7c8f4d, 0x59692f, 0x8a9c58, COLORS.ground].map((c) => new THREE.Color(c));
+  const random = seededRandom();
+  const matrix = new THREE.Matrix4();
+  const quaternion = new THREE.Quaternion();
+  const color = new THREE.Color();
+  let index = 0;
+  bands.forEach(({ count, min, max }) => {
+    for (let i = 0; i < count; i += 1) {
+      const t = 0.01 + random() * 0.98;
+      const point = road.curve.getPointAt(t);
+      const tangent = road.curve.getTangentAt(t).normalize();
+      const normal = new THREE.Vector3(-tangent.z, 0, tangent.x);
+      const side = random() > 0.5 ? 1 : -1;
+      const distance = min + random() * (max - min);
+      // Jitter only along the road's tangent direction so it can never
+      // reduce the guaranteed lateral clearance computed above.
+      const along = (random() - 0.5) * 4;
+      const x = point.x + normal.x * side * distance + tangent.x * along;
+      const z = point.z + normal.z * side * distance + tangent.z * along;
+      const scaleXZ = 0.6 + random() * 0.85;
+      const scaleY = scaleXZ * (0.85 + random() * 0.5);
+      quaternion.setFromAxisAngle(Y_AXIS, random() * Math.PI * 2);
+      matrix.compose(new THREE.Vector3(x, 0, z), quaternion, new THREE.Vector3(scaleXZ, scaleY, scaleXZ));
+      mesh.setMatrixAt(index, matrix);
+      color.copy(palette[Math.floor(random() * palette.length)]).multiplyScalar(0.85 + random() * 0.4);
+      mesh.setColorAt(index, color);
+      index += 1;
+    }
+  });
+  mesh.instanceMatrix.needsUpdate = true;
+  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  scene.add(mesh);
 }
 
 function createTreeInstances(scene, road) {
@@ -261,6 +428,75 @@ function createTreeInstances(scene, road) {
   scene.add(trunks, canopies);
 }
 
+// A handful of higher-detail specimen trees mixed in among the low-poly
+// ones. The source model is very heavy (~180k tris, no shipped leaf/bark
+// textures), so it's flat-shaded in the same palette as the low-poly trees
+// (not textured) and used sparingly — a few dozen individual instances,
+// not the hundreds the instanced low-poly trees use.
+function createDetailedTreeInstances(scene, road) {
+  const count = 36;
+  const objLoader = new OBJLoader();
+  objLoader.setPath('models/');
+  objLoader.load('tree-detailed.obj', (source) => {
+    let leavesGeometry = null;
+    let trunkGeometry = null;
+    source.traverse((child) => {
+      if (!child.isMesh) return;
+      if (child.material && child.material.name === 'Material.002') trunkGeometry = child.geometry;
+      else leavesGeometry = child.geometry;
+    });
+    if (!leavesGeometry || !trunkGeometry) return;
+
+    const box = new THREE.Box3().setFromObject(source);
+    const height = box.max.y - box.min.y || 1;
+    const baseScale = 3.4 / height;
+    const centerX = (box.max.x + box.min.x) / 2;
+    const centerZ = (box.max.z + box.min.z) / 2;
+    // Bake centering/grounding into the geometry itself (once) so each
+    // instance's matrix only needs to carry position/rotation/scale.
+    leavesGeometry.translate(-centerX, -box.min.y, -centerZ);
+    trunkGeometry.translate(-centerX, -box.min.y, -centerZ);
+
+    // GPU-instanced: one draw call per part regardless of instance count —
+    // this heavy a source mesh (~180k tris, no shipped textures) can't
+    // afford a separate scene-graph clone per tree at meaningful quantities.
+    const trunkMesh = new THREE.InstancedMesh(trunkGeometry, material(COLORS.trunk, 0.9, 0.05), count);
+    const leavesMesh = new THREE.InstancedMesh(leavesGeometry, material(COLORS.tree, 0.85, 0), count);
+    // Shadow-casting this many dense-foliage triangles is the real cost —
+    // it doubles the vertex work (main pass + shadow-map pass) and shadow
+    // maps handle high-poly foliage badly. Not casting keeps the visual
+    // (trees still receive shadow from the sun/other objects) at a fraction
+    // of the GPU cost.
+    trunkMesh.receiveShadow = true;
+    leavesMesh.receiveShadow = true;
+
+    const random = seededRandom();
+    const matrix = new THREE.Matrix4();
+    const quaternion = new THREE.Quaternion();
+    // Different multiplier from the low-poly scatter's random walk so this
+    // set lands at different points along the road, not on top of them.
+    for (let index = 0; index < count; index += 1) {
+      random(); random(); random();
+      const t = 0.02 + random() * 0.96;
+      const point = road.curve.getPointAt(t);
+      const tangent = road.curve.getTangentAt(t).normalize();
+      const normal = new THREE.Vector3(-tangent.z, 0, tangent.x);
+      const side = random() > 0.5 ? 1 : -1;
+      const distance = 10 + random() * 20;
+      const x = point.x + normal.x * side * distance + (random() - 0.5) * 6;
+      const z = point.z + normal.z * side * distance + (random() - 0.5) * 6;
+      const scale = baseScale * (0.8 + random() * 0.5);
+      quaternion.setFromAxisAngle(Y_AXIS, random() * Math.PI * 2);
+      matrix.compose(new THREE.Vector3(x, 0, z), quaternion, new THREE.Vector3(scale, scale, scale));
+      trunkMesh.setMatrixAt(index, matrix);
+      leavesMesh.setMatrixAt(index, matrix);
+    }
+    trunkMesh.instanceMatrix.needsUpdate = true;
+    leavesMesh.instanceMatrix.needsUpdate = true;
+    scene.add(trunkMesh, leavesMesh);
+  });
+}
+
 function createStreetLight() {
   const group = new THREE.Group();
   const metal = material(0x333638, 0.45, 0.48);
@@ -285,6 +521,89 @@ function createScreen(project, width = 4.3, height = 2.7, dark = true) {
   return frame;
 }
 
+const FACADE_TRIM = 0x24262a;
+
+// A tiled grid of lit/unlit windows, drawn per-building from a seeded
+// random so no two stations share the exact same pattern.
+function createWindowTexture(cols, rows, tint, random) {
+  const cellW = 56;
+  const cellH = 72;
+  return createCanvasTexture((context, width, height) => {
+    context.fillStyle = hexColor(tint);
+    context.fillRect(0, 0, width, height);
+    for (let row = 0; row < rows; row += 1) {
+      for (let col = 0; col < cols; col += 1) {
+        const pad = Math.min(cellW, cellH) * 0.18;
+        const x = col * cellW + pad;
+        const y = row * cellH + pad;
+        const w = cellW - pad * 2;
+        const h = cellH - pad * 2;
+        const lit = random() > 0.6;
+        context.fillStyle = lit ? 'rgba(255,205,140,.92)' : 'rgba(16,20,23,.82)';
+        context.fillRect(x, y, w, h);
+        context.strokeStyle = 'rgba(8,10,11,.55)';
+        context.lineWidth = 1.6;
+        context.strokeRect(x, y, w, h);
+        if (lit) {
+          context.fillStyle = 'rgba(255,235,200,.35)';
+          context.fillRect(x, y, w, h * 0.32);
+        }
+      }
+    }
+  }, cols * cellW, rows * cellH);
+}
+
+// A window-textured panel mounted flush on a volume's front (+Z) face —
+// turns a flat-colored box into something that reads as an actual facade.
+function addFacade(group, width, height, depth, x, y, z, cols, rows, tint, random) {
+  const panel = new THREE.Mesh(
+    new THREE.PlaneGeometry(width * 0.82, height * 0.62),
+    new THREE.MeshStandardMaterial({ map: createWindowTexture(cols, rows, tint, random), roughness: 0.55, metalness: 0.15 }),
+  );
+  panel.position.set(x, y + height * 0.05, z + depth / 2 + 0.03);
+  group.add(panel);
+}
+
+// A thin overhanging cap gives the roofline a real edge instead of the box
+// just stopping in mid-air.
+function addRoofCap(group, width, height, depth, x, y, z) {
+  const cap = roundedMesh(width + 0.4, 0.26, depth + 0.4, FACADE_TRIM, 0.1, 2);
+  cap.position.set(x, y + height / 2 + 0.13, z);
+  group.add(cap);
+}
+
+function addPlinth(group, width, depth, x, z) {
+  const plinth = roundedMesh(width + 0.24, 0.46, depth + 0.24, FACADE_TRIM, 0.14, 2);
+  plinth.position.set(x, 0.23, z);
+  group.add(plinth);
+}
+
+// One or two rooftop units (AC/vent boxes) for skyline silhouette variety.
+function addRoofProps(group, width, height, depth, x, y, z, random) {
+  const count = 1 + Math.floor(random() * 2);
+  for (let index = 0; index < count; index += 1) {
+    const boxW = 0.45 + random() * 0.5;
+    const boxH = 0.3 + random() * 0.32;
+    const boxD = 0.45 + random() * 0.5;
+    const unit = roundedMesh(boxW, boxH, boxD, 0x2c2f31, 0.06, 2);
+    unit.position.set(
+      x + (random() - 0.5) * width * 0.5,
+      y + height / 2 + 0.3 + boxH / 2,
+      z + (random() - 0.5) * depth * 0.5,
+    );
+    group.add(unit);
+  }
+}
+
+// A small brand-orange entrance awning — ties every station back to the
+// site's accent color and reads as "this is the door" from a distance.
+function addCanopy(group, width, depth, x, z) {
+  const canopy = roundedMesh(Math.min(2.6, width * 0.5), 0.14, 1.05, COLORS.orange, 0.06, 2);
+  canopy.position.set(x, 1.55, z + depth / 2 + 0.5);
+  canopy.rotation.x = -0.1;
+  group.add(canopy);
+}
+
 function createBuildingCluster(group, project, variant, colliders) {
   const palettes = [
     [0xb38b5e, 0x96704d, true],
@@ -294,12 +613,22 @@ function createBuildingCluster(group, project, variant, colliders) {
     [0x343b40, 0x272d31, true],
   ];
   const [primary, secondary, darkScreen] = palettes[variant];
+  const random = seededRandom(9000 + Number(project.number) * 131);
+  const windowTint = darkScreen ? 0x15181a : 0x24282a;
   if (variant === 0) {
     const tower = roundedMesh(4.8, 5.7, 4.2, primary, 0.24);
     const wing = roundedMesh(3.1, 3.3, 3.4, secondary, 0.2);
     tower.position.set(-1.1, 3.3, 0.6);
     wing.position.set(3.2, 2.1, 0.9);
     group.add(tower, wing);
+    addFacade(group, 4.8, 5.7, 4.2, -1.1, 3.3, 0.6, 4, 7, windowTint, random);
+    addFacade(group, 3.1, 3.3, 3.4, 3.2, 2.1, 0.9, 3, 4, windowTint, random);
+    addRoofCap(group, 4.8, 5.7, 4.2, -1.1, 3.3, 0.6);
+    addRoofCap(group, 3.1, 3.3, 3.4, 3.2, 2.1, 0.9);
+    addPlinth(group, 4.8, 4.2, -1.1, 0.6);
+    addPlinth(group, 3.1, 3.4, 3.2, 0.9);
+    addRoofProps(group, 4.8, 5.7, 4.2, -1.1, 3.3, 0.6, random);
+    addCanopy(group, 4.8, 4.2, -1.1, 0.6);
   } else if (variant === 1) {
     const clinic = roundedMesh(7.1, 3.6, 5.3, primary, 0.72, 5);
     clinic.position.set(-0.8, 2.25, 0.6);
@@ -308,11 +637,21 @@ function createBuildingCluster(group, project, variant, colliders) {
     crossV.position.set(-0.8, 2.8, 3.31);
     crossH.position.copy(crossV.position);
     group.add(clinic, crossV, crossH);
+    addFacade(group, 7.1, 3.6, 5.3, -0.8, 2.25, 0.6, 5, 3, windowTint, random);
+    addRoofCap(group, 7.1, 3.6, 5.3, -0.8, 2.25, 0.6);
+    addPlinth(group, 7.1, 5.3, -0.8, 0.6);
+    addCanopy(group, 7.1, 5.3, -0.8, 0.6);
   } else if (variant === 2) {
     [-3.2, 0, 3.2].forEach((x, index) => {
-      const shop = roundedMesh(2.8, 3.3 + index * 0.55, 3.8, index === 1 ? primary : secondary, 0.18);
-      shop.position.set(x, 2.2 + index * 0.275, 0.8);
+      const shopHeight = 3.3 + index * 0.55;
+      const shopY = 2.2 + index * 0.275;
+      const shop = roundedMesh(2.8, shopHeight, 3.8, index === 1 ? primary : secondary, 0.18);
+      shop.position.set(x, shopY, 0.8);
       group.add(shop);
+      addFacade(group, 2.8, shopHeight, 3.8, x, shopY, 0.8, 2, 3 + index, windowTint, random);
+      addRoofCap(group, 2.8, shopHeight, 3.8, x, shopY, 0.8);
+      addPlinth(group, 2.8, 3.8, x, 0.8);
+      addCanopy(group, 2.8, 3.8, x, 0.8);
     });
   } else if (variant === 3) {
     const hub = roundedMesh(7.5, 3.2, 5.2, primary, 0.45, 4);
@@ -320,6 +659,13 @@ function createBuildingCluster(group, project, variant, colliders) {
     const tower = roundedMesh(1.8, 5.4, 1.8, secondary, 0.22);
     tower.position.set(4.5, 3.15, 0.8);
     group.add(hub, tower);
+    addFacade(group, 7.5, 3.2, 5.2, -0.6, 2.05, 0.6, 5, 3, windowTint, random);
+    addFacade(group, 1.8, 5.4, 1.8, 4.5, 3.15, 0.8, 2, 6, windowTint, random);
+    addRoofCap(group, 7.5, 3.2, 5.2, -0.6, 2.05, 0.6);
+    addRoofCap(group, 1.8, 5.4, 1.8, 4.5, 3.15, 0.8);
+    addPlinth(group, 7.5, 5.2, -0.6, 0.6);
+    addRoofProps(group, 7.5, 3.2, 5.2, -0.6, 2.05, 0.6, random);
+    addCanopy(group, 7.5, 5.2, -0.6, 0.6);
   } else {
     const ops = roundedMesh(7.4, 3.8, 5.1, primary, 0.36, 4);
     ops.position.set(-0.4, 2.35, 0.6);
@@ -329,6 +675,11 @@ function createBuildingCluster(group, project, variant, colliders) {
     );
     core.position.set(4.2, 2.7, 0.5);
     group.add(ops, core);
+    addFacade(group, 7.4, 3.8, 5.1, -0.4, 2.35, 0.6, 5, 3, windowTint, random);
+    addRoofCap(group, 7.4, 3.8, 5.1, -0.4, 2.35, 0.6);
+    addPlinth(group, 7.4, 5.1, -0.4, 0.6);
+    addRoofProps(group, 7.4, 3.8, 5.1, -0.4, 2.35, 0.6, random);
+    addCanopy(group, 7.4, 5.1, -0.4, 0.6);
   }
   const screenMount = new THREE.Group();
   const screen = createScreen(project, 4.1, 2.55, darkScreen);
@@ -501,20 +852,62 @@ function createConsultation(scene, road) {
   return { center, roadPoint, tangent, group, ring, triggerRadius: 14.5 };
 }
 
+const carTextureLoader = new THREE.TextureLoader();
+const carTextureCache = {};
+function carTexture(file) {
+  if (!carTextureCache[file]) {
+    const tex = carTextureLoader.load('models/textures/' + file);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    carTextureCache[file] = tex;
+  }
+  return carTextureCache[file];
+}
+
+const CAR_MATERIAL_RULES = [
+  [/tire_side/, { map: carTexture('tire-side.jpg'), roughness: 0.8, metalness: 0.05 }],
+  [/tire/, { map: carTexture('tire.jpg'), roughness: 0.85, metalness: 0.05 }],
+  [/^glass$|headlightglass/, { map: carTexture('glass.png'), roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.55 }],
+  [/^windo/, { map: carTexture('windo.png'), roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.55 }],
+  [/grill/, { map: carTexture('grill.jpg'), roughness: 0.5, metalness: 0.3 }],
+  [/^engine$/, { map: carTexture('engine.jpg'), roughness: 0.5, metalness: 0.4 }],
+  [/interior/, { map: carTexture('interior.jpg'), roughness: 0.6, metalness: 0.1 }],
+  [/^bottom$/, { map: carTexture('bottom.jpg'), roughness: 0.6, metalness: 0.1 }],
+  [/plate_f/, { map: carTexture('plate-f.jpg'), roughness: 0.4, metalness: 0.05 }],
+  [/plate_r/, { map: carTexture('plate-r.jpg'), roughness: 0.4, metalness: 0.05 }],
+  [/stitch/, { map: carTexture('stitch.png'), roughness: 0.6, metalness: 0 }],
+  [/supportlogo/, { map: carTexture('support-logo.png'), roughness: 0.3, metalness: 0.2 }],
+  [/f1_side/, { map: carTexture('side.png'), roughness: 0.3, metalness: 0.2 }],
+  [/rim|^chrome$|chrome2|brakedisk|aluminium|exhaust_metal|bronze/, { color: 0xd6d8db, roughness: 0.25, metalness: 0.95 }],
+  [/brakelight|rear_lamp|rear_turn/, { color: 0xaa1414, emissive: 0x550a0a, emissiveIntensity: 0.6, roughness: 0.3, metalness: 0.2 }],
+  [/headlight/, { color: 0xf5f0df, emissive: 0x8a805f, emissiveIntensity: 0.3, roughness: 0.2, metalness: 0.1 }],
+  [/exhaust_gold/, { color: 0xb9924a, roughness: 0.3, metalness: 0.8 }],
+  [/exhaust/, { color: 0x2a2a2a, roughness: 0.4, metalness: 0.7 }],
+  [/black_/, { color: 0x1c1c1e, roughness: 0.5, metalness: 0.2 }],
+];
+
+function carMaterialFor(name) {
+  const key = (name || '').toLowerCase();
+  const rule = CAR_MATERIAL_RULES.find(([pattern]) => pattern.test(key));
+  // Everything else (body panels, McLaren/F1 decals, red line, logos) shares
+  // the model's single main livery texture — this file has no .mtl, so this
+  // is the only way to recover its actual white/black paint scheme.
+  const options = rule ? rule[1] : { map: carTexture('body.png'), roughness: 0.3, metalness: 0.25 };
+  return new THREE.MeshStandardMaterial(options);
+}
+
 function createCar() {
   const car = new THREE.Group();
 
-  const mtlLoader = new MTLLoader();
-  mtlLoader.setPath('models/');
-  mtlLoader.load('car.mtl', (materials) => {
-    materials.preload();
-    const objLoader = new OBJLoader();
-    objLoader.setMaterials(materials);
-    objLoader.setPath('models/');
-    objLoader.load('car.obj', (obj) => {
+  const objLoader = new OBJLoader();
+  objLoader.setPath('models/');
+  objLoader.load('car.obj', (obj) => {
       const box = new THREE.Box3().setFromObject(obj);
       const size = box.getSize(new THREE.Vector3());
-      const scale = 4.1 / Math.max(size.x, size.y, size.z);
+      // This file has no o/g boundaries, so the whole model loads as one
+      // mesh with a multi-material array — the wide "floor" disc it ships
+      // with inflates the X/Z bounds, so scale off height (uncorrupted)
+      // instead of the largest dimension.
+      const scale = 1.1 / size.y;
       obj.scale.setScalar(scale);
       const box2 = new THREE.Box3().setFromObject(obj);
       obj.position.x -= (box2.max.x + box2.min.x) / 2;
@@ -525,24 +918,101 @@ function createCar() {
         if (!child.isMesh) return;
         child.castShadow = true;
         child.receiveShadow = true;
-        const name = child.material && child.material.name;
-        child.material = (name === 'Material.004' || name === 'Material.005')
-          ? new THREE.MeshStandardMaterial({ color: 0x161616, roughness: 0.5, metalness: 0.6 })
-          : new THREE.MeshStandardMaterial({ color: 0xc41313, roughness: 0.22, metalness: 0.4 });
+        const wasArray = Array.isArray(child.material);
+        const materials = wasArray ? child.material : [child.material];
+        const mapped = materials.map((mat) => {
+          const name = mat && mat.name;
+          if (['floor', 'bottom', 'suport', '_'].includes((name || '').toLowerCase())) {
+            return new THREE.MeshBasicMaterial({ visible: false });
+          }
+          return carMaterialFor(name);
+        });
+        child.material = wasArray ? mapped : mapped[0];
       });
       car.add(obj);
     });
-  });
 
   return { group: car, wheels: [] };
 }
 
+function createSky(scene, sunDirection) {
+  // A physically-based atmosphere dome, not a flat color — scaled to sit
+  // comfortably inside the camera's far plane (260) but well past where
+  // fog (ends at 175) has already hidden the ground.
+  const sky = new Sky();
+  sky.scale.setScalar(220);
+  const uniforms = sky.material.uniforms;
+  // The scene's actual sun sits fairly high (for clean shadows), but that
+  // reads as a bright midday sky, which clashes with this scene's dark,
+  // moody ground/fog palette. Sky-only, we borrow the sun's compass
+  // bearing (so the glow shows up on the correct side) but use a lower
+  // virtual elevation for a dusk-toned atmosphere — the actual light/
+  // shadows on the ground are untouched.
+  const duskDirection = new THREE.Vector3(sunDirection.x, sunDirection.y * 0.22, sunDirection.z).normalize();
+  uniforms.turbidity.value = 12;
+  uniforms.rayleigh.value = 1.3;
+  uniforms.mieCoefficient.value = 0.009;
+  uniforms.mieDirectionalG.value = 0.85;
+  uniforms.sunPosition.value.copy(duskDirection);
+  scene.add(sky);
+}
+
+function createCloudTexture() {
+  return createCanvasTexture((context, width, height) => {
+    context.clearRect(0, 0, width, height);
+    const puffs = [
+      [0.5, 0.55, 0.34], [0.3, 0.6, 0.24], [0.72, 0.58, 0.27],
+      [0.42, 0.4, 0.22], [0.62, 0.4, 0.2],
+    ];
+    puffs.forEach(([cx, cy, r]) => {
+      const gradient = context.createRadialGradient(cx * width, cy * height, 0, cx * width, cy * height, r * width);
+      gradient.addColorStop(0, 'rgba(255,255,255,.95)');
+      gradient.addColorStop(0.7, 'rgba(255,255,255,.5)');
+      gradient.addColorStop(1, 'rgba(255,255,255,0)');
+      context.fillStyle = gradient;
+      context.beginPath();
+      context.arc(cx * width, cy * height, r * width, 0, Math.PI * 2);
+      context.fill();
+    });
+  }, 256, 160);
+}
+
+// Camera-facing sprites (cheap: two triangles each), scattered in a ring
+// around the whole world so a few are visible from anywhere on the road,
+// at a height well above the buildings/trees.
+function createClouds(scene) {
+  const texture = createCloudTexture();
+  const cloudMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false, opacity: 0.88, fog: false });
+  const random = seededRandom();
+  const centerX = (WORLD_BOUNDS.minX + WORLD_BOUNDS.maxX) / 2;
+  const centerZ = (WORLD_BOUNDS.minZ + WORLD_BOUNDS.maxZ) / 2;
+  for (let index = 0; index < 22; index += 1) {
+    const sprite = new THREE.Sprite(cloudMaterial);
+    const angle = random() * Math.PI * 2;
+    const radius = 50 + random() * 140;
+    sprite.position.set(
+      centerX + Math.cos(angle) * radius,
+      58 + random() * 40,
+      centerZ + Math.sin(angle) * radius,
+    );
+    const scale = 24 + random() * 28;
+    sprite.scale.set(scale * 1.6, scale, 1);
+    scene.add(sprite);
+  }
+}
+
 function createEnvironment(scene) {
-  scene.background = new THREE.Color(COLORS.background);
+  scene.background = null;
   scene.fog = new THREE.Fog(COLORS.background, 75, 175);
   const width = WORLD_BOUNDS.maxX - WORLD_BOUNDS.minX + 80;
   const depth = WORLD_BOUNDS.maxZ - WORLD_BOUNDS.minZ + 80;
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(width, depth), material(COLORS.groundDark, 1));
+  const groundMap = createGrassGroundTexture();
+  groundMap.wrapS = THREE.RepeatWrapping;
+  groundMap.wrapT = THREE.RepeatWrapping;
+  const tileSize = 9;
+  groundMap.repeat.set(width / tileSize, depth / tileSize);
+  groundMap.anisotropy = 8;
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(width, depth), new THREE.MeshStandardMaterial({ map: groundMap, roughness: 1 }));
   ground.rotation.x = -Math.PI / 2;
   ground.position.set((WORLD_BOUNDS.minX + WORLD_BOUNDS.maxX) / 2, -0.28, (WORLD_BOUNDS.minZ + WORLD_BOUNDS.maxZ) / 2);
   ground.receiveShadow = true;
@@ -561,12 +1031,17 @@ function createEnvironment(scene) {
   const fill = new THREE.DirectionalLight(0x7690a5, 0.8);
   fill.position.set(70, 30, 60);
   scene.add(fill);
+
+  createSky(scene, sun.position);
+  createClouds(scene);
 }
 
 export function buildWorld(scene) {
   createEnvironment(scene);
   const road = createRoad(scene);
   createTreeInstances(scene, road);
+  createDetailedTreeInstances(scene, road);
+  createGrassTufts(scene, road);
   createStartPlaza(scene, road);
   createDistrictGates(scene, road);
   const { stations, colliders } = createStations(scene, road);
