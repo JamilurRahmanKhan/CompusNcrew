@@ -29,7 +29,7 @@ export function GalleryHelp({ visible, classNames, onToggle }: GalleryHelpProps)
         hidden={disclosure.guideHidden}
       >
         <div className={`${classNames.group} ${classNames.keyboard}`}>
-          <span><kbd>WASD</kbd> or arrow keys to move</span>
+          <span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> to move</span>
           <span><kbd>Enter</kbd> to view work</span>
         </div>
         <div className={`${classNames.group} ${classNames.touch}`}>

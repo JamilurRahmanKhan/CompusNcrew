@@ -87,7 +87,7 @@ export function getFreeCameraPose(
   const isPortrait = aspect < 0.95;
   const lateralFollow = isPhonePortrait ? 0.16 : isPortrait ? 0.27 : tier === "mobile" ? 0.34 : 0.42;
   const followDistance = isPhonePortrait ? 7.0 : isPortrait ? 6.1 : tier === "mobile" ? 5.6 : 5.2;
-  const lookTargetY = isPhonePortrait ? 4.4 : isPortrait ? 3.6 : 2.6;
+  const lookTargetY = isPhonePortrait ? 3.4 : isPortrait ? 3.6 : 2.6;
   return {
     position: new THREE.Vector3(
       position.x * lateralFollow,
@@ -104,7 +104,7 @@ export function getResponsiveCameraFov(
   tier: QualityTier["tier"],
 ): number {
   const aspect = safeAspect(width, height);
-  if (aspect < 0.62) return 70;
+  if (aspect < 0.62) return 63;
   if (aspect < 0.95) return 61;
   return tier === "mobile" ? 56 : 50;
 }
@@ -114,6 +114,42 @@ export function getResponsiveCameraFov(
 // a narrow column with its own tint, grain streaks, and staggered end-joint
 // seams so it doesn't repeat as one obvious tile. A companion bump map
 // gives the seams between boards real depth under the room lights.
+// A deep red runner with a gold edge along its long sides (u=0/u=1) and a
+// speckled fabric noise fill — classic museum-aisle carpet.
+function createCarpetTexture(): THREE.CanvasTexture {
+  const w = 256;
+  const h = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Unable to create gallery floor texture");
+
+  ctx.fillStyle = "#6b1420";
+  ctx.fillRect(0, 0, w, h);
+
+  let seed = 4471;
+  const random = () => {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  };
+  for (let i = 0; i < 2600; i += 1) {
+    ctx.fillStyle = random() > 0.5 ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.05)";
+    ctx.fillRect(random() * w, random() * h, 1.4, 1.4);
+  }
+
+  ctx.fillStyle = "#caa25a";
+  ctx.fillRect(0, 0, 7, h);
+  ctx.fillRect(w - 7, 0, 7, h);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.userData.generatedCanvas = canvas;
+  return texture;
+}
+
 function createFloorPlankTextures(baseColorHex: number): { map: THREE.CanvasTexture; bumpMap: THREE.CanvasTexture } {
   const width = FLOOR_PLANK_COLS * FLOOR_PLANK_COL_PIXELS;
   const height = FLOOR_TEXTURE_HEIGHT;
@@ -391,6 +427,21 @@ function buildGalleryScene(
   floor.receiveShadow = quality.tier !== "mobile";
   architecture.add(floor);
 
+  // A gold-edged carpet runner down the walking aisle, over the hardwood.
+  const carpetTexture = createCarpetTexture();
+  carpetTexture.repeat.set(1, roomDepth / 3.2);
+  carpetTexture.anisotropy = maxAnisotropy;
+  const carpetWidth = Math.min(3.4, (roomHalfWidth - 0.55) * 1.3);
+  const carpet = new THREE.Mesh(
+    new THREE.PlaneGeometry(carpetWidth, roomDepth - 0.4),
+    new THREE.MeshStandardMaterial({ map: carpetTexture, roughness: 0.95, metalness: 0 }),
+  );
+  carpet.name = "Gallery carpet runner";
+  carpet.rotation.x = -Math.PI / 2;
+  carpet.position.set(0, 0.006, roomCenterZ);
+  carpet.receiveShadow = quality.tier !== "mobile";
+  architecture.add(carpet);
+
   // Same terracotta gallery colour as before, now rendered as brick — a
   // per-brick tint texture plus a bump map for real recessed mortar lines,
   // instead of one flat colour. Side and front walls get their own texture
@@ -458,7 +509,7 @@ function buildGalleryScene(
   }
   scene.add(directionalLight, directionalLight.target);
 
-  addServiceWall(scene, roomMinZ, maxAnisotropy);
+  addServiceWall(scene, roomHalfWidth, roomMinZ, maxAnisotropy);
 
   const frameStates = new Map<string, ArtworkFrameState>();
   const artworkFrames = new Map<string, THREE.Group>();
@@ -843,7 +894,7 @@ function createArtworkFrame(
   };
 }
 
-function addServiceWall(scene: THREE.Scene, frontWallZ: number, maxAnisotropy: number): void {
+function addServiceWall(scene: THREE.Scene, roomHalfWidth: number, frontWallZ: number, maxAnisotropy: number): void {
   const wallCopy = new THREE.Group();
   wallCopy.name = "Design services wall copy";
   wallCopy.position.set(0, 0, frontWallZ + 0.101);
@@ -852,22 +903,24 @@ function addServiceWall(scene: THREE.Scene, frontWallZ: number, maxAnisotropy: n
   const heading = createTextPanel("COMPASSNCREW / DESIGN STUDIO", {
     width: 1920,
     height: 232,
+    worldWidth: 6.45,
+    worldHeight: 0.79,
     font: "600 96px Arial, sans-serif",
     letterSpacing: 10,
   }, maxAnisotropy);
   heading.name = "Services wall heading";
-  heading.scale.set(6.45, 0.79, 1);
   heading.position.set(0, 4.28, 0);
   wallCopy.add(heading);
 
   const statement = createTextPanel("IDENTITIES, CAMPAIGNS, AND DIGITAL EXPERIENCES BUILT TO MOVE.", {
     width: 2160,
     height: 184,
+    worldWidth: 6.75,
+    worldHeight: 0.58,
     font: "400 56px Arial, sans-serif",
     letterSpacing: 4,
   }, maxAnisotropy);
   statement.name = "Services wall statement";
-  statement.scale.set(6.75, 0.58, 1);
   statement.position.set(0, 3.48, 0);
   wallCopy.add(statement);
 
@@ -875,23 +928,92 @@ function addServiceWall(scene: THREE.Scene, frontWallZ: number, maxAnisotropy: n
     const label = createTextPanel(`${String(index + 1).padStart(2, "0")}  ${service.toUpperCase()}`, {
       width: 1640,
       height: 208,
+      worldWidth: 5.95,
+      worldHeight: 0.74,
       font: "500 84px Arial, sans-serif",
       letterSpacing: 6,
     }, maxAnisotropy);
     label.name = `Services wall item ${index + 1}`;
-    label.scale.set(5.95, 0.74, 1);
     label.position.set(0, 2.5 - index * 0.7, 0);
     wallCopy.add(label);
+  });
+
+  addServiceWallSpotlights(scene, roomHalfWidth, frontWallZ);
+}
+
+// Two visible spotlight fixtures flanking the wall, angled in toward the
+// copy — real THREE.SpotLight sources (not decoration only), since the text
+// material below is lit and actually brightens under their beam.
+function addServiceWallSpotlights(scene: THREE.Scene, roomHalfWidth: number, frontWallZ: number): void {
+  const targetPoint = new THREE.Vector3(0, 2.9, frontWallZ + 0.05);
+  const fixtureMaterial = new THREE.MeshStandardMaterial({ color: 0x2b2d2f, roughness: 0.35, metalness: 0.55 });
+  const lensMaterial = new THREE.MeshStandardMaterial({
+    color: 0xfff3d6,
+    emissive: 0xffdca0,
+    emissiveIntensity: 2.4,
+    roughness: 0.25,
+  });
+
+  [-1, 1].forEach((side) => {
+    const position = new THREE.Vector3(side * roomHalfWidth * 0.9, WALL_HEIGHT - 0.3, frontWallZ + 1.9);
+
+    const fixture = new THREE.Group();
+    fixture.name = `${side < 0 ? "Left" : "Right"} wall spotlight fixture`;
+    fixture.position.copy(position);
+    fixture.lookAt(targetPoint);
+    scene.add(fixture);
+
+    const mount = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 10), fixtureMaterial);
+    fixture.add(mount);
+
+    // Object3D.lookAt has a documented quirk: for anything that isn't a
+    // Camera or Light, it points local +Z at the target (not -Z, the
+    // convention every other "forward" assumption in this codebase uses) —
+    // that mismatch is exactly what had these fixtures aimed backwards.
+    const housing = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.13, 0.32, 16), fixtureMaterial);
+    housing.rotation.x = Math.PI / 2;
+    housing.position.z = 0.2;
+    fixture.add(housing);
+
+    const lens = new THREE.Mesh(new THREE.CircleGeometry(0.095, 20), lensMaterial);
+    lens.position.z = 0.36;
+    fixture.add(lens);
+
+    // castShadow off — this is illumination for a flat wall of signage, not
+    // a shadow-casting scene light, and two more shadow maps would add real
+    // GPU cost for no visible benefit here.
+    const spot = new THREE.SpotLight(0xfff2d9, 22, 17, Math.PI / 6, 0.55, 1.2);
+    spot.name = `${side < 0 ? "Left" : "Right"} wall spotlight`;
+    spot.position.copy(position);
+    spot.target.position.copy(targetPoint);
+    spot.castShadow = false;
+    scene.add(spot, spot.target);
   });
 }
 
 function createTextPanel(
   text: string,
-  options: { width: number; height: number; font: string; letterSpacing: number },
+  options: { width: number; height: number; worldWidth: number; worldHeight: number; font: string; letterSpacing: number },
   maxAnisotropy: number,
-): THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> {
+): THREE.Mesh<THREE.PlaneGeometry, THREE.MeshStandardMaterial> {
+  // Measure first against the real font metrics — the old fixed canvas
+  // widths were guesses that came up short for the heading, clipping its
+  // leading "C" and trailing "O". This only ever grows the canvas past the
+  // requested width, never shrinks it, so glyph size in world units never
+  // ends up smaller than what the caller asked for.
+  const measureCanvas = document.createElement("canvas");
+  const measureContext = measureCanvas.getContext("2d");
+  if (!measureContext) throw new Error("Unable to create gallery text texture");
+  measureContext.font = options.font;
+  const glyphs = Array.from(text);
+  const measuredWidth = glyphs.reduce((width, glyph) => width + measureContext.measureText(glyph).width, 0)
+    + Math.max(0, glyphs.length - 1) * options.letterSpacing;
+  const padding = options.height * 0.12;
+  const canvasWidth = Math.max(options.width, Math.ceil(measuredWidth + padding * 2));
+  const densityPxPerWorldUnit = options.width / options.worldWidth;
+
   const canvas = document.createElement("canvas");
-  canvas.width = options.width;
+  canvas.width = canvasWidth;
   canvas.height = options.height;
   const context = canvas.getContext("2d");
   if (!context) throw new Error("Unable to create gallery text texture");
@@ -901,21 +1023,12 @@ function createTextPanel(
   context.textAlign = "center";
   context.textBaseline = "middle";
 
-  // Embossed relief: a dark recessed shadow and a light raised highlight,
-  // offset either side of the main fill, fake carved-into-the-wall depth
-  // on what is otherwise a flat texture.
-  const cx = canvas.width / 2;
-  const cy = canvas.height / 2;
-  const depth = Math.max(1.5, options.height * 0.018);
-
-  context.fillStyle = "rgba(0, 0, 0, 0.5)";
-  drawLetterSpacedText(context, text, cx + depth, cy + depth, options.letterSpacing);
-
-  context.fillStyle = "rgba(255, 255, 255, 0.55)";
-  drawLetterSpacedText(context, text, cx - depth * 0.6, cy - depth * 0.6, options.letterSpacing);
-
-  context.fillStyle = "#111111";
-  drawLetterSpacedText(context, text, cx, cy, options.letterSpacing);
+  // A clean, light fill with a black outline — the real spotlights flanking
+  // this wall (addServiceWallSpotlights) brighten the fill, and the stroke
+  // keeps the letters readable in between the two beams.
+  context.fillStyle = "#f2ead8";
+  const strokeWidth = Math.max(6, options.height * 0.06);
+  drawLetterSpacedText(context, text, canvas.width / 2, canvas.height / 2, options.letterSpacing, strokeWidth);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -923,8 +1036,22 @@ function createTextPanel(
   texture.generateMipmaps = true;
   texture.anisotropy = maxAnisotropy;
   texture.userData.generatedCanvas = canvas;
-  const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false });
-  return new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+  const material = new THREE.MeshStandardMaterial({
+    map: texture,
+    transparent: true,
+    depthWrite: false,
+    // emissiveMap reuses the same texture so the glow is masked by pixel
+    // colour — without it, the flat emissive washed out the black stroke
+    // and made the border invisible.
+    emissiveMap: texture,
+    emissive: 0xf2ead8,
+    emissiveIntensity: 0.55,
+    roughness: 0.4,
+    metalness: 0,
+  });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+  mesh.scale.set(canvasWidth / densityPxPerWorldUnit, options.worldHeight, 1);
+  return mesh;
 }
 
 function drawLetterSpacedText(
@@ -933,12 +1060,32 @@ function drawLetterSpacedText(
   centerX: number,
   centerY: number,
   spacing: number,
+  strokeWidth = 0,
 ): void {
   const glyphs = Array.from(text);
   const measuredWidth = glyphs.reduce((width, glyph) => width + context.measureText(glyph).width, 0);
   const totalWidth = measuredWidth + Math.max(0, glyphs.length - 1) * spacing;
   let cursor = centerX - totalWidth / 2;
   context.textAlign = "left";
+  if (strokeWidth > 0) {
+    context.lineJoin = "round";
+    context.strokeStyle = "#000000";
+    context.shadowColor = "rgba(0,0,0,0.85)";
+    context.shadowBlur = strokeWidth * 1.6;
+    context.lineWidth = strokeWidth * 2.4;
+    for (const glyph of glyphs) {
+      context.strokeText(glyph, cursor, centerY);
+      cursor += context.measureText(glyph).width + spacing;
+    }
+    context.shadowBlur = 0;
+    cursor = centerX - totalWidth / 2;
+    context.lineWidth = strokeWidth;
+    for (const glyph of glyphs) {
+      context.strokeText(glyph, cursor, centerY);
+      cursor += context.measureText(glyph).width + spacing;
+    }
+    cursor = centerX - totalWidth / 2;
+  }
   for (const glyph of glyphs) {
     context.fillText(glyph, cursor, centerY);
     cursor += context.measureText(glyph).width + spacing;

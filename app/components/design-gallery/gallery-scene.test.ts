@@ -43,8 +43,12 @@ function installSuccessfulSceneEnvironment(options: { throwOnUrl?: string } = {}
     clearRect() {},
     fillRect() {},
     fillText() {},
+    strokeText() {},
     measureText: (text: string) => ({ width: text.length * 10 }),
     fillStyle: "",
+    strokeStyle: "",
+    lineWidth: 0,
+    lineJoin: "",
     font: "",
     textAlign: "center",
     textBaseline: "middle",
@@ -440,7 +444,7 @@ test("createGalleryScene disposes constructed resources when initialization thro
           textAlign: "center",
           textBaseline: "middle",
         };
-        return { width: 0, height: 0, getContext: () => (canvasCount <= 2 ? context : null) };
+        return { width: 0, height: 0, getContext: () => (canvasCount <= 3 ? context : null) };
       },
     },
   });
