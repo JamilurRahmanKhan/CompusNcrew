@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
 import { COLORS, DISTRICTS, PROJECTS, ROAD_POINTS, WORLD_BOUNDS } from './data.js';
 
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
@@ -501,40 +503,38 @@ function createConsultation(scene, road) {
 
 function createCar() {
   const car = new THREE.Group();
-  const shadow = new THREE.Mesh(new THREE.CircleGeometry(1.7, 32), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.27, depthWrite: false }));
-  shadow.scale.set(1, 1.7, 1);
-  shadow.rotation.x = -Math.PI / 2;
-  shadow.position.y = 0.04;
-  const chassis = roundedMesh(2.45, 0.72, 4.15, COLORS.orange, 0.34, 4);
-  chassis.position.y = 0.78;
-  const cabin = roundedMesh(2.05, 0.72, 2.2, COLORS.orangeDark, 0.32, 4);
-  cabin.position.set(0, 1.36, -0.18);
-  const glassMaterial = material(COLORS.glass, 0.16, 0.4);
-  const windshield = new THREE.Mesh(new THREE.PlaneGeometry(1.72, 0.62), glassMaterial);
-  windshield.position.set(0, 1.46, 0.95);
-  windshield.rotation.x = -0.2;
-  const bumper = roundedMesh(2.2, 0.22, 0.32, 0x262729, 0.1);
-  bumper.position.set(0, 0.55, 2.12);
-  car.add(shadow, chassis, cabin, windshield, bumper);
-  const wheelGeometry = new THREE.CylinderGeometry(0.46, 0.46, 0.34, 18);
-  const wheelMaterial = material(0x191a1b, 0.9, 0.05);
-  const wheels = [];
-  [[-1.18, 1.32], [1.18, 1.32], [-1.18, -1.34], [1.18, -1.34]].forEach(([x, z], index) => {
-    const pivot = new THREE.Group();
-    pivot.position.set(x, 0.52, z);
-    const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-    wheel.rotation.z = Math.PI / 2;
-    pivot.add(wheel);
-    car.add(pivot);
-    wheels.push({ pivot, wheel, front: index < 2 });
+
+  const mtlLoader = new MTLLoader();
+  mtlLoader.setPath('models/');
+  mtlLoader.load('car.mtl', (materials) => {
+    materials.preload();
+    const objLoader = new OBJLoader();
+    objLoader.setMaterials(materials);
+    objLoader.setPath('models/');
+    objLoader.load('car.obj', (obj) => {
+      const box = new THREE.Box3().setFromObject(obj);
+      const size = box.getSize(new THREE.Vector3());
+      const scale = 4.1 / Math.max(size.x, size.y, size.z);
+      obj.scale.setScalar(scale);
+      const box2 = new THREE.Box3().setFromObject(obj);
+      obj.position.x -= (box2.max.x + box2.min.x) / 2;
+      obj.position.z -= (box2.max.z + box2.min.z) / 2;
+      obj.position.y -= box2.min.y;
+      obj.rotation.y = 0;
+      obj.traverse((child) => {
+        if (!child.isMesh) return;
+        child.castShadow = true;
+        child.receiveShadow = true;
+        const name = child.material && child.material.name;
+        child.material = (name === 'Material.004' || name === 'Material.005')
+          ? new THREE.MeshStandardMaterial({ color: 0x161616, roughness: 0.5, metalness: 0.6 })
+          : new THREE.MeshStandardMaterial({ color: 0xc41313, roughness: 0.22, metalness: 0.4 });
+      });
+      car.add(obj);
+    });
   });
-  [-0.72, 0.72].forEach((x) => {
-    const light = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.18, 0.08), new THREE.MeshStandardMaterial({ color: 0xffe7bf, emissive: 0xffbb73, emissiveIntensity: 1.6 }));
-    light.position.set(x, 0.83, 2.1);
-    car.add(light);
-  });
-  car.traverse((child) => { if (child.isMesh) child.castShadow = true; });
-  return { group: car, wheels };
+
+  return { group: car, wheels: [] };
 }
 
 function createEnvironment(scene) {
