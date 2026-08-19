@@ -52,9 +52,9 @@ export const DISTRICTS = [
 
 export const COLORS = {
   background: 0x111315,
-  ground: 0x48523a,
-  groundDark: 0x262c25,
-  terrain: 0x394231,
+  ground: 0x5f8145,
+  groundDark: 0x3a5230,
+  terrain: 0x4c6b38,
   road: 0x303235,
   roadEdge: 0xa99f8f,
   shoulder: 0x6e695f,

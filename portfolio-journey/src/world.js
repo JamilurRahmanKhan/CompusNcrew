@@ -151,7 +151,48 @@ function createSprite(texture, width, height) {
   return sprite;
 }
 
-function createRoadRibbon(curve, halfWidth, y, color, offset = 0, stripWidth = 0) {
+function createAsphaltTexture() {
+  return createCanvasTexture((context, width, height) => {
+    context.fillStyle = hexColor(COLORS.road);
+    context.fillRect(0, 0, width, height);
+    const random = seededRandom();
+    // Soft mottled patches first — reads as worn/resurfaced asphalt instead
+    // of flat colour, at real-road scale (not fine noise).
+    for (let i = 0; i < 16; i += 1) {
+      const x = random() * width;
+      const y = random() * height;
+      const r = 70 + random() * 110;
+      const shade = 0.88 + random() * 0.2;
+      const base = new THREE.Color(COLORS.road).multiplyScalar(shade);
+      const gradient = context.createRadialGradient(x, y, 0, x, y, r);
+      gradient.addColorStop(0, `rgba(${base.r * 255 | 0},${base.g * 255 | 0},${base.b * 255 | 0},0.28)`);
+      gradient.addColorStop(1, 'rgba(0,0,0,0)');
+      context.fillStyle = gradient;
+      context.beginPath();
+      context.arc(x, y, r, 0, Math.PI * 2);
+      context.fill();
+    }
+    // Two tyre-wear streaks, feathered (not hard-edged) so they read as
+    // subtle wheel-path polish instead of visible colour blocks.
+    [0.32, 0.67].forEach((cx) => {
+      const streak = context.createLinearGradient((cx - 0.07) * width, 0, (cx + 0.07) * width, 0);
+      streak.addColorStop(0, 'rgba(255,255,255,0)');
+      streak.addColorStop(0.5, 'rgba(255,255,255,0.06)');
+      streak.addColorStop(1, 'rgba(255,255,255,0)');
+      context.fillStyle = streak;
+      context.fillRect((cx - 0.07) * width, 0, 0.14 * width, height);
+    });
+    // Fine grain last, subtle — grit texture, not visible speckle noise.
+    for (let i = 0; i < 4000; i += 1) {
+      const shade = 0.9 + random() * 0.2;
+      const base = new THREE.Color(COLORS.road).multiplyScalar(shade);
+      context.fillStyle = `rgba(${base.r * 255 | 0},${base.g * 255 | 0},${base.b * 255 | 0},0.4)`;
+      context.fillRect(random() * width, random() * height, 1, 1);
+    }
+  }, 512, 512);
+}
+
+function createRoadRibbon(curve, halfWidth, y, color, offset = 0, stripWidth = 0, map = null) {
   const samples = 720;
   const positions = [];
   const normals = [];
@@ -179,7 +220,14 @@ function createRoadRibbon(curve, halfWidth, y, color, offset = 0, stripWidth = 0
   geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
   geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
   geometry.setIndex(indices);
-  const mesh = new THREE.Mesh(geometry, material(color, 0.95, 0));
+  const mat = material(color, 0.95, 0);
+  if (map) {
+    map.wrapS = THREE.RepeatWrapping;
+    map.wrapT = THREE.RepeatWrapping;
+    mat.map = map;
+    mat.color.set(0xffffff);
+  }
+  const mesh = new THREE.Mesh(geometry, mat);
   mesh.receiveShadow = true;
   return mesh;
 }
@@ -193,7 +241,7 @@ function createRoad(scene) {
   );
   const halfWidth = 4.2;
   scene.add(createRoadRibbon(curve, halfWidth + 1.15, -0.02, COLORS.shoulder));
-  scene.add(createRoadRibbon(curve, halfWidth, 0.04, COLORS.road));
+  scene.add(createRoadRibbon(curve, halfWidth, 0.04, COLORS.road, 0, 0, createAsphaltTexture()));
   scene.add(createRoadRibbon(curve, 0, 0.13, COLORS.roadEdge, halfWidth + 0.27, 0.48));
   scene.add(createRoadRibbon(curve, 0, 0.13, COLORS.roadEdge, -(halfWidth + 0.27), 0.48));
 
@@ -228,6 +276,22 @@ function hexColor(num) {
   return '#' + num.toString(16).padStart(6, '0');
 }
 
+// Scatter positions were computed as "distance from the road at this one
+// curve parameter t" — on a bend, a point can be far from ITS OWN sample
+// but much closer to a different stretch of the curve that loops back
+// nearby, letting grass/trees land on or right next to the pavement. This
+// checks the real minimum distance against the road's full sample set.
+function isClearOfRoad(road, x, z, clearance) {
+  const samples = road.samples;
+  const clearanceSq = clearance * clearance;
+  for (let i = 0; i < samples.length; i += 3) {
+    const dx = samples[i].x - x;
+    const dz = samples[i].z - z;
+    if (dx * dx + dz * dz < clearanceSq) return false;
+  }
+  return true;
+}
+
 function seededRandom(seed = 44191) {
   let value = seed;
   return () => {
@@ -240,32 +304,39 @@ function seededRandom(seed = 44191) {
 // noise plus a few soft worn-dirt patches, all drawn with wrap-around
 // copies near the canvas edges so the repeat doesn't show a seam.
 function createGrassGroundTexture() {
-  const size = 512;
+  const size = 768;
   return createCanvasTexture((context, width, height) => {
     context.fillStyle = hexColor(COLORS.groundDark);
     context.fillRect(0, 0, width, height);
     const random = seededRandom();
-    const shades = [COLORS.groundDark, COLORS.terrain, COLORS.ground, 0x333c2b, 0x232821].map(hexColor);
-    const drawSpeckle = (x, y, r, color) => {
-      context.fillStyle = color;
+    const shades = [COLORS.groundDark, COLORS.terrain, COLORS.ground, COLORS.treeLight, 0x333c2b, 0x232821].map(hexColor);
+    // Short rotated blade strokes instead of round blobs — reads as fine
+    // grass grain rather than a camo blotch pattern.
+    const drawBlade = (x, y, len, color) => {
+      context.strokeStyle = color;
+      context.lineWidth = 1.1 + random() * 0.9;
+      const angle = random() * Math.PI;
+      const dx = Math.cos(angle) * len;
+      const dy = Math.sin(angle) * len;
       context.beginPath();
-      context.ellipse(x, y, r, r * (0.45 + random() * 0.6), random() * Math.PI, 0, Math.PI * 2);
-      context.fill();
+      context.moveTo(x - dx / 2, y - dy / 2);
+      context.lineTo(x + dx / 2, y + dy / 2);
+      context.stroke();
     };
     const wrapDraw = (x, y, r, color) => {
       for (let ox = -1; ox <= 1; ox += 1) {
         for (let oy = -1; oy <= 1; oy += 1) {
           const wx = x + ox * width;
           const wy = y + oy * height;
-          if (wx > -r && wx < width + r && wy > -r && wy < height + r) drawSpeckle(wx, wy, r, color);
+          if (wx > -r && wx < width + r && wy > -r && wy < height + r) drawBlade(wx, wy, r, color);
         }
       }
     };
-    for (let index = 0; index < 2400; index += 1) {
+    for (let index = 0; index < 20000; index += 1) {
       const x = random() * width;
       const y = random() * height;
-      const r = 2.5 + random() * 6.5;
-      wrapDraw(x, y, r, shades[Math.floor(random() * shades.length)]);
+      const len = 3 + random() * 6;
+      wrapDraw(x, y, len, shades[Math.floor(random() * shades.length)]);
     }
     for (let index = 0; index < 12; index += 1) {
       const x = random() * width;
@@ -342,11 +413,14 @@ function createGrassTuftTexture() {
 // of a single detailed tree; no shadow casting, matching the perf pattern
 // already used for the heavier tree instances.
 function createGrassTufts(scene, road) {
-  const geometry = createGrassBladeGeometry(1, 0.85);
+  const geometry = createGrassBladeGeometry(1, 0.65);
   const tuftMaterial = new THREE.MeshStandardMaterial({
     map: createGrassTuftTexture(),
     alphaTest: 0.4,
-    side: THREE.DoubleSide,
+    // FrontSide, not DoubleSide — the crossed-plane geometry already gives
+    // near-full coverage from any angle, and DoubleSide was doubling the
+    // fragment cost of every one of these instances for little visual gain.
+    side: THREE.FrontSide,
     roughness: 0.95,
     vertexColors: true,
     // A faint fixed glow keeps blades from reading as flat black silhouettes
@@ -358,34 +432,44 @@ function createGrassTufts(scene, road) {
   // min distance is a hard clearance from the road centerline — the road's
   // paved+shoulder half-width tops out at 5.35, so anything below ~7.5 here
   // risks a tuft landing on the asphalt.
+  // Counts pulled back from a previous over-scale (was 4200/3200 = 7400
+  // instances, which combined with DoubleSide overdraw was the actual cause
+  // of the reported stutter) — this is still ~1.7x the original density.
   const bands = [
-    { count: 1000, min: 7.6, max: 18 },
-    { count: 650, min: 18, max: 44 },
+    { count: 1700, min: 7.6, max: 18 },
+    { count: 1100, min: 18, max: 44 },
   ];
   const totalCount = bands.reduce((sum, band) => sum + band.count, 0);
   const mesh = new THREE.InstancedMesh(geometry, tuftMaterial, totalCount);
   mesh.receiveShadow = true;
-  const palette = [0x6b7d43, 0x7c8f4d, 0x59692f, 0x8a9c58, COLORS.ground].map((c) => new THREE.Color(c));
+  const palette = [0x5f8b3e, 0x74a24a, 0x4d7530, 0x8fb85c, COLORS.ground].map((c) => new THREE.Color(c));
   const random = seededRandom();
   const matrix = new THREE.Matrix4();
   const quaternion = new THREE.Quaternion();
   const color = new THREE.Color();
+  const roadClearance = road.halfWidth + 1.15 + 1.0;
   let index = 0;
   bands.forEach(({ count, min, max }) => {
     for (let i = 0; i < count; i += 1) {
-      const t = 0.01 + random() * 0.98;
-      const point = road.curve.getPointAt(t);
-      const tangent = road.curve.getTangentAt(t).normalize();
-      const normal = new THREE.Vector3(-tangent.z, 0, tangent.x);
-      const side = random() > 0.5 ? 1 : -1;
-      const distance = min + random() * (max - min);
-      // Jitter only along the road's tangent direction so it can never
-      // reduce the guaranteed lateral clearance computed above.
-      const along = (random() - 0.5) * 4;
-      const x = point.x + normal.x * side * distance + tangent.x * along;
-      const z = point.z + normal.z * side * distance + tangent.z * along;
-      const scaleXZ = 0.6 + random() * 0.85;
-      const scaleY = scaleXZ * (0.85 + random() * 0.5);
+      let x = 0;
+      let z = 0;
+      let safe = false;
+      for (let attempt = 0; attempt < 6 && !safe; attempt += 1) {
+        const t = 0.01 + random() * 0.98;
+        const point = road.curve.getPointAt(t);
+        const tangent = road.curve.getTangentAt(t).normalize();
+        const normal = new THREE.Vector3(-tangent.z, 0, tangent.x);
+        const side = random() > 0.5 ? 1 : -1;
+        const distance = min + random() * (max - min);
+        const along = (random() - 0.5) * 4;
+        x = point.x + normal.x * side * distance + tangent.x * along;
+        z = point.z + normal.z * side * distance + tangent.z * along;
+        safe = isClearOfRoad(road, x, z, roadClearance);
+      }
+      // Couldn't find a verified-safe spot in time (only happens on tight
+      // bends) — scale to zero rather than risk placing it on the road.
+      const scaleXZ = safe ? 0.7 + random() * 0.9 : 0;
+      const scaleY = scaleXZ * (0.7 + random() * 0.35);
       quaternion.setFromAxisAngle(Y_AXIS, random() * Math.PI * 2);
       matrix.compose(new THREE.Vector3(x, 0, z), quaternion, new THREE.Vector3(scaleXZ, scaleY, scaleXZ));
       mesh.setMatrixAt(index, matrix);
@@ -396,6 +480,11 @@ function createGrassTufts(scene, road) {
   });
   mesh.instanceMatrix.needsUpdate = true;
   if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  // Without this, frustum culling falls back to the base blade geometry's
+  // tiny local-origin bounding sphere instead of one covering every scattered
+  // instance — the whole mesh silently disappears whenever (0,0,0) isn't in
+  // view, and never gets the culling benefit it should when it's off-screen.
+  mesh.computeBoundingSphere();
   scene.add(mesh);
 }
 
@@ -403,29 +492,58 @@ function createTreeInstances(scene, road) {
   const count = 280;
   const random = seededRandom();
   const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.14, 0.24, 1.8, 7), material(COLORS.trunk), count);
-  const canopies = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), material(COLORS.tree, 0.98), count);
+  const canopyMat = material(COLORS.tree, 0.98);
+  const canopyMat2 = material(COLORS.treeLight, 0.98);
+  const canopies = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), canopyMat, count);
+  // A second, smaller offset blob per tree (lighter tone) breaks up the
+  // "single perfect sphere" look into a fuller, more organic canopy.
+  const canopies2 = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), canopyMat2, count);
   trunks.castShadow = true;
   canopies.castShadow = true;
   canopies.receiveShadow = true;
+  canopies2.castShadow = true;
+  canopies2.receiveShadow = true;
   const matrix = new THREE.Matrix4();
   const quaternion = new THREE.Quaternion();
   const scale = new THREE.Vector3();
+  const roadClearance = road.halfWidth + 1.15 + 1.0;
   for (let index = 0; index < count; index += 1) {
-    const t = 0.01 + random() * 0.98;
-    const point = road.curve.getPointAt(t);
-    const tangent = road.curve.getTangentAt(t).normalize();
-    const normal = new THREE.Vector3(-tangent.z, 0, tangent.x);
-    const side = random() > 0.5 ? 1 : -1;
-    const distance = 8.5 + random() * 17;
-    const x = point.x + normal.x * side * distance + (random() - 0.5) * 5;
-    const z = point.z + normal.z * side * distance + (random() - 0.5) * 5;
-    const height = 0.75 + random() * 1.35;
+    let x = 0;
+    let z = 0;
+    let safe = false;
+    for (let attempt = 0; attempt < 6 && !safe; attempt += 1) {
+      const t = 0.01 + random() * 0.98;
+      const point = road.curve.getPointAt(t);
+      const tangent = road.curve.getTangentAt(t).normalize();
+      const normal = new THREE.Vector3(-tangent.z, 0, tangent.x);
+      const side = random() > 0.5 ? 1 : -1;
+      const distance = 8.5 + random() * 17;
+      x = point.x + normal.x * side * distance + tangent.x * (random() - 0.5) * 5;
+      z = point.z + normal.z * side * distance + tangent.z * (random() - 0.5) * 5;
+      safe = isClearOfRoad(road, x, z, roadClearance);
+    }
+    const height = safe ? 0.75 + random() * 1.35 : 0;
     matrix.compose(new THREE.Vector3(x, 0.75 * height, z), quaternion, new THREE.Vector3(1, height, 1));
     trunks.setMatrixAt(index, matrix);
-    matrix.compose(new THREE.Vector3(x, 2.25 * height, z), quaternion.setFromAxisAngle(Y_AXIS, random() * Math.PI), scale.setScalar(height));
+    matrix.compose(
+      new THREE.Vector3(x, 2.25 * height, z),
+      quaternion.setFromAxisAngle(Y_AXIS, random() * Math.PI),
+      scale.set(height * (0.85 + random() * 0.3), height * (0.9 + random() * 0.25), height * (0.85 + random() * 0.3)),
+    );
     canopies.setMatrixAt(index, matrix);
+    const offsetAngle = random() * Math.PI * 2;
+    const offsetR = height * (0.45 + random() * 0.25);
+    matrix.compose(
+      new THREE.Vector3(x + Math.cos(offsetAngle) * offsetR, height * (1.9 + random() * 0.5), z + Math.sin(offsetAngle) * offsetR),
+      quaternion.setFromAxisAngle(Y_AXIS, random() * Math.PI),
+      scale.setScalar(height * (0.55 + random() * 0.25)),
+    );
+    canopies2.setMatrixAt(index, matrix);
   }
-  scene.add(trunks, canopies);
+  trunks.computeBoundingSphere();
+  canopies.computeBoundingSphere();
+  canopies2.computeBoundingSphere();
+  scene.add(trunks, canopies, canopies2);
 }
 
 // A handful of higher-detail specimen trees mixed in among the low-poly
@@ -434,7 +552,8 @@ function createTreeInstances(scene, road) {
 // (not textured) and used sparingly — a few dozen individual instances,
 // not the hundreds the instanced low-poly trees use.
 function createDetailedTreeInstances(scene, road) {
-  const count = 36;
+  const count = 20;
+  const bucketCount = 5;
   const objLoader = new OBJLoader();
   objLoader.setPath('models/');
   objLoader.load('tree-detailed.obj', (source) => {
@@ -457,43 +576,61 @@ function createDetailedTreeInstances(scene, road) {
     leavesGeometry.translate(-centerX, -box.min.y, -centerZ);
     trunkGeometry.translate(-centerX, -box.min.y, -centerZ);
 
-    // GPU-instanced: one draw call per part regardless of instance count —
-    // this heavy a source mesh (~180k tris, no shipped textures) can't
-    // afford a separate scene-graph clone per tree at meaningful quantities.
-    const trunkMesh = new THREE.InstancedMesh(trunkGeometry, material(COLORS.trunk, 0.9, 0.05), count);
-    const leavesMesh = new THREE.InstancedMesh(leavesGeometry, material(COLORS.tree, 0.85, 0), count);
-    // Shadow-casting this many dense-foliage triangles is the real cost —
-    // it doubles the vertex work (main pass + shadow-map pass) and shadow
-    // maps handle high-poly foliage badly. Not casting keeps the visual
-    // (trees still receive shadow from the sun/other objects) at a fraction
-    // of the GPU cost.
-    trunkMesh.receiveShadow = true;
-    leavesMesh.receiveShadow = true;
-
+    // InstancedMesh can't cull individual instances — a single batch
+    // spanning the whole road was rendering all instances (~180k tris each)
+    // every frame as soon as any one tree was on-screen, which was the real
+    // cause of the stutter. Bucketing by road position into several smaller
+    // batches gives each one a small, localized bounding sphere so the
+    // renderer can actually skip the ones that are off-screen.
     const random = seededRandom();
-    const matrix = new THREE.Matrix4();
-    const quaternion = new THREE.Quaternion();
-    // Different multiplier from the low-poly scatter's random walk so this
-    // set lands at different points along the road, not on top of them.
+    const roadClearance = road.halfWidth + 1.15 + 1.0;
+    const buckets = Array.from({ length: bucketCount }, () => []);
     for (let index = 0; index < count; index += 1) {
       random(); random(); random();
-      const t = 0.02 + random() * 0.96;
-      const point = road.curve.getPointAt(t);
-      const tangent = road.curve.getTangentAt(t).normalize();
-      const normal = new THREE.Vector3(-tangent.z, 0, tangent.x);
-      const side = random() > 0.5 ? 1 : -1;
-      const distance = 10 + random() * 20;
-      const x = point.x + normal.x * side * distance + (random() - 0.5) * 6;
-      const z = point.z + normal.z * side * distance + (random() - 0.5) * 6;
+      let x = 0;
+      let z = 0;
+      let t = 0;
+      let safe = false;
+      for (let attempt = 0; attempt < 6 && !safe; attempt += 1) {
+        t = 0.02 + random() * 0.96;
+        const point = road.curve.getPointAt(t);
+        const tangent = road.curve.getTangentAt(t).normalize();
+        const normal = new THREE.Vector3(-tangent.z, 0, tangent.x);
+        const side = random() > 0.5 ? 1 : -1;
+        const distance = 10 + random() * 20;
+        x = point.x + normal.x * side * distance + tangent.x * (random() - 0.5) * 6;
+        z = point.z + normal.z * side * distance + tangent.z * (random() - 0.5) * 6;
+        safe = isClearOfRoad(road, x, z, roadClearance);
+      }
+      if (!safe) continue;
       const scale = baseScale * (0.8 + random() * 0.5);
-      quaternion.setFromAxisAngle(Y_AXIS, random() * Math.PI * 2);
-      matrix.compose(new THREE.Vector3(x, 0, z), quaternion, new THREE.Vector3(scale, scale, scale));
-      trunkMesh.setMatrixAt(index, matrix);
-      leavesMesh.setMatrixAt(index, matrix);
+      const quaternion = new THREE.Quaternion().setFromAxisAngle(Y_AXIS, random() * Math.PI * 2);
+      buckets[Math.min(bucketCount - 1, Math.floor(t * bucketCount))].push({ x, z, scale, quaternion });
     }
-    trunkMesh.instanceMatrix.needsUpdate = true;
-    leavesMesh.instanceMatrix.needsUpdate = true;
-    scene.add(trunkMesh, leavesMesh);
+
+    const matrix = new THREE.Matrix4();
+    buckets.forEach((group) => {
+      if (group.length === 0) return;
+      const trunkMesh = new THREE.InstancedMesh(trunkGeometry, material(COLORS.trunk, 0.9, 0.05), group.length);
+      const leavesMesh = new THREE.InstancedMesh(leavesGeometry, material(COLORS.tree, 0.85, 0), group.length);
+      // Shadow-casting this many dense-foliage triangles is the real cost —
+      // it doubles the vertex work (main pass + shadow-map pass) and shadow
+      // maps handle high-poly foliage badly. Not casting keeps the visual
+      // (trees still receive shadow from the sun/other objects) at a
+      // fraction of the GPU cost.
+      trunkMesh.receiveShadow = true;
+      leavesMesh.receiveShadow = true;
+      group.forEach((p, i) => {
+        matrix.compose(new THREE.Vector3(p.x, 0, p.z), p.quaternion, new THREE.Vector3(p.scale, p.scale, p.scale));
+        trunkMesh.setMatrixAt(i, matrix);
+        leavesMesh.setMatrixAt(i, matrix);
+      });
+      trunkMesh.instanceMatrix.needsUpdate = true;
+      leavesMesh.instanceMatrix.needsUpdate = true;
+      trunkMesh.computeBoundingSphere();
+      leavesMesh.computeBoundingSphere();
+      scene.add(trunkMesh, leavesMesh);
+    });
   });
 }
 
@@ -565,17 +702,35 @@ function addFacade(group, width, height, depth, x, y, z, cols, rows, tint, rando
 }
 
 // A thin overhanging cap gives the roofline a real edge instead of the box
-// just stopping in mid-air.
+// just stopping in mid-air, plus a slim glowing trim underneath — the
+// "modern lit kiosk" accent instead of a bare dark cap.
 function addRoofCap(group, width, height, depth, x, y, z) {
+  const capY = y + height / 2 + 0.13;
   const cap = roundedMesh(width + 0.4, 0.26, depth + 0.4, FACADE_TRIM, 0.1, 2);
-  cap.position.set(x, y + height / 2 + 0.13, z);
+  cap.position.set(x, capY, z);
   group.add(cap);
+
+  const glow = new THREE.Mesh(
+    new THREE.BoxGeometry(width + 0.58, 0.16, depth + 0.58),
+    new THREE.MeshStandardMaterial({ color: COLORS.orange, emissive: COLORS.orange, emissiveIntensity: 3.4, toneMapped: false }),
+  );
+  glow.position.set(x, capY - 0.22, z);
+  group.add(glow);
 }
 
 function addPlinth(group, width, depth, x, z) {
   const plinth = roundedMesh(width + 0.24, 0.46, depth + 0.24, FACADE_TRIM, 0.14, 2);
   plinth.position.set(x, 0.23, z);
   group.add(plinth);
+
+  // Matching glow band at ground level frames the whole building top and
+  // bottom, like the lit-kiosk reference.
+  const glow = new THREE.Mesh(
+    new THREE.BoxGeometry(width + 0.4, 0.14, depth + 0.4),
+    new THREE.MeshStandardMaterial({ color: COLORS.orange, emissive: COLORS.orange, emissiveIntensity: 3.4, toneMapped: false }),
+  );
+  glow.position.set(x, 0.06, z);
+  group.add(glow);
 }
 
 // One or two rooftop units (AC/vent boxes) for skyline silhouette variety.
