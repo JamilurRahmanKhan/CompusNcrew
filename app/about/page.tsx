@@ -18,7 +18,7 @@ export default function AboutPage() {
           <Reveal>
             <p className="eyebrow mb-6">About</p>
             <h1 className="display display-lg mb-8">
-              A small studio that says so
+              A small studio that says so..
             </h1>
             <p className="lead max-w-[48ch]">
               Most agency about pages imply a headcount and a floor of an office
