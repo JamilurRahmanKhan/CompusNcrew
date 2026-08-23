@@ -1,0 +1,44 @@
+{
+  "name": "compassncrew-site",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "dev:webpack": "next dev --webpack",
+    "build": "npm run journey:build && npm run automation:build && next build",
+    "journey:build": "vite build --config portfolio-journey/vite.config.js",
+    "journey:check": "node portfolio-journey/scripts/check.mjs",
+    "automation:build": "vite build --config automation-workflow/vite.config.js",
+    "automation:check": "node automation-workflow/scripts/check.mjs",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test:gallery": "tsx --test app/components/design-gallery/*.test.ts",
+    "paid-ads:assets": "node scripts/process-paid-ads-engine.mjs",
+    "test:paid-ads": "tsx --test app/paid-ads/*.test.ts && node scripts/check-paid-ads-page.mjs"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.7.0",
+    "lucide-react": "^1.30.0",
+    "next": "16.3.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/three": "^0.185.4",
+    "tailwindcss": "^4.1.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.7.0",
+    "vite": "^7.3.6"
+  }
+}

@@ -1,0 +1,298 @@
+.page {
+  --ink: #14151a;
+  --muted: rgba(20, 21, 26, 0.6);
+  --orange: #d9622b;
+  background: #ffffff;
+  color: var(--ink);
+}
+
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: clamp(6rem, 12vw, 9rem) clamp(1.25rem, 5vw, 4rem) clamp(5rem, 9vw, 7rem);
+  text-align: left;
+  background: #050507;
+  overflow: hidden;
+  --ink: #f5f5f7;
+  --muted: rgba(245, 245, 247, 0.66);
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(2rem, 5vw, 5rem);
+  max-width: 90rem;
+  margin: 0 auto;
+}
+
+.heroText {
+  display: flex;
+  flex: 1 1 28rem;
+  flex-direction: column;
+  gap: 1.75rem;
+  max-width: 34rem;
+}
+
+.heroCube {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex: 1 1 26rem;
+  justify-content: center;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--orange);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  max-width: 14ch;
+  margin: 0;
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-size: clamp(2.75rem, 5vw, 5rem);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 0.96;
+  color: var(--ink);
+}
+
+.lead {
+  max-width: 32rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: clamp(1rem, 1.3vw, 1.15rem);
+  line-height: 1.65;
+}
+
+/* Desktop hero composition: keep cube fixed above the circular card carousel */
+@media (min-width: 901px) {
+  .heroInner {
+    position: relative;
+    min-height: 900px;
+  }
+
+  .heroCube {
+    position: absolute;
+    right: 10%;
+    top: -70px;
+    width: 420px;
+    height: 420px;
+  }
+
+  .heroText {
+    position: absolute;
+    left: 4%;
+    top: 130px;
+    z-index: 3;
+  }
+
+}
+
+.dragButton,
+.detailsButton {
+  display:none;
+}
+
+/* Desktop-only "See details" trigger for the platform modal. This must
+   come after the base hide rule above (same specificity, later wins) so
+   it's kept entirely separate from the existing desktop hero block and
+   can't interfere with the cube/text positioning there. */
+@media (min-width: 901px) {
+  .detailsButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.15rem;
+    border-radius: 999px;
+    border: 1px solid rgba(245, 245, 247, 0.28);
+    background: rgba(245, 245, 247, 0.06);
+    backdrop-filter: blur(10px);
+    color: var(--ink);
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+  }
+
+  .detailsButton:hover {
+    background: rgba(245, 245, 247, 0.14);
+    border-color: rgba(245, 245, 247, 0.45);
+    transform: translateY(-1px);
+  }
+}
+
+/* Mobile-only "See details" trigger, styled to match .dragButton. Its own
+   isolated block (after the base hide rule, same reason as the desktop
+   one above) — does not touch the locked mobile hero blocks below. */
+@media (max-width: 900px) {
+  .detailsButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+    padding: 0.75rem 1.1rem;
+    border-radius: 999px;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    font-size: 0.7rem;
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* Single source of truth for the mobile hero layout — this used to be
+   spread across three separate, later-overriding media query blocks
+   (plus a dead `.rotatingCards` rule that never matched anything, since
+   RotatingCards renders its own module's `wrap` class, not this one).
+   That's what made the cube's position unpredictable: the block that
+   actually won the cascade was re-centering the whole column instead of
+   pinning content to the top. */
+@media (max-width: 900px) {
+  .hero {
+    min-height: 100svh;
+    padding: 4rem 1.25rem 2rem;
+    background:
+      radial-gradient(circle at 50% 35%, rgba(80, 40, 255, .16), transparent 35%),
+      #020205;
+  }
+
+  /* Stack from the top instead of vertically centering — centering was
+     the actual reason the cube read as "too low": it centers the whole
+     column (text + cube + cards), and that total is taller than one
+     screen, so the midpoint lands well past the cube. */
+  .heroInner {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    /* This was missing — .heroInner otherwise keeps the desktop rule's
+       align-items: center, which in a column layout centers each child
+       horizontally based on its own shrink-to-fit width. The 3-line lead
+       paragraph used to be the widest thing in .heroText, so its box was
+       nearly full-width and the centering was invisible; anything that
+       makes .heroText narrower than that (e.g. shortening the lead)
+       exposes it as the whole block drifting to the middle. */
+    align-items: flex-start;
+    gap: 0.5rem;
+    min-height: auto;
+  }
+
+  .heroText {
+    flex: 0 0 auto;
+    order: -1;
+    align-items: flex-start;
+    gap: 1rem;
+    max-width: none;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.2rem, 9vw, 3.2rem);
+    max-width: 11ch;
+    line-height: .98;
+  }
+
+  .lead {
+    display: none;
+  }
+
+  .dragButton {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    border-radius: 999px;
+    padding: .85rem 1.3rem;
+    color: #fff;
+    background: rgba(255, 255, 255, .03);
+    border: 1px solid rgba(255, 255, 255, .22);
+    font-weight: 700;
+    letter-spacing: .12em;
+    font-size: .75rem;
+    backdrop-filter: blur(12px);
+    margin-top: .5rem;
+  }
+
+  .heroCube {
+    flex: 0 0 auto;
+    order: 0;
+    width: 100%;
+    margin-top: -.5rem;
+    /* The ring carousel should read as sitting in front of the cube on
+       mobile, not behind it. */
+    z-index: 1;
+  }
+
+  /* RotatingCards below the cube. */
+  .heroInner > :last-child {
+    order: 2;
+    width: 100%;
+    margin-top: .5rem;
+  }
+}
+
+/* Final mobile vertical alignment fix: keep the heading and cube above the orbit.
+   The orbit remains centered and only its cards animate.
+
+   This used to center .heroInner in .hero (via .hero's own align-items:
+   center) and then transform: translateY(-95px) it upward as a fixed pixel
+   shift. That only worked because on the 375x812 test viewport the centered
+   slack above .heroInner happened to be ~103px — an 8px margin the -95px
+   shift ate almost all of. On real devices with a shorter effective
+   viewport (address bar chrome eating into 100svh, or just a shorter
+   aspect ratio), that slack is smaller than 95px, so the shift pushed
+   content above .hero's own top edge and .hero's overflow:hidden clipped
+   it — the heading was cut off at the top on real phones.
+   Anchoring from the top with align-items/padding instead of centering-
+   then-shifting means the starting position is never negative, so it
+   can't clip regardless of device height. */
+@media (max-width: 900px) {
+  .hero {
+    align-items: flex-start;
+    padding-top: 2.25rem;
+    /* The ring is position:absolute, so it never counts toward .hero's
+       auto-height — only the heading/cube's normal-flow height does. On
+       short viewports that flow-height is shorter than the ring's actual
+       reach, .hero's overflow:hidden (needed on desktop to clip the
+       980px-wide ring's horizontal bleed off both edges) was cutting the
+       ring's bottom off here too. overflow:visible stops the clipping, but
+       on its own it would let the ring's bottom render past .hero's own
+       dark background onto .page's white background beneath it — so the
+       min-height floor below is sized generously enough that .hero's own
+       box (and its background) always reaches past the ring's actual
+       lowest point, regardless of viewport height. Mobile's ring is
+       already width:100% (no horizontal bleed to clip), so letting it
+       overflow vertically here has no downside. */
+    overflow: visible;
+    min-height: max(100svh, 56rem);
+  }
+
+  .heroInner {
+    gap: 0;
+  }
+
+  .heroText {
+    gap: .75rem;
+  }
+
+  .heroCube {
+    margin-top: 0;
+  }
+
+  .heroInner > :last-child {
+    margin-top: 0;
+  }
+}

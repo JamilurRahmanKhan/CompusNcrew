@@ -1,0 +1,36 @@
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.05);
+  transition:
+    opacity 1000ms var(--ease-out-soft, cubic-bezier(0.22, 0.61, 0.36, 1)),
+    transform 1000ms var(--ease-out-soft, cubic-bezier(0.22, 0.61, 0.36, 1));
+  background-image:
+    linear-gradient(100deg, rgba(5, 5, 7, 0.75) 0%, rgba(5, 5, 7, 0.35) 40%, transparent 65%),
+    var(--photo, none),
+    radial-gradient(60% 38% at 50% 90%, color-mix(in srgb, var(--accent) 55%, transparent) 0%, transparent 72%),
+    radial-gradient(120% 85% at 28% 12%, color-mix(in srgb, var(--accent) 32%, transparent) 0%, transparent 62%),
+    linear-gradient(165deg, #06060a 0%, #0b0b12 55%, #050507 100%);
+  background-size: cover, cover, auto, auto, auto;
+  background-position: center, center, center, center, center;
+  background-repeat: no-repeat;
+}
+
+.layer.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layer {
+    transition: none;
+  }
+}
