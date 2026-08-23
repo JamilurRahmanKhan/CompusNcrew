@@ -1,0 +1,171 @@
+.stageWrap {
+  position: relative;
+  max-width: 76rem;
+  margin: 0 auto;
+}
+
+.fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4.5rem;
+  z-index: 5;
+  pointer-events: none;
+}
+.fadeLeft { left: 0; background: linear-gradient(90deg, var(--navy-soft), transparent); }
+.fadeRight { right: 0; background: linear-gradient(270deg, var(--navy-soft), transparent); }
+
+.scroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(217, 138, 50, 0.35) transparent;
+  padding: 0.5rem 2.5rem 1rem;
+  cursor: grab;
+}
+.scroller:active { cursor: grabbing; }
+.scroller::-webkit-scrollbar { height: 6px; }
+.scroller::-webkit-scrollbar-thumb { background: rgba(217, 138, 50, 0.35); border-radius: 10px; }
+.scroller::-webkit-scrollbar-track { background: transparent; }
+
+.track {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  width: max-content;
+  will-change: transform;
+  padding-top: 0.25rem;
+  min-height: 14.5rem;
+}
+
+.trackAuto { animation: drift 34s linear infinite; }
+.paused .trackAuto { animation-play-state: paused; }
+.paused .roller { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .trackAuto { animation: none; }
+  .roller { animation: none !important; }
+}
+
+@keyframes drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.stage { display: flex; align-items: flex-start; flex: 0 0 auto; position: relative; z-index: 3; }
+.stageItem { display: flex; align-items: flex-start; }
+
+.node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 9.5rem;
+  height: 10.5rem;
+  text-align: center;
+  margin: 0 0.3rem;
+  padding: 1.1rem 0.6rem 1rem;
+  position: relative;
+  box-sizing: border-box;
+  border-radius: 1.35rem;
+  background: linear-gradient(160deg, rgba(242, 240, 234, 0.14), rgba(242, 240, 234, 0.05));
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(242, 240, 234, 0.16);
+  box-shadow: 0 10px 24px -10px rgba(4, 6, 18, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.node::before {
+  content: "";
+  position: absolute;
+  top: -60%;
+  left: -20%;
+  width: 60%;
+  height: 220%;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 60%);
+  transform: rotate(20deg);
+  pointer-events: none;
+}
+
+.icon {
+  width: 3.4rem;
+  height: 3.4rem;
+  border-radius: 50%;
+  background: linear-gradient(155deg, var(--amber), #a85a20);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px -6px rgba(217, 138, 50, 0.55);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.icon svg { width: 1.5rem; height: 1.5rem; stroke: #12101b; }
+.nodeFirst .icon { box-shadow: 0 0 0 6px rgba(217, 138, 50, 0.22), 0 8px 18px -6px rgba(217, 138, 50, 0.55); }
+
+.label { margin-top: 0.75rem; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; color: #f6f5f2; position: relative; z-index: 1; }
+.desc { margin-top: 0.25rem; font-size: 0.68rem; color: var(--paper-muted); line-height: 1.35; max-width: 7.4rem; height: 2rem; overflow: hidden; position: relative; z-index: 1; }
+
+.arrow {
+  flex: 0 0 auto;
+  width: 1.6rem;
+  height: 3.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(242, 240, 234, 0.35);
+  margin-top: 1rem;
+  position: relative;
+  z-index: 3;
+}
+.arrow svg { width: 1.35rem; height: 1.35rem; }
+
+.beltWrap { position: absolute; left: 0; right: 0; top: 10.3rem; height: 2.5rem; z-index: 1; }
+
+.beltBand {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2.5rem;
+  border-radius: 30px;
+  background: #402108;
+  border: 3px solid var(--amber);
+  box-shadow: 0 0 20px rgba(217, 138, 50, 0.45), inset 0 0 15px rgba(217, 138, 50, 0.35), inset 0 -8px 0 rgba(0, 0, 0, 0.35);
+  z-index: 1;
+}
+
+.beltLine {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  top: 50%;
+  height: 3px;
+  margin-top: -1.5px;
+  background: rgba(242, 240, 234, 0.3);
+  border-radius: 2px;
+  z-index: 1;
+}
+
+.roller {
+  position: absolute;
+  top: 0.2rem;
+  width: 2rem;
+  height: 2rem;
+  background: #f2f0ea;
+  border: 3px solid #7a4a22;
+  border-radius: 50%;
+  animation: spin 2.4s linear infinite;
+  transform-origin: 50% 50%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.roller::before { content: ""; position: absolute; width: 100%; height: 4px; background: #b98a55; }
+.roller::after { content: ""; position: absolute; width: 4px; height: 100%; background: #b98a55; }
+.rollerInner { width: 0.65rem; height: 0.65rem; background: #402108; border-radius: 50%; position: relative; z-index: 3; }
+
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }

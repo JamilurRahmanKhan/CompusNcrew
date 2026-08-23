@@ -22,6 +22,7 @@ export default function AboutPage() {
             </h1>
             <p className="lead max-w-[48ch]">
               Most agency about pages imply a headcount and a floor of an office
+              
               building. Ours does not, because the moment a client discovers the
               gap between the page and the reality, everything else we said stops
               being believable.
