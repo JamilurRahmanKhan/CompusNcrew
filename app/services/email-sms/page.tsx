@@ -17,8 +17,6 @@ import styles from "./email-sms.module.css";
 import {
   beforeAfter,
   emailServices,
-  heroFlow,
-  heroStats,
   industries,
   platforms,
   process,
@@ -89,47 +87,6 @@ export default function EmailMarketingPage() {
                 playsInline
                 aria-label="Automated email machine processing a customer journey from lead to rebook"
               />
-            </div>
-
-            <div className={styles.heroPanel}>
-              <div className={styles.heroPanelHead}>
-                <span className={styles.livePulse} aria-hidden="true" />
-                We automate your customer journey.
-              </div>
-              <p className={styles.heroPanelSub}>From new lead to rebook—we handle it all, so you can focus on growth.</p>
-              <ul className={styles.heroFlowList}>
-                {heroFlow.map((step) => {
-                  const Icon = step.icon;
-                  return (
-                    <li key={step.label}>
-                      <span className={styles.heroFlowIcon}>
-                        <Icon size={11} aria-hidden="true" />
-                      </span>
-                      {step.label}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-
-            <div className={styles.heroStatCard}>
-              <p className={styles.heroStatCardHead}>Performance overview</p>
-              {heroStats.map((stat) => (
-                <div key={stat.label} className={styles.heroStat}>
-                  <div className={styles.heroStatText}>
-                    <strong>{stat.value}</strong>
-                    <span>{stat.label}</span>
-                  </div>
-                  <svg
-                    className={`${styles.heroSparkline} ${tintClass(styles, stat.tint)}`}
-                    viewBox="0 0 60 20"
-                    preserveAspectRatio="none"
-                    aria-hidden="true"
-                  >
-                    <polyline points="0,16 10,13 20,15 30,9 40,10 50,4 60,2" />
-                  </svg>
-                </div>
-              ))}
             </div>
 
             <div className={`${styles.floatBadge} ${styles.floatBadgeOne}`} aria-hidden="true">
