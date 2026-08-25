@@ -11,8 +11,8 @@
   display: block;
   margin-bottom: 0.9rem;
   font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--navy);
+  font-weight: 600;
+  color: #3c4360;
 }
 .field > span { display: block; margin-bottom: 0.4rem; }
 
@@ -22,7 +22,7 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 0.85rem;
-  color: var(--muted);
+  color: #667088;
   font-weight: 600;
   pointer-events: none;
 }
@@ -34,9 +34,9 @@
   box-sizing: border-box;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--navy);
-  border: 1px solid var(--line);
-  background: var(--paper);
+  color: #10142c;
+  border: 1px solid #e7e9f3;
+  background: #f2f4fb;
   border-radius: 0.6rem;
   padding: 0.6rem 0.75rem;
   outline: none;
@@ -45,27 +45,27 @@
 .field input.hasPrefix { padding-left: 1.5rem; }
 .field input.hasSuffix { padding-right: 1.75rem; }
 .field input:focus {
-  border-color: var(--amber);
-  background: var(--paper-bright);
-  box-shadow: 0 0 0 3px rgba(217, 138, 50, 0.18);
+  border-color: #3b6bf6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 107, 246, 0.14);
 }
-.field input:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.field input:focus-visible { outline: 2px solid #3b6bf6; outline-offset: 2px; }
 
 .result {
-  background: linear-gradient(165deg, rgba(217, 138, 50, 0.12), rgba(217, 138, 50, 0.04));
-  border: 1px solid rgba(217, 138, 50, 0.28);
+  background: linear-gradient(165deg, #eef2ff, #e8edfe);
+  border: 1px solid #dde3fb;
   border-radius: 1rem;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
-.resultLabel { font-size: 0.78rem; font-weight: 700; color: var(--navy); margin-bottom: 0.5rem; }
-.resultMonth { font-size: 1.9rem; font-weight: 800; color: var(--success); line-height: 1.15; }
-.resultMonth span { font-size: 0.9rem; font-weight: 700; color: #4a7a5f; }
-.resultYear { font-size: 1.15rem; font-weight: 800; color: var(--success); margin-top: 0.15rem; }
-.resultYear span { font-size: 0.8rem; font-weight: 700; color: #4a7a5f; }
-.note { font-size: 0.66rem; color: var(--muted); margin: 0.5rem 0 1rem; }
+.resultLabel { font-size: 0.78rem; font-weight: 700; color: #3c4360; margin-bottom: 0.5rem; }
+.resultMonth { font-size: 1.9rem; font-weight: 800; color: #16a34a; line-height: 1.15; }
+.resultMonth span { font-size: 0.9rem; font-weight: 700; color: #4a8f63; }
+.resultYear { font-size: 1.15rem; font-weight: 800; color: #16a34a; margin-top: 0.15rem; }
+.resultYear span { font-size: 0.8rem; font-weight: 700; color: #4a8f63; }
+.note { font-size: 0.66rem; color: #667088; margin: 0.5rem 0 1rem; }
 
 .cta {
   display: inline-flex;
@@ -75,17 +75,18 @@
   width: 100%;
   min-height: 2.9rem;
   border-radius: 0.7rem;
-  background: var(--navy);
-  color: var(--paper-bright);
+  background: linear-gradient(135deg, #3b6bf6, #2547c9);
+  color: #ffffff;
   font-size: 0.85rem;
   font-weight: 700;
   text-decoration: none;
-  transition: transform 180ms ease, background-color 180ms ease;
+  box-shadow: 0 12px 26px -10px rgba(59, 107, 246, 0.5);
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
-.cta:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+.cta:focus-visible { outline: 2px solid #3b6bf6; outline-offset: 3px; }
 
 @media (hover: hover) and (pointer: fine) {
-  .cta:hover { transform: translateY(-2px); background: #12101b; }
+  .cta:hover { transform: translateY(-2px); box-shadow: 0 16px 32px -10px rgba(59, 107, 246, 0.6); }
 }
 
 @media (max-width: 640px) {

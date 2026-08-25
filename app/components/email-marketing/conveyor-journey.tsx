@@ -131,6 +131,83 @@ function StageGroup() {
   );
 }
 
+function ServerMachine() {
+  return (
+    <div className={styles.svMachine} aria-hidden="true">
+      <div className={styles.svLeft}>
+        <div className={styles.svVentsTop}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div className={styles.svVentLine} key={i} />
+          ))}
+        </div>
+
+        <div className={styles.svRacks}>
+          {[
+            [styles.svRed, styles.svBlinkSlow, styles.svGreen, styles.svBlinkR1],
+            [styles.svBlue, styles.svBlinkFast, styles.svGreen, styles.svBlinkR2],
+            [styles.svRed, "", styles.svGreen, styles.svBlinkR3],
+            [styles.svYellow, styles.svBlinkSlow, styles.svGreen, styles.svBlinkFast],
+            [styles.svRed, styles.svBlinkR1, styles.svBlue, styles.svBlinkSlow],
+          ].map((leds, i) => (
+            <div className={styles.svBlade} key={i}>
+              <div className={styles.svBladeDots}>
+                <div className={styles.svBladeDot} />
+                <div className={styles.svBladeDot} />
+                <div className={styles.svBladeDot} />
+              </div>
+              <div className={styles.svBladeLeds}>
+                <div className={`${styles.svLed} ${leds[0]} ${leds[1]}`} />
+                <div className={`${styles.svLed} ${leds[2]} ${leds[3]}`} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className={`${styles.svRacks} ${styles.svRacksBottom}`}>
+          <div className={`${styles.svBlade} ${styles.svBladeShort}`}>
+            <span className={styles.svScreenTitleMuted}>SERVS</span>
+            <div className={styles.svBladeLeds}>
+              <div className={`${styles.svLed} ${styles.svGreen} ${styles.svBlinkFast}`} />
+              <div className={`${styles.svLed} ${styles.svGreen} ${styles.svBlinkFast}`} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.svRight}>
+        <div className={styles.svScreen}>
+          <div className={styles.svScreenTitle}>Data Receiver</div>
+          <svg className={styles.svMailIcon} viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+          </svg>
+        </div>
+
+        <div className={styles.svLedMatrix}>
+          <div className={`${styles.svLed} ${styles.svGreen} ${styles.svBlinkR1}`} />
+          <div className={`${styles.svLed} ${styles.svGreen} ${styles.svBlinkFast}`} />
+          <div className={`${styles.svLed} ${styles.svGreen} ${styles.svBlinkR3}`} />
+          <div className={`${styles.svLed} ${styles.svRed} ${styles.svBlinkSlow}`} />
+          <div className={`${styles.svLed} ${styles.svBlue} ${styles.svBlinkR2}`} />
+          <div className={`${styles.svLed} ${styles.svRed} ${styles.svBlinkFast}`} />
+        </div>
+
+        <div className={styles.svPorts}>
+          <div className={styles.svPortWide} />
+          <div className={styles.svPortSquare} />
+          <div className={styles.svPortSquare} />
+          <div className={styles.svPortWide} />
+        </div>
+
+        <div className={styles.svVentsBottom}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div className={styles.svVentLine} key={i} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ConveyorJourney() {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -178,6 +255,7 @@ export function ConveyorJourney() {
 
   return (
     <div className={styles.stageWrap}>
+      <ServerMachine />
       <div className={`${styles.fade} ${styles.fadeLeft}`} aria-hidden="true" />
       <div className={`${styles.fade} ${styles.fadeRight}`} aria-hidden="true" />
 

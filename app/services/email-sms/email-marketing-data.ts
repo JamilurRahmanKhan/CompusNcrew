@@ -3,6 +3,7 @@ import {
   Bell,
   Building2,
   CalendarCheck,
+  CalendarClock,
   CalendarX2,
   Cog,
   FileWarning,
@@ -28,6 +29,12 @@ import {
   Zap,
 } from "lucide-react";
 
+/** Matches the source design's per-card icon accents exactly (full.png /
+ * resources/PAGE-3.html tint-blue / tint-green / tint-orange / tint-purple /
+ * tint-teal classes). */
+export const tints = ["blue", "green", "orange", "purple", "teal"] as const;
+export type Tint = (typeof tints)[number];
+
 export const trustPoints = [
   { title: "Done For You", copy: "Setup & manage" },
   { title: "No Long-Term Contract", copy: "Cancel anytime" },
@@ -35,9 +42,9 @@ export const trustPoints = [
 ] as const;
 
 export const heroStats = [
-  { value: "247", label: "Leads" },
-  { value: "+38", label: "Bookings" },
-  { value: "71", label: "Reactivated" },
+  { value: "247", label: "Leads", tint: "blue" },
+  { value: "+38", label: "Bookings", tint: "green" },
+  { value: "71", label: "Reactivated", tint: "purple" },
 ] as const;
 
 export const heroFlow = [
@@ -45,6 +52,7 @@ export const heroFlow = [
   { label: "Instant response", icon: Zap },
   { label: "Follow-up", icon: Mail },
   { label: "Booking", icon: CalendarCheck },
+  { label: "Appointment", icon: CalendarClock },
   { label: "Review", icon: ThumbsUp },
   { label: "Rebook", icon: Repeat2 },
 ] as const;
@@ -53,30 +61,35 @@ export const revenueLeaks = [
   {
     index: "01",
     icon: UserX,
+    tint: "blue",
     title: "New Leads Going Cold",
     copy: "People inquire but don't get a quick response. They move on.",
   },
   {
     index: "02",
     icon: FileWarning,
+    tint: "green",
     title: "Estimates Going Unaccepted",
     copy: "You send the quote. They say “I'll think about it.” Then silence.",
   },
   {
     index: "03",
     icon: Users,
+    tint: "orange",
     title: "Old Customers Disappear",
     copy: "You have thousands of past customers. You never contact them again.",
   },
   {
     index: "04",
     icon: CalendarX2,
+    tint: "purple",
     title: "No-Shows & Missed Appointments",
     copy: "They book but forget. Your time and money are wasted.",
   },
   {
     index: "05",
     icon: Repeat2,
+    tint: "red",
     title: "Customers Buy Once & Never Return",
     copy: "No system to follow up, upsell or bring them back for more.",
   },
@@ -195,24 +208,28 @@ export const process = [
   {
     index: "01",
     icon: Search,
+    tint: "blue",
     title: "Audit",
     copy: "We analyze your leads, CRM, follow-up process and identify where revenue is leaking.",
   },
   {
     index: "02",
     icon: Layers,
+    tint: "green",
     title: "Strategy",
     copy: "We create a custom automation plan and strategy for your business.",
   },
   {
     index: "03",
     icon: Cog,
+    tint: "orange",
     title: "Build",
     copy: "We build your automations, email sequences, CRM integrations and campaigns.",
   },
   {
     index: "04",
     icon: Gauge,
+    tint: "purple",
     title: "Optimize",
     copy: "We monitor performance, test, improve and scale your results month after month.",
   },

@@ -3,6 +3,8 @@ import Link from "next/link";
 import {
   ArrowUpRight,
   Check,
+  ChevronRight,
+  Mail,
   MessageSquareText,
   Play,
   Rocket,
@@ -23,8 +25,12 @@ import {
   realResults,
   revenueLeaks,
   timeline,
+  tints,
   trustPoints,
 } from "./email-marketing-data";
+
+const tintClass = (styles: Record<string, string>, tint: string) => styles[`tint_${tint}`];
+const cycleTint = (index: number) => tints[index % tints.length];
 
 export const metadata: Metadata = {
   title: "Email Marketing — Stop Losing Customers You Already Paid to Acquire",
@@ -72,6 +78,19 @@ export default function EmailMarketingPage() {
           </div>
 
           <div className={styles.heroVisual}>
+            <div className={styles.heroStack}>
+            <div className={styles.machineCard}>
+              <video
+                className={styles.machineVideo}
+                src="/media/services/email-marketing-hero.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                aria-label="Automated email machine processing a customer journey from lead to rebook"
+              />
+            </div>
+
             <div className={styles.heroPanel}>
               <div className={styles.heroPanelHead}>
                 <span className={styles.livePulse} aria-hidden="true" />
@@ -84,27 +103,44 @@ export default function EmailMarketingPage() {
                   return (
                     <li key={step.label}>
                       <span className={styles.heroFlowIcon}>
-                        <Icon size={15} aria-hidden="true" />
+                        <Icon size={11} aria-hidden="true" />
                       </span>
                       {step.label}
                     </li>
                   );
                 })}
               </ul>
-              <div className={styles.heroStatRow}>
-                {heroStats.map((stat) => (
-                  <div key={stat.label} className={styles.heroStat}>
+            </div>
+
+            <div className={styles.heroStatCard}>
+              <p className={styles.heroStatCardHead}>Performance overview</p>
+              {heroStats.map((stat) => (
+                <div key={stat.label} className={styles.heroStat}>
+                  <div className={styles.heroStatText}>
                     <strong>{stat.value}</strong>
                     <span>{stat.label}</span>
                   </div>
-                ))}
-              </div>
+                  <svg
+                    className={`${styles.heroSparkline} ${tintClass(styles, stat.tint)}`}
+                    viewBox="0 0 60 20"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                  >
+                    <polyline points="0,16 10,13 20,15 30,9 40,10 50,4 60,2" />
+                  </svg>
+                </div>
+              ))}
             </div>
+
             <div className={`${styles.floatBadge} ${styles.floatBadgeOne}`} aria-hidden="true">
               <MessageSquareText size={16} />
             </div>
             <div className={`${styles.floatBadge} ${styles.floatBadgeTwo}`} aria-hidden="true">
               <Check size={16} />
+            </div>
+            <div className={`${styles.floatBadge} ${styles.floatBadgeThree}`} aria-hidden="true">
+              <Mail size={15} />
+            </div>
             </div>
           </div>
         </div>
@@ -123,8 +159,10 @@ export default function EmailMarketingPage() {
             return (
               <article key={leak.index} className={styles.leakCard}>
                 <div className={styles.leakTop}>
-                  <span>{leak.index}</span>
-                  <Icon size={20} strokeWidth={1.6} aria-hidden="true" />
+                  <span className={`${styles.leakIcon} ${tintClass(styles, leak.tint)}`}>
+                    <Icon size={19} strokeWidth={1.7} aria-hidden="true" />
+                  </span>
+                  <span className={styles.leakIndex}>{leak.index}</span>
                 </div>
                 <h3>{leak.title}</h3>
                 <p>{leak.copy}</p>
@@ -155,11 +193,11 @@ export default function EmailMarketingPage() {
           <h3>Top 10 <span>email services</span> for your business growth.</h3>
         </div>
         <div className={styles.servicesGrid}>
-          {emailServices.map((service) => {
+          {emailServices.map((service, index) => {
             const Icon = service.icon;
             return (
               <article key={service.index} className={styles.serviceCard}>
-                <div className={styles.serviceIcon}>
+                <div className={`${styles.serviceIcon} ${tintClass(styles, cycleTint(index))}`}>
                   <Icon size={19} strokeWidth={1.7} aria-hidden="true" />
                 </div>
                 <span className={styles.serviceIndex}>{service.index}</span>
@@ -256,16 +294,15 @@ export default function EmailMarketingPage() {
             return (
               <div className={styles.processStepWrap} key={step.index}>
                 <article className={styles.processCard}>
-                  <div className={styles.processIcon}>
+                  <div className={`${styles.processIcon} ${tintClass(styles, step.tint)}`}>
                     <Icon size={20} strokeWidth={1.6} aria-hidden="true" />
                   </div>
-                  <span className={styles.processIndex}>{step.index}</span>
-                  <h3>{step.title}</h3>
+                  <h3>{step.index}. {step.title}</h3>
                   <p>{step.copy}</p>
                 </article>
                 {index < process.length - 1 && (
                   <span className={styles.processConnector} aria-hidden="true">
-                    <ArrowUpRight size={16} style={{ transform: "rotate(45deg)" }} />
+                    <ChevronRight size={18} />
                   </span>
                 )}
               </div>
@@ -325,14 +362,18 @@ export default function EmailMarketingPage() {
 
       {/* ================= FINAL CTA ================= */}
       <section className={styles.ctaSection} aria-labelledby="cta-title">
-        <Rocket size={34} strokeWidth={1.5} className={styles.ctaRocket} aria-hidden="true" />
-        <p className={styles.sectionLabel}>Ready when you are</p>
-        <h2 id="cta-title">Ready to stop losing customers?</h2>
-        <p>Let&rsquo;s build your system to convert more leads, re-engage past customers and grow your revenue—automatically.</p>
-        <Link href="/contact" className={styles.finalCta}>
-          Get My Free Growth Audit <ArrowUpRight size={19} aria-hidden="true" />
-        </Link>
-        <p className={styles.ctaNote}>No obligation. No complicated sales pitch.</p>
+        <div className={styles.ctaRocketWrap} aria-hidden="true">
+          <Rocket size={40} strokeWidth={1.3} className={styles.ctaRocket} />
+        </div>
+        <div className={styles.ctaCopy}>
+          <p className={styles.sectionLabel}>Ready when you are</p>
+          <h2 id="cta-title">Ready to stop losing customers?</h2>
+          <p>Let&rsquo;s build your system to convert more leads, re-engage past customers and grow your revenue—automatically.</p>
+          <Link href="/contact" className={styles.finalCta}>
+            Get My Free Growth Audit <ArrowUpRight size={19} aria-hidden="true" />
+          </Link>
+          <p className={styles.ctaNote}>No obligation. No complicated sales pitch.</p>
+        </div>
       </section>
     </div>
   );
