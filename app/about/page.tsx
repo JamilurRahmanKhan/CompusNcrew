@@ -18,18 +18,10 @@ export default function AboutPage() {
           <Reveal>
             <p className="eyebrow mb-6">About</p>
             <h1 className="display display-lg mb-8">
-<<<<<<< HEAD
               A small studio that says so
             </h1>
             <p className="lead max-w-[48ch]">
               Most agency about pages imply a headcount and a floor of an office
-=======
-              A small studio that says so..
-            </h1>
-            <p className="lead max-w-[48ch]">
-              Most agency about pages imply a headcount and a floor of an office
-              
->>>>>>> emon
               building. Ours does not, because the moment a client discovers the
               gap between the page and the reality, everything else we said stops
               being believable.
