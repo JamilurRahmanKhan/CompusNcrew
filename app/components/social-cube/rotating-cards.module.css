@@ -1,0 +1,75 @@
+.wrap{
+  position:absolute;
+  left:50%;
+  top:64%;
+  transform:translateX(-50%);
+  width:980px;
+  height:360px;
+  perspective:900px;
+  text-align:center;
+  color:#fff;
+  overflow:visible;
+  font-size:11px;
+  letter-spacing:.2em;
+  z-index:2;
+  pointer-events:none;
+}
+
+/* The orbit container is locked to the same center point.
+   Only the cards rotate around this fixed axis. */
+.ring{
+  width:1px;
+  height:1px;
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform-style:preserve-3d;
+  animation:spin 18s linear infinite;
+}
+
+.card{
+  position:absolute;
+  width:210px;
+  height:310px;
+  left:-105px;
+  top:-120px;
+  background:rgba(10,10,15,.8);
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:12px;
+  backdrop-filter:blur(10px);
+  overflow:hidden;
+  transform-style:preserve-3d;
+}
+
+.cardImage{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+
+@keyframes spin{
+  from{transform:rotateY(0deg)}
+  to{transform:rotateY(360deg)}
+}
+
+@media (min-width: 901px) {
+ .wrap{
+   left:75%;
+   top:46%;
+ }
+}
+
+@media(max-width:900px){
+ .wrap{
+   top:90%;
+   width:100%;
+   height:190px;
+ }
+ .card{
+   width:175px;
+   height:260px;
+   left:-87.5px;
+   top:-100px;
+ }
+}

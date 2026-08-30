@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mail Boss — Stop Losing Customers You Already Paid to Acquire</title>
+<style>
+  :root{
+    --bg: #ffffff;
+    --ink: #12152c;
+    --muted: #667088;
+    --line: #e7e9f3;
+    --blue: #3b6bf6;
+    --blue-dark: #2547c9;
+    --purple: #8b5cf6;
+    --teal: #0c9488;
+    --gold: #f6c445;
+    --card: #ffffff;
+    --soft: #f2f4fb;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    overflow-x: hidden;
+  }
+
+  /* ambient glows */
+  body::before, body::after{
+    content:"";
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    z-index: 0;
+    pointer-events: none;
+  }
+  body::before{
+    width: 640px; height: 640px;
+    top: -220px; left: -160px;
+    background: radial-gradient(circle, rgba(59,107,246,0.14), transparent 70%);
+  }
+  body::after{
+    width: 640px; height: 640px;
+    top: 40px; right: -220px;
+    background: radial-gradient(circle, rgba(139,92,246,0.12), transparent 70%);
+  }
+
+  .wrap{ max-width: 1280px; margin: 0 auto; padding: 56px 32px 90px; position: relative; z-index: 1; }
+
+  a{ color: inherit; text-decoration: none; }
+
+  /* ================= HEADER ================= */
+  header{ position: relative; z-index: 2; }
+  .nav{
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 26px 0;
+  }
+  .brand{ display: flex; align-items: center; gap: 12px; }
+  .brand-badge{
+    width: 40px; height: 40px; flex-shrink: 0;
+    border-radius: 11px;
+    background: linear-gradient(150deg, var(--blue), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 18px -8px rgba(59,107,246,0.65);
+  }
+  .brand-badge svg{ width: 20px; height: 20px; }
+  .brand-text{ display: flex; flex-direction: column; line-height: 1.1; }
+  .brand-name{ font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
+  .brand-tag{ font-size: 9.5px; font-weight: 700; letter-spacing: 0.14em; color: var(--muted); margin-top: 2px; }
+
+  /* jumping text logo */
+  .jump-logo{ display: flex; }
+  .jump-logo .jgap{ display: inline-block; width: 0.32em; }
+  .jump-logo span.jletter{
+    display: inline-block;
+    background: linear-gradient(160deg, #6f96ff, var(--purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: jump 1.3s ease-in-out infinite;
+  }
+  @keyframes jump{
+    0%, 60%, 100%{ transform: translateY(0); }
+    30%{ transform: translateY(-7px); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .jump-logo span.jletter{ animation: none; }
+  }
+
+  .nav-links{ display: flex; align-items: center; gap: 34px; }
+  .nav-links a{ font-size: 14.5px; color: #4a5372; font-weight: 500; }
+  .nav-links a:hover{ color: var(--ink); }
+
+  .btn{
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 14.5px; font-weight: 700;
+    padding: 12px 20px;
+    border-radius: 11px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .btn svg{ width: 15px; height: 15px; }
+  .btn-primary{
+    background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+    color: #fff;
+    box-shadow: 0 12px 26px -10px rgba(59,107,246,0.5);
+  }
+  .btn-outline{
+    background: #ffffff;
+    border-color: var(--line);
+    color: var(--ink);
+    box-shadow: 0 2px 6px -2px rgba(23,35,90,0.08);
+  }
+  .btn-outline .play{
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 1.5px solid rgba(18,21,44,0.35);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .btn-outline .play svg{ width: 9px; height: 9px; }
+
+  /* ================= HERO ================= */
+  .hero{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    padding: 28px 0 40px;
+    position: relative; z-index: 2;
+  }
+
+  .eyebrow{
+    color: var(--teal);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    margin-bottom: 18px;
+  }
+
+  h1{
+    font-size: 52px;
+    line-height: 1.08;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 22px;
+  }
+  h1 .grad{
+    background: linear-gradient(100deg, var(--blue) 10%, var(--purple) 95%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero-copy p{
+    font-size: 16.5px;
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 480px;
+    margin: 0 0 30px;
+  }
+
+  .cta-row{ display: flex; gap: 14px; margin-bottom: 34px; flex-wrap: wrap; }
+
+  .mini-features{
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    gap: 22px;
+  }
+  .mini-feature{ display: flex; align-items: center; gap: 10px; }
+  .mini-feature .ic{
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    border: 1px solid var(--line);
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mini-feature .ic svg{ width: 15px; height: 15px; stroke: #4a5372; fill: none; stroke-width: 1.8; }
+  .mini-feature .lines{ font-size: 12.5px; line-height: 1.35; }
+  .mini-feature .lines .l1{ color: var(--ink); font-weight: 600; }
+  .mini-feature .lines .l2{ color: var(--muted); }
+
+  /* ---------- machine video card ---------- */
+  .hero-visual{
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .machine-card{
+    position: relative;
+    width: 100%;
+    max-width: 620px;
+    aspect-ratio: 16 / 11.2;
+  }
+  .machine-card video{
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+
+  /* ================= TRUST STRIP ================= */
+  .trust{
+    border-top: 1px solid var(--line);
+    padding: 30px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    position: relative; z-index: 2;
+  }
+  .trust-label{ font-size: 13.5px; color: var(--muted); font-weight: 500; white-space: nowrap; }
+  .trust-logos{ display: flex; align-items: center; gap: 34px; flex-wrap: wrap; }
+  .trust-logos .logo{
+    font-size: 16px; font-weight: 700; color: #3c4360; opacity: 0.82;
+    display: flex; align-items: center; gap: 7px; white-space: nowrap;
+  }
+  .trust-logos .logo svg{ width: 17px; height: 17px; }
+
+  .rating{ display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .stars{ display: flex; gap: 2px; }
+  .stars svg{ width: 15px; height: 15px; fill: var(--gold); }
+  .rating-text{ font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  /* ================= NEXT SECTION TEASER ================= */
+  .leak-section{
+    margin: 46px 0 0;
+    background: linear-gradient(165deg, #eef1fd, #e9edfb);
+    border: 1px solid #e3e7fa;
+    border-radius: 30px;
+    padding: 56px 32px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    z-index: 2;
+  }
+  .leak-section h2{
+    font-size: 30px;
+    font-weight: 800;
+    margin: 0 0 10px;
+    letter-spacing: -0.01em;
+  }
+  .leak-section p{
+    font-size: 15px;
+    color: var(--muted);
+    margin: 0 0 34px;
+  }
+  .wave{ width: 100%; max-width: 760px; height: 46px; margin: 0 auto; opacity: 0.85; }
+
+  @media (max-width: 980px){
+    .hero{ grid-template-columns: 1fr; }
+    .mini-features{ grid-template-columns: repeat(2, auto); }
+    h1{ font-size: 40px; }
+    .nav-links{ display: none; }
+  }
+
+  /* ================= REVENUE CALCULATOR + RESULTS + PLATFORMS + FAQ ================= */
+  .panel-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .panel{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    box-shadow: 0 20px 40px -30px rgba(23,35,90,0.14);
+    padding: 26px 28px;
+  }
+
+  .panel h3{
+    font-size: 19px;
+    font-weight: 800;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .panel .sub{
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0 0 20px;
+  }
+
+  /* ---- calculator ---- */
+  .calc-body{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    align-items: stretch;
+  }
+
+  .calc-field{ margin-bottom: 14px; }
+  .calc-field label{
+    display: block;
+    font-size: 12.5px;
+    color: #3c4360;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .calc-field .input-wrap{
+    position: relative;
+  }
+  .calc-field .prefix, .calc-field .suffix{
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    font-size: 13.5px; color: var(--muted); font-weight: 600;
+    pointer-events: none;
+  }
+  .calc-field .prefix{ left: 12px; }
+  .calc-field .suffix{ right: 12px; }
+  .calc-field input{
+    width: 100%;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    background: var(--soft);
+    border-radius: 10px;
+    padding: 10px 12px;
+    outline: none;
+    font-family: inherit;
+  }
+  .calc-field input.has-prefix{ padding-left: 24px; }
+  .calc-field input.has-suffix{ padding-right: 28px; }
+  .calc-field input:focus{
+    border-color: var(--blue);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(59,107,246,0.14);
+  }
+
+  .calc-result{
+    background: linear-gradient(165deg, #eef2ff, #e8edfe);
+    border: 1px solid #dde3fb;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .calc-result .rlabel{
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #3c4360;
+    margin-bottom: 8px;
+  }
+  .calc-result .rmonth{
+    font-size: 30px;
+    font-weight: 800;
+    color: #16a34a;
+    line-height: 1.15;
+  }
+  .calc-result .rmonth span{ font-size: 15px; font-weight: 700; color: #4a8f63; }
+  .calc-result .ryear{
+    font-size: 18px;
+    font-weight: 800;
+    color: #16a34a;
+    margin-top: 2px;
+  }
+  .calc-result .ryear span{ font-size: 13px; font-weight: 700; color: #4a8f63; }
+  .calc-result .note{
+    font-size: 10.5px;
+    color: var(--muted);
+    margin-top: 8px;
+    margin-bottom: 16px;
+  }
+  .calc-result .btn-primary{
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* ---- real results comparison ---- */
+  .vs-wrap{
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .vs-badge{
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: #fff;
+    font-size: 10.5px;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 5px #fff;
+    z-index: 2;
+  }
+  .result-card{
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px;
+  }
+  .result-card h4{ font-size: 14.5px; font-weight: 800; margin: 0 0 14px; }
+  .result-metric{ margin-bottom: 14px; }
+  .result-metric .num{ font-size: 26px; font-weight: 800; line-height: 1.1; }
+  .result-metric .lab{ font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .result-rate{
+    font-size: 12.5px; font-weight: 700; color: #16a34a;
+    padding-top: 10px; border-top: 1px dashed var(--line);
+  }
+
+  /* ---- platforms ---- */
+  .platform-grid{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px 14px;
+    align-items: center;
+  }
+  .platform{
+    display: flex; align-items: center; gap: 7px;
+    font-size: 14.5px; font-weight: 700; color: #3c4360;
+    white-space: nowrap;
+  }
+  .platform svg{ width: 17px; height: 17px; flex-shrink: 0; }
+
+  /* ---- FAQ ---- */
+  .faq-list{ display: flex; flex-direction: column; }
+  .faq-item{ border-bottom: 1px solid var(--line); }
+  .faq-item:last-child{ border-bottom: none; }
+  .faq-q{
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    padding: 15px 0;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    background: none; border: none; width: 100%; text-align: left;
+    font-family: inherit;
+  }
+  .faq-q svg{
+    width: 16px; height: 16px; flex-shrink: 0; color: var(--muted);
+    transition: transform 0.25s ease;
+  }
+  .faq-item.open .faq-q svg{ transform: rotate(180deg); }
+  .faq-a{
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+  }
+  .faq-a p{
+    margin: 0 0 15px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+    padding-right: 20px;
+  }
+
+  @media (max-width: 980px){
+    .panel-grid{ grid-template-columns: 1fr; }
+    .calc-body{ grid-template-columns: 1fr; }
+    .platform-grid{ grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ================= REVENUE CALCULATOR + RESULTS + PLATFORMS + FAQ ================= -->
+  <div class="panel-grid">
+
+    <!-- Calculator -->
+    <div class="panel">
+      <h3>How Much Revenue Are You Missing?</h3>
+      <p class="sub">Calculate your potential opportunity.</p>
+
+      <div class="calc-body">
+        <div class="calc-fields">
+          <div class="calc-field">
+            <label>Monthly Leads</label>
+            <div class="input-wrap">
+              <input type="number" id="calcLeads" value="100" min="0" step="1">
+            </div>
+          </div>
+          <div class="calc-field">
+            <label>Average Customer Value</label>
+            <div class="input-wrap">
+              <span class="prefix">$</span>
+              <input type="number" id="calcValue" value="500" min="0" step="1" class="has-prefix">
+            </div>
+          </div>
+          <div class="calc-field">
+            <label>Current Close Rate (%)</label>
+            <div class="input-wrap">
+              <input type="number" id="calcRate" value="20" min="0" max="100" step="1" class="has-suffix">
+              <span class="suffix">%</span>
+            </div>
+          </div>
+          <div class="calc-field" style="margin-bottom:0;">
+            <label>Improve By (%)</label>
+            <div class="input-wrap">
+              <input type="number" id="calcImprove" value="5" min="0" max="100" step="1" class="has-suffix">
+              <span class="suffix">%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="calc-result">
+          <div class="rlabel">Your Potential Additional Revenue</div>
+          <div class="rmonth" id="calcMonthly">+$2,500 <span>/month</span></div>
+          <div class="ryear" id="calcYearly">+$30,000 <span>/year</span></div>
+          <div class="note">*Results vary. This is an estimate.</div>
+          <a href="#" class="btn btn-primary">
+            Get My Full Audit
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Real Results -->
+    <div class="panel">
+      <h3>Real Results. Real Businesses.</h3>
+      <p class="sub">&nbsp;</p>
+
+      <div class="vs-wrap">
+        <div class="vs-badge">VS</div>
+
+        <div class="result-card">
+          <h4>HVAC Company</h4>
+          <div class="result-metric">
+            <div class="num" style="color:#2f5cf0;">89</div>
+            <div class="lab">Unclosed Estimates</div>
+          </div>
+          <div class="result-metric" style="margin-bottom:0;">
+            <div class="num" style="color:#2f5cf0;">23</div>
+            <div class="lab">New Conversations Generated</div>
+          </div>
+          <div class="result-rate">+25.8% Recovery Rate</div>
+        </div>
+
+        <div class="result-card">
+          <h4>Dental Practice</h4>
+          <div class="result-metric">
+            <div class="num" style="color:#e53935;">312</div>
+            <div class="lab">Inactive Patients</div>
+          </div>
+          <div class="result-metric" style="margin-bottom:0;">
+            <div class="num" style="color:#e53935;">47</div>
+            <div class="lab">Patients Re-Engaged</div>
+          </div>
+          <div class="result-rate">+15.1% Reactivation Rate</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Platforms -->
+    <div class="panel">
+      <h3>Platforms We Work With</h3>
+      <p class="sub">&nbsp;</p>
+      <div class="platform-grid">
+        <span class="platform">HubSpot</span>
+        <span class="platform"><svg viewBox="0 0 24 24" fill="none" stroke="#4a5372" stroke-width="2"><path d="M7 20V9M7 9l4-6M17 20V9M17 9l-4-6" stroke-linecap="round" stroke-linejoin="round"/></svg>HighLevel</span>
+        <span class="platform">ActiveCampaign</span>
+        <span class="platform">Mailchimp</span>
+        <span class="platform">Brevo</span>
+        <span class="platform" style="color:#ff8a3d;">zapier</span>
+        <span class="platform"><svg viewBox="0 0 24 24" fill="none" stroke="#4a5372" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4" stroke-linecap="round"/></svg>Calendly</span>
+        <span class="platform">Google Workspace</span>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="panel">
+      <h3>Frequently Asked Questions</h3>
+      <p class="sub">&nbsp;</p>
+      <div class="faq-list" id="faqList">
+        <div class="faq-item">
+          <button class="faq-q" type="button">
+            Will you replace our CRM or email platform?
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-a"><p>No — we plug into the CRM and email tools you already use and automate on top of them, so nothing you rely on today gets replaced.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" type="button">
+            Do you write the emails and set everything up?
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-a"><p>Yes. Our team writes the copy, builds the automations, and configures every step end-to-end — it's fully done-for-you.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" type="button">
+            Do I need a large email list to get started?
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-a"><p>Not at all. The system is built to grow your list and convert new leads from day one, whether you're starting from zero or already have contacts.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" type="button">
+            Do you handle SMS and multi-channel too?
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-a"><p>Yes — email, SMS, and other channels are coordinated together so follow-ups reach people wherever they respond best.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" type="button">
+            How long does setup take?
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-a"><p>Most systems are fully built and live within 1–2 weeks, depending on how many workflows and channels you need.</p></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  // ---- Revenue calculator (live) ----
+  const calcLeads = document.getElementById("calcLeads");
+  const calcValue = document.getElementById("calcValue");
+  const calcRate = document.getElementById("calcRate");
+  const calcImprove = document.getElementById("calcImprove");
+  const calcMonthlyOut = document.getElementById("calcMonthly");
+  const calcYearlyOut = document.getElementById("calcYearly");
+
+  function formatMoney(n){
+    return "$" + Math.round(n).toLocaleString("en-US");
+  }
+
+  function recalc(){
+    const leads = parseFloat(calcLeads.value) || 0;
+    const value = parseFloat(calcValue.value) || 0;
+    const currentRate = parseFloat(calcRate.value) || 0;
+    const improve = parseFloat(calcImprove.value) || 0;
+
+    // "Improve By %" is a relative lift on the current close rate
+    // (e.g. 20% closing + a 5% relative improvement -> 21% closing),
+    // not a flat +5 percentage points. This way a business that
+    // already closes well earns a bigger dollar gain from the same
+    // % improvement than one starting from a low close rate —
+    // matching how conversion-rate gains actually compound.
+    const newRate = Math.min(currentRate * (1 + improve / 100), 100);
+    const additionalRatePoints = newRate - currentRate;
+
+    const additionalMonthly = leads * value * (additionalRatePoints / 100);
+    const additionalYearly = additionalMonthly * 12;
+
+    calcMonthlyOut.innerHTML = `+${formatMoney(additionalMonthly)} <span>/month</span>`;
+    calcYearlyOut.innerHTML = `+${formatMoney(additionalYearly)} <span>/year</span>`;
+  }
+
+  [calcLeads, calcValue, calcRate, calcImprove].forEach(el => {
+    el.addEventListener("input", recalc);
+  });
+  recalc();
+
+  // ---- FAQ accordion ----
+  document.querySelectorAll(".faq-item").forEach(item => {
+    const q = item.querySelector(".faq-q");
+    const a = item.querySelector(".faq-a");
+    q.addEventListener("click", () => {
+      const isOpen = item.classList.contains("open");
+      document.querySelectorAll(".faq-item.open").forEach(other => {
+        if (other !== item){
+          other.classList.remove("open");
+          other.querySelector(".faq-a").style.maxHeight = null;
+        }
+      });
+      if (isOpen){
+        item.classList.remove("open");
+        a.style.maxHeight = null;
+      } else {
+        item.classList.add("open");
+        a.style.maxHeight = a.scrollHeight + "px";
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
