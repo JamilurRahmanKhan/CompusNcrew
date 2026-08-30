@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useReducer } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 
 import { DesignGalleryCanvas } from "./design-gallery-canvas";
 import styles from "./design-gallery.module.css";
@@ -46,9 +46,17 @@ export function DesignGallery() {
     ? null
     : portfolioWorks[state.activeProjectIndex] ?? null;
 
+  const [introVisible, setIntroVisible] = useState(true);
+
   useEffect(() => {
     return acquireGalleryPageLock(document.body);
   }, []);
+
+  useEffect(() => {
+    if (state.status !== "ready") return;
+    const hide = setTimeout(() => setIntroVisible(false), 3500);
+    return () => clearTimeout(hide);
+  }, [state.status]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);
@@ -157,17 +165,14 @@ export function DesignGallery() {
           onFatalError={() => dispatch({ type: "renderer-failed" })}
         />
 
-        <div
-          className={styles.introToast}
-          data-visible={state.status !== "ready"}
-        >
-          <span className={styles.introEyebrow}>CompassNCrew</span>
-          <p className={styles.introTitle}>Welcome to our Design Studio</p>
-          <p className={styles.introBody}>Here we showcase our portfolio.</p>
-        </div>
-
         {state.status === "ready" ? (
           <div className={styles.interfaceLayer}>
+            <div className={styles.introToast} data-visible={introVisible}>
+              <span className={styles.introEyebrow}>CompassNCrew</span>
+              <p className={styles.introTitle}>Welcome to our Design Studio</p>
+              <p className={styles.introBody}>Here we showcase our portfolio.</p>
+            </div>
+
             <GalleryHelp
               visible={state.helpVisible}
               classNames={{
@@ -206,6 +211,17 @@ export function DesignGallery() {
           </div>
         ) : null}
 
+        <div
+          className={styles.loadingLayer}
+          data-hidden={state.status !== "loading"}
+          role="status"
+          aria-live="polite"
+        >
+          <p className={styles.loadingStatus}>
+            <span className={styles.loadingMark} aria-hidden="true" />
+            Preparing the design gallery
+          </p>
+        </div>
       </div>
 
       {activeProject ? (
