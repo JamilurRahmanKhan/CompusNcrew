@@ -19,15 +19,12 @@
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: #d3d9e6 transparent;
+  scrollbar-width: none;
   padding: 0.5rem 2.5rem 1rem 14.75rem;
   cursor: grab;
 }
 .scroller:active { cursor: grabbing; }
-.scroller::-webkit-scrollbar { height: 6px; }
-.scroller::-webkit-scrollbar-thumb { background: #d3d9e6; border-radius: 10px; }
-.scroller::-webkit-scrollbar-track { background: transparent; }
+.scroller::-webkit-scrollbar { display: none; }
 
 .track {
   position: relative;

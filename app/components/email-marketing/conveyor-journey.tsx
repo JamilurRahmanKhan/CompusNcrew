@@ -241,13 +241,11 @@ export function ConveyorJourney() {
 
     pauseEvents.forEach((evt) => scroller.addEventListener(evt, pauseAuto, { passive: true }));
     resumeEvents.forEach((evt) => scroller.addEventListener(evt, scheduleResume, { passive: true }));
-    scroller.addEventListener("mouseenter", pauseAuto);
     scroller.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
       pauseEvents.forEach((evt) => scroller.removeEventListener(evt, pauseAuto));
       resumeEvents.forEach((evt) => scroller.removeEventListener(evt, scheduleResume));
-      scroller.removeEventListener("mouseenter", pauseAuto);
       scroller.removeEventListener("scroll", onScroll);
       if (resumeTimer) clearTimeout(resumeTimer);
     };

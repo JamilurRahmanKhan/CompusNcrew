@@ -41,6 +41,7 @@
   padding: 0.6rem 0.75rem;
   outline: none;
   font-family: inherit;
+  color-scheme: light;
 }
 .field input.hasPrefix { padding-left: 1.5rem; }
 .field input.hasSuffix { padding-right: 1.75rem; }
@@ -67,7 +68,7 @@
 .resultYear span { font-size: 0.8rem; font-weight: 700; color: #4a8f63; }
 .note { font-size: 0.66rem; color: #667088; margin: 0.5rem 0 1rem; }
 
-.cta {
+.body a.cta {
   display: inline-flex;
   justify-content: center;
   align-items: center;

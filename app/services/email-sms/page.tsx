@@ -13,6 +13,9 @@ import {
 import { ConveyorJourney } from "../../components/email-marketing/conveyor-journey";
 import { FaqAccordion } from "../../components/email-marketing/faq-accordion";
 import { RevenueCalculator } from "../../components/email-marketing/revenue-calculator";
+import { HeroBackground } from "./hero-background";
+import { IndustryMailPattern } from "./industry-mail-pattern";
+import { TiltCard } from "./tilt-card";
 import styles from "./email-sms.module.css";
 import {
   beforeAfter,
@@ -42,7 +45,7 @@ export default function EmailMarketingPage() {
     <div className={styles.page}>
       {/* ================= HERO ================= */}
       <section className={styles.hero} aria-labelledby="email-hero-title">
-        <div className={styles.heroGlow} aria-hidden="true" />
+        <HeroBackground />
         <div className={styles.heroGrid}>
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>Email · CRM · Automation</p>
@@ -114,16 +117,18 @@ export default function EmailMarketingPage() {
           {revenueLeaks.map((leak) => {
             const Icon = leak.icon;
             return (
-              <article key={leak.index} className={styles.leakCard}>
-                <div className={styles.leakTop}>
-                  <span className={`${styles.leakIcon} ${tintClass(styles, leak.tint)}`}>
-                    <Icon size={19} strokeWidth={1.7} aria-hidden="true" />
-                  </span>
-                  <span className={styles.leakIndex}>{leak.index}</span>
+              <TiltCard key={leak.index} className={styles.leakCard}>
+                <div className={styles.leakCardInner}>
+                  <div className={styles.leakTop}>
+                    <span className={`${styles.leakIcon} ${tintClass(styles, leak.tint)}`}>
+                      <Icon size={19} strokeWidth={1.7} aria-hidden="true" />
+                    </span>
+                    <span className={styles.leakIndex}>{leak.index}</span>
+                  </div>
+                  <h3>{leak.title}</h3>
+                  <p>{leak.copy}</p>
                 </div>
-                <h3>{leak.title}</h3>
-                <p>{leak.copy}</p>
-              </article>
+              </TiltCard>
             );
           })}
         </div>
@@ -142,7 +147,7 @@ export default function EmailMarketingPage() {
           <p className={styles.journeyCaption}>
             We don&rsquo;t just send emails. <b>We build systems that grow your business.</b>
           </p>
-          <p className={styles.journeyHint}>Drag or scroll to explore &middot; hover pauses the belt</p>
+          <p className={styles.journeyHint}>Drag or scroll to explore</p>
         </div>
 
         <div className={styles.servicesHead}>
@@ -153,14 +158,16 @@ export default function EmailMarketingPage() {
           {emailServices.map((service, index) => {
             const Icon = service.icon;
             return (
-              <article key={service.index} className={styles.serviceCard}>
-                <div className={`${styles.serviceIcon} ${tintClass(styles, cycleTint(index))}`}>
-                  <Icon size={19} strokeWidth={1.7} aria-hidden="true" />
+              <TiltCard key={service.index} className={styles.serviceCard}>
+                <div className={styles.serviceCardInner}>
+                  <div className={`${styles.serviceIcon} ${tintClass(styles, cycleTint(index))}`}>
+                    <Icon size={19} strokeWidth={1.7} aria-hidden="true" />
+                  </div>
+                  <span className={styles.serviceIndex}>{service.index}</span>
+                  <h4>{service.title}</h4>
+                  <p>{service.copy}</p>
                 </div>
-                <span className={styles.serviceIndex}>{service.index}</span>
-                <h4>{service.title}</h4>
-                <p>{service.copy}</p>
-              </article>
+              </TiltCard>
             );
           })}
         </div>
@@ -168,6 +175,8 @@ export default function EmailMarketingPage() {
 
       {/* ================= INDUSTRIES + HOW IT WORKS ================= */}
       <section className={styles.industrySection} aria-labelledby="industry-title">
+        <IndustryMailPattern />
+        <div className={styles.industryContent}>
         <header className={styles.sectionHead}>
           <p className={styles.sectionLabel}>Who we serve</p>
           <h2 id="industry-title">Built for your industry.</h2>
@@ -237,6 +246,7 @@ export default function EmailMarketingPage() {
             </div>
           </div>
         </div>
+        </div>
       </section>
 
       {/* ================= PROCESS ================= */}
@@ -250,13 +260,15 @@ export default function EmailMarketingPage() {
             const Icon = step.icon;
             return (
               <div className={styles.processStepWrap} key={step.index}>
-                <article className={styles.processCard}>
-                  <div className={`${styles.processIcon} ${tintClass(styles, step.tint)}`}>
-                    <Icon size={20} strokeWidth={1.6} aria-hidden="true" />
+                <TiltCard className={styles.processCard}>
+                  <div className={styles.processCardInner}>
+                    <div className={`${styles.processIcon} ${tintClass(styles, step.tint)}`}>
+                      <Icon size={20} strokeWidth={1.6} aria-hidden="true" />
+                    </div>
+                    <h3>{step.index}. {step.title}</h3>
+                    <p>{step.copy}</p>
                   </div>
-                  <h3>{step.index}. {step.title}</h3>
-                  <p>{step.copy}</p>
-                </article>
+                </TiltCard>
                 {index < process.length - 1 && (
                   <span className={styles.processConnector} aria-hidden="true">
                     <ChevronRight size={18} />
@@ -303,8 +315,13 @@ export default function EmailMarketingPage() {
             <h3>Platforms we work with</h3>
             <p className={styles.panelSub}>&nbsp;</p>
             <div className={styles.platformGrid}>
-              {platforms.map((platform) => (
-                <span key={platform} className={styles.platformChip}>{platform}</span>
+              {platforms.map((platform, index) => (
+                <span key={platform} className={styles.platformChip}>
+                  <span className={`${styles.platformMark} ${tintClass(styles, cycleTint(index))}`}>
+                    {platform.charAt(0)}
+                  </span>
+                  {platform}
+                </span>
               ))}
             </div>
           </div>

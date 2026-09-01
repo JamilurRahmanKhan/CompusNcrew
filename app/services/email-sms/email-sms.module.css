@@ -84,15 +84,136 @@ svg.tint_red { color: var(--red); }
   background: var(--navy);
   color: #f5f6fb;
 }
-.heroGlow {
+/* ================= HERO BACKGROUND SYSTEM ================= */
+.heroBg {
   position: absolute;
-  inset: -20% -10% auto;
-  height: 40rem;
-  background:
-    radial-gradient(42rem 28rem at 16% 10%, rgba(59, 107, 246, 0.22), transparent 62%),
-    radial-gradient(36rem 24rem at 88% 28%, rgba(139, 92, 246, 0.16), transparent 60%);
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
   pointer-events: none;
 }
+
+/* Layer 1 — deep animated gradient mesh */
+.heroMesh {
+  position: absolute;
+  inset: -15%;
+  background:
+    radial-gradient(46rem 34rem at 18% 20%, rgba(59, 107, 246, 0.32), transparent 60%),
+    radial-gradient(42rem 32rem at 82% 26%, rgba(139, 92, 246, 0.26), transparent 60%),
+    radial-gradient(38rem 30rem at 45% 100%, rgba(8, 145, 178, 0.2), transparent 65%);
+  background-size: 160% 160%;
+  background-position: 0% 0%, 100% 100%, 50% 100%;
+  animation: heroMeshShift 26s ease-in-out infinite alternate;
+  transition: filter 0.4s ease;
+}
+.hero:hover .heroMesh {
+  filter: brightness(1.12);
+}
+@keyframes heroMeshShift {
+  to { background-position: 22% 16%, 78% 84%, 38% 88%; }
+}
+
+/* Layer 2 — aurora blobs, each wrapper carries its own parallax depth */
+.heroAurora { position: absolute; inset: 0; }
+.auroraLayer {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(calc(var(--parallax-x, 0) * var(--depth, 20) * 1px), calc(var(--parallax-y, 0) * var(--depth, 20) * 1px), 0);
+  transition: transform 0.5s ease-out;
+  will-change: transform;
+}
+.auroraBlob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.55;
+  transition: opacity 0.4s ease;
+  will-change: transform;
+}
+.hero:hover .auroraBlob { opacity: 0.8; }
+
+.auroraBlob1 {
+  width: 26rem; height: 26rem; left: 6%; top: -4%;
+  background: radial-gradient(circle, rgba(59, 107, 246, 0.85), transparent 70%);
+  animation: auroraFloat1 18s ease-in-out infinite;
+}
+.auroraBlob2 {
+  width: 22rem; height: 22rem; right: 8%; top: 22%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.75), transparent 70%);
+  animation: auroraFloat2 22s ease-in-out infinite;
+}
+.auroraBlob3 {
+  width: 20rem; height: 20rem; left: 32%; bottom: -14%;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.6), transparent 70%);
+  animation: auroraFloat3 25s ease-in-out infinite;
+}
+@keyframes auroraFloat1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(30px, 22px, 0) scale(1.08); }
+}
+@keyframes auroraFloat2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-26px, 26px, 0) scale(0.94); }
+}
+@keyframes auroraFloat3 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(20px, -18px, 0) scale(1.06); }
+}
+
+/* Layer 3 — cursor spotlight, driven by --mouse-x / --mouse-y from JS */
+.heroSpotlight {
+  position: absolute;
+  inset: 0;
+  opacity: var(--spotlight-opacity, 0);
+  transition: opacity 0.5s ease;
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    420px 420px at var(--mouse-x, 50%) var(--mouse-y, 30%),
+    rgba(130, 150, 255, 0.16),
+    rgba(139, 92, 246, 0.08) 45%,
+    transparent 72%
+  );
+}
+
+/* Layer 4 — floating particles */
+.heroParticles {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(calc(var(--parallax-x, 0) * 10px), calc(var(--parallax-y, 0) * 10px), 0);
+  transition: transform 0.5s ease-out;
+  will-change: transform;
+}
+.particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #cdd9ff;
+  box-shadow: 0 0 6px 1px rgba(160, 180, 255, 0.85);
+  opacity: 0.3;
+  animation-name: particleFloat;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes particleFloat {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.2; }
+  50% { transform: translate3d(0, -20px, 0) scale(1.4); opacity: 0.75; }
+}
+
+/* Layer 6 — ultra-light grain, purely cinematic */
+.heroNoise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroMesh, .auroraBlob, .particle { animation: none; }
+  .auroraLayer, .heroParticles { transition: none; transform: none; }
+}
+
 .heroGrid {
   position: relative;
   z-index: 1;
@@ -299,16 +420,121 @@ svg.tint_red { color: var(--red); }
   padding: 0 clamp(1.25rem, 5vw, 3rem);
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 1.1rem;
+  perspective: 1200px;
 }
+
+@property --border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* ===== 3D glass card shell — handles tilt, lift, and the neon border ===== */
 .leakCard {
-  padding: 1.5rem 1.25rem;
-  border-radius: 1.1rem;
-  background: var(--card);
-  border: 1px solid var(--line);
-  box-shadow: 0 20px 40px -32px rgba(23, 35, 90, 0.16);
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--ty, 0px)) scale(var(--s, 1));
+  transition: transform 0.2s ease-out;
 }
+.leakCard:hover {
+  --s: 1.03;
+  --ty: -6px;
+}
+
+/* soft blurred trail behind the light — stays masked to the border ring,
+   so the blur can never bleed past the card's rounded rect */
+.leakCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--border-angle), transparent 0%, #05060f 8%, #2b1f52 16%, #05060f 24%, transparent 34%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter: blur(4px);
+  opacity: 0.75;
+  animation: leakBorderRotate 5s linear infinite;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+  pointer-events: none;
+}
+.leakCard:hover::before {
+  opacity: 1;
+  filter: blur(6px);
+}
+
+/* crisp neon ring traced exactly along the border stroke */
+.leakCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--border-angle), transparent 0%, #a48bff 5%, #05060f 14%, #2b1f52 22%, #05060f 30%, transparent 38%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: leakBorderRotate 5s linear infinite;
+  transition: padding 0.3s ease;
+  pointer-events: none;
+}
+.leakCard:hover::after {
+  padding: 2.5px;
+}
+
+@keyframes leakBorderRotate {
+  to { --border-angle: 360deg; }
+}
+
+/* ===== glass surface ===== */
+.leakCardInner {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  padding: 1.5rem 1.25rem;
+  border-radius: inherit;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.68));
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 -22px 30px -26px rgba(90, 70, 200, 0.28) inset,
+    0 24px 46px -22px rgba(9, 11, 30, 0.45),
+    0 10px 20px -12px rgba(9, 11, 30, 0.35),
+    0 40px 65px -30px rgba(76, 60, 200, 0.28);
+  transition: box-shadow 0.3s ease;
+}
+.leakCard:hover .leakCardInner {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 -26px 34px -24px rgba(90, 70, 200, 0.35) inset,
+    0 34px 62px -20px rgba(9, 11, 30, 0.55),
+    0 14px 26px -14px rgba(9, 11, 30, 0.42),
+    0 50px 85px -30px rgba(76, 60, 200, 0.38);
+}
+
+/* glossy sweep, loops every 6s */
+.leakCardInner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(75deg, transparent 42%, rgba(255, 255, 255, 0.6) 50%, transparent 58%);
+  transform: translateX(-130%);
+  animation: leakShine 6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes leakShine {
+  0%, 65% { transform: translateX(-130%); }
+  85%, 100% { transform: translateX(130%); }
+}
+
 .leakTop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
 .leakIcon {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -316,10 +542,18 @@ svg.tint_red { color: var(--red); }
   height: 2.6rem;
   border-radius: 50%;
   flex-shrink: 0;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset,
+    0 6px 14px -6px rgba(9, 11, 30, 0.3),
+    0 0 16px -3px currentColor;
+  transition: transform 0.3s ease;
+}
+.leakCard:hover .leakIcon {
+  transform: translateZ(28px) scale(1.06);
 }
 .leakIndex { font-size: 0.72rem; font-weight: 800; color: var(--muted); }
-.leakCard h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 800; letter-spacing: -0.005em; line-height: 1.3; color: var(--ink); }
-.leakCard p { margin: 0; font-size: 0.83rem; line-height: 1.55; color: var(--muted); }
+.leakCard h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 800; letter-spacing: -0.008em; line-height: 1.3; color: var(--ink); }
+.leakCard p { margin: 0; font-size: 0.83rem; line-height: 1.6; color: var(--muted); }
 
 /* ================= JOURNEY ================= */
 .journeySection {
@@ -350,16 +584,97 @@ svg.tint_red { color: var(--red); }
   padding: 0 clamp(1.25rem, 5vw, 3rem);
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 1rem;
+  perspective: 1200px;
 }
+
 .serviceCard {
   position: relative;
-  padding: 1.35rem 1.1rem 1.2rem;
-  border-radius: 1.1rem;
-  background: var(--card);
-  border: 1px solid var(--line);
-  box-shadow: 0 20px 40px -34px rgba(23, 35, 90, 0.14);
+  overflow: hidden;
+  border-radius: 20px;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--ty, 0px)) scale(var(--s, 1));
+  transition: transform 0.2s ease-out;
 }
+.serviceCard:hover {
+  --s: 1.03;
+  --ty: -6px;
+}
+.serviceCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--border-angle), transparent 0%, #05060f 8%, #2b1f52 16%, #05060f 24%, transparent 34%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter: blur(4px);
+  opacity: 0.75;
+  animation: leakBorderRotate 5s linear infinite;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+  pointer-events: none;
+}
+.serviceCard:hover::before {
+  opacity: 1;
+  filter: blur(6px);
+}
+.serviceCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--border-angle), transparent 0%, #a48bff 5%, #05060f 14%, #2b1f52 22%, #05060f 30%, transparent 38%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: leakBorderRotate 5s linear infinite;
+  transition: padding 0.3s ease;
+  pointer-events: none;
+}
+.serviceCard:hover::after {
+  padding: 2.5px;
+}
+
+.serviceCardInner {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  padding: 1.35rem 1.1rem 1.2rem;
+  border-radius: inherit;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.68));
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 -22px 30px -26px rgba(90, 70, 200, 0.28) inset,
+    0 24px 46px -22px rgba(9, 11, 30, 0.45),
+    0 10px 20px -12px rgba(9, 11, 30, 0.35),
+    0 40px 65px -30px rgba(76, 60, 200, 0.28);
+  transition: box-shadow 0.3s ease;
+}
+.serviceCard:hover .serviceCardInner {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 -26px 34px -24px rgba(90, 70, 200, 0.35) inset,
+    0 34px 62px -20px rgba(9, 11, 30, 0.55),
+    0 14px 26px -14px rgba(9, 11, 30, 0.42),
+    0 50px 85px -30px rgba(76, 60, 200, 0.38);
+}
+.serviceCardInner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(75deg, transparent 42%, rgba(255, 255, 255, 0.6) 50%, transparent 58%);
+  transform: translateX(-130%);
+  animation: leakShine 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
 .serviceIcon {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -367,13 +682,54 @@ svg.tint_red { color: var(--red); }
   height: 2.5rem;
   border-radius: 0.65rem;
   margin-bottom: 0.9rem;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset,
+    0 6px 14px -6px rgba(9, 11, 30, 0.3),
+    0 0 16px -3px currentColor;
+  transition: transform 0.3s ease;
+}
+.serviceCard:hover .serviceIcon {
+  transform: translateZ(28px) scale(1.06);
 }
 .serviceIndex { position: absolute; top: 1.35rem; right: 1.1rem; font-size: 0.68rem; font-weight: 800; color: #a7adc0; }
 .serviceCard h4 { margin: 0 0 0.4rem; font-size: 0.92rem; font-weight: 800; line-height: 1.3; }
 .serviceCard p { margin: 0; font-size: 0.78rem; line-height: 1.5; color: var(--muted); }
 
 /* ================= INDUSTRY ================= */
-.industrySection { padding: clamp(4.5rem, 9vw, 7rem) 0; background: var(--page-bg); color: var(--ink); }
+.industrySection { position: relative; overflow: hidden; padding: clamp(4.5rem, 9vw, 7rem) 0; background: var(--page-bg); color: var(--ink); }
+.industryContent { position: relative; z-index: 1; }
+
+.mailPattern {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(ellipse 62% 46% at 50% 20%, transparent 0%, transparent 55%, #000 85%);
+  mask-image: radial-gradient(ellipse 62% 46% at 50% 20%, transparent 0%, transparent 55%, #000 85%);
+}
+.mailIconDepth {
+  position: absolute;
+  color: rgba(79, 70, 229, 0.5);
+  transform: translate3d(calc(var(--mail-px, 0) * var(--depth, 6) * 1px), calc(var(--mail-py, 0) * var(--depth, 6) * 1px), 0);
+  transition: transform 0.5s ease-out;
+  will-change: transform;
+}
+.mailIconLarge { color: rgba(79, 70, 229, 0.13); }
+.mailIconFloat {
+  display: block;
+  animation-name: mailFloat;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes mailFloat {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(4px, -6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mailIconFloat { animation: none; }
+  .mailIconDepth { transition: none; transform: none; }
+}
 .industryGrid {
   display: flex;
   flex-wrap: wrap;
@@ -397,7 +753,7 @@ svg.tint_red { color: var(--red); }
 }
 .industryChip svg { color: var(--blue); }
 .industryCtaRow { display: flex; justify-content: center; margin-top: 2.25rem; }
-.industryCta {
+a.industryCta {
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
@@ -423,9 +779,11 @@ svg.tint_red { color: var(--red); }
   padding: 0 clamp(1.25rem, 5vw, 3rem);
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   gap: 1.5rem;
-  align-items: start;
+  align-items: stretch;
 }
 .timelineCard, .compareCard {
+  display: flex;
+  flex-direction: column;
   padding: clamp(1.5rem, 3vw, 2rem);
   border-radius: 1.25rem;
   background: var(--card);
@@ -464,7 +822,8 @@ svg.tint_red { color: var(--red); }
 .timelineTime { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
 .timelineCopy { font-size: 0.85rem; color: var(--ink); line-height: 1.4; }
 
-.compareGrid { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 1.35rem; }
+.compareGrid { position: relative; display: grid; flex: 1; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 1.35rem; }
+.compareCol { display: flex; flex-direction: column; }
 .compareBadge {
   position: absolute;
   left: 50%;
@@ -484,7 +843,7 @@ svg.tint_red { color: var(--red); }
 }
 .compareLabelBad { margin: 0 0 0.75rem; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--red); }
 .compareLabelGood { margin: 0 0 0.75rem; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--green); }
-.compareCol ul { display: flex; flex-direction: column; gap: 0.65rem; margin: 0; padding: 0; list-style: none; }
+.compareCol ul { display: flex; flex: 1; flex-direction: column; justify-content: space-between; gap: 0.65rem; margin: 0; padding: 0; list-style: none; }
 .compareCol li { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.79rem; line-height: 1.4; color: var(--ink); }
 .compareCol:first-child li svg { color: var(--red); flex-shrink: 0; margin-top: 0.15rem; }
 .compareCol:last-child li svg { color: var(--green); flex-shrink: 0; margin-top: 0.15rem; }
@@ -501,17 +860,99 @@ svg.tint_red { color: var(--red); }
   width: min(100%, 78rem);
   margin: clamp(2.75rem, 5vw, 4rem) auto 0;
   padding: 0 clamp(1.25rem, 5vw, 3rem);
+  perspective: 1200px;
 }
 .processStepWrap { display: flex; align-items: center; flex: 1 1 14rem; min-width: 13rem; }
+
 .processCard {
   flex: 1;
-  padding: 1.5rem 1.35rem;
-  border-radius: 1.1rem;
-  background: var(--card);
-  border: 1px solid var(--line);
   position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--ty, 0px)) scale(var(--s, 1));
+  transition: transform 0.2s ease-out;
 }
+.processCard:hover {
+  --s: 1.03;
+  --ty: -6px;
+}
+.processCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--border-angle), transparent 0%, #05060f 8%, #2b1f52 16%, #05060f 24%, transparent 34%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter: blur(4px);
+  opacity: 0.75;
+  animation: leakBorderRotate 5s linear infinite;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+  pointer-events: none;
+}
+.processCard:hover::before {
+  opacity: 1;
+  filter: blur(6px);
+}
+.processCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--border-angle), transparent 0%, #a48bff 5%, #05060f 14%, #2b1f52 22%, #05060f 30%, transparent 38%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: leakBorderRotate 5s linear infinite;
+  transition: padding 0.3s ease;
+  pointer-events: none;
+}
+.processCard:hover::after {
+  padding: 2.5px;
+}
+
+.processCardInner {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  padding: 1.5rem 1.35rem;
+  border-radius: inherit;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.68));
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 -22px 30px -26px rgba(30, 20, 70, 0.3) inset,
+    0 24px 46px -22px rgba(9, 11, 30, 0.5),
+    0 10px 20px -12px rgba(9, 11, 30, 0.4),
+    0 40px 65px -30px rgba(20, 14, 50, 0.32);
+  transition: box-shadow 0.3s ease;
+}
+.processCard:hover .processCardInner {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 -26px 34px -24px rgba(30, 20, 70, 0.38) inset,
+    0 34px 62px -20px rgba(9, 11, 30, 0.6),
+    0 14px 26px -14px rgba(9, 11, 30, 0.46),
+    0 50px 85px -30px rgba(20, 14, 50, 0.42);
+}
+.processCardInner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(75deg, transparent 42%, rgba(255, 255, 255, 0.6) 50%, transparent 58%);
+  transform: translateX(-130%);
+  animation: leakShine 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
 .processIcon {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -519,6 +960,14 @@ svg.tint_red { color: var(--red); }
   height: 2.6rem;
   border-radius: 0.75rem;
   margin-bottom: 1rem;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset,
+    0 6px 14px -6px rgba(9, 11, 30, 0.3),
+    0 0 16px -3px currentColor;
+  transition: transform 0.3s ease;
+}
+.processCard:hover .processIcon {
+  transform: translateZ(28px) scale(1.06);
 }
 .processCard h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 800; }
 .processCard p { margin: 0; font-size: 0.8rem; line-height: 1.55; color: var(--muted); }
@@ -531,7 +980,7 @@ svg.tint_red { color: var(--red); }
 
 /* ================= CALCULATOR / RESULTS / PLATFORMS / FAQ ================= */
 .panelSection { display: flex; flex-direction: column; gap: 1.1rem; width: min(100%, 78rem); margin: 0 auto; padding: clamp(4.5rem, 9vw, 7rem) clamp(1.25rem, 5vw, 3rem); background: var(--page-bg); color: var(--ink); }
-.panelGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
+.panelGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; align-items: start; }
 .panel {
   background: var(--card);
   border: 1px solid var(--line);
@@ -570,8 +1019,36 @@ svg.tint_red { color: var(--red); }
 .resultLab { font-size: 0.74rem; color: var(--muted); margin-top: 0.15rem; }
 .resultRate { font-size: 0.78rem; font-weight: 700; color: var(--green); padding-top: 0.6rem; border-top: 1px dashed var(--line); }
 
-.platformGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.1rem 0.9rem; align-items: center; }
-.platformChip { font-size: 0.9rem; font-weight: 700; color: #3c4360; }
+.platformGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.85rem; }
+.platformChip {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.9rem;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #3c4360;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.platformChip:hover {
+  transform: translateY(-2px);
+  border-color: transparent;
+  box-shadow: 0 14px 26px -16px rgba(23, 35, 90, 0.35);
+}
+.platformMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
 
 /* ================= FINAL CTA ================= */
 .ctaSection {
@@ -648,7 +1125,10 @@ svg.tint_red { color: var(--red); }
 
 @media (max-width: 900px) {
   .heroGrid { grid-template-columns: 1fr; padding-top: 6.5rem; }
-  .heroVisual { order: -1; margin-bottom: 1rem; }
+  .heroCopy { display: contents; }
+  .eyebrow, .hero h1, .heroLead { order: -1; }
+  .heroVisual { order: 0; margin-bottom: 1rem; }
+  .heroCtas, .trustRow { order: 1; }
   .heroStack { max-width: 26rem; }
   .leaksGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .servicesGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
